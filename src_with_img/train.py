@@ -30,8 +30,8 @@ def train(train_dataloader, model, loss_function, optimizer, device, bptt, ntoke
             # if batch_size != bptt: # only one last batch
                 # src_mask = src_mask[:batch_size, :batch_size]
             
-            pred = model(data)
-            loss = loss_function(pred, targets)
+            pred = model(data.to(device))
+            loss = loss_function(pred, targets.to(device))
 
             optimizer.zero_grad()
             loss.backward()
@@ -56,9 +56,10 @@ def evaluate(val_dataloader, model, loss_function, device, bptt, ntokens):
                 # src_mask = transformer.generate_square_subsequent_mask(seq_len).to(device)
                 # if batch_size != bptt:
                     # src_mask = src_mask[:batch_size, :batch_size]
-                pred = model(data)
+
+                pred = model(data.to(divece))
                 # pred_frat = pred.view(-1, ntokens)
-                total_loss += batch_size * loss_function(pred, targets).item()
+                total_loss += batch_size * loss_function(pred, targets.to(device)).item()
                 pbar.update()
 
     return total_loss / len(val_dataloader)
@@ -92,14 +93,15 @@ def main():
     dropout = 0.1
     bptt = 35
 
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    if torch.cuda.device_count() > 0:
-        print("---------- Use GPU ----------")
-    else:
-        print("---------- Use CPU ----------")
-
     model = swin_transformer.SwinTransformer(img_height=1920, img_width=3840,
                                              output_img_size=1920*3840)
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    if torch.cuda.device_count() > 0:
+        print("---------- Use", torch.cuda.device_count(), "GPUs ----------")
+        model = nn.DataParallel(model)
+    else:
+        print("---------- Use CPU ----------")
+    model.to(device)
 
     # loss_function = nn.CrossEntropyLoss()
     loss_function = nn.MSELoss()
