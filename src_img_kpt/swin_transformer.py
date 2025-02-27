@@ -571,7 +571,7 @@ class SwinTransformer(nn.Module):
 
         self.apply(self._init_weights)
 
-        self.fc = nn.Linear(num_classes, output_img_size * 3) # FIXME added self
+        self.fc = nn.Linear(num_classes, 3*output_img_size) # FIXME added self
 
     def _init_weights(self, m):
         if isinstance(m, nn.Linear):

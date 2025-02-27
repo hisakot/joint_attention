@@ -10,7 +10,7 @@ import torch
 from torch.utils.data import Dataset
 
 class Dataset(Dataset):
-    def __init__(self, data_dir, transform=None, is_train=True):
+    def __init__(self, data_dir, img_height, img_width, transform=None, is_train=True):
         self.data_dir = data_dir
         self.transform = transform
         self.is_train = is_train
@@ -18,9 +18,6 @@ class Dataset(Dataset):
         self.targets = []
         self.img_paths = []
         self.gt_paths = []
-        img_height = 1920
-        img_width = 3840
-        self.p_size = 384
         self.H = img_height
         self.W = img_width
         
@@ -40,16 +37,16 @@ class Dataset(Dataset):
     def __getitem__(self, idx):
         # inputs
         inputs = []
-        '''
         mmpose = self.mmpose[idx]
         frame_id = mmpose["frame_id"]
         instances = mmpose["instances"]
-        kptmap = np.zeros((self.H, self.W))
+        # kptmap = np.zeros((self.H, self.W))
+        kpts = [] # (human_num * keypoints)
 
         for instance in instances:
-            keypoints = instance["keypoints"]
+            keypoints = instance["keypoints"] # 133 human points
             scores = instance["keypoint_scores"]
-
+            '''
             if sum(score >= 0.5 for score in scores) > 133 / 5:
                 for kpt in keypoints:
                     gaze_x = kpt[0]
@@ -58,37 +55,35 @@ class Dataset(Dataset):
         kptmap = kptmap[:, :, np.newaxis]
         kptmap = (kptmap * 255).astype(np.uint8)
         kptmap = torch.tensor(kptmap, dtype=torch.int64)
-        inputs.extend(kptmap)
         '''
+            if sum(score >= 0.5 for score in scores) > 133 / 5:
+                kpts.append(keypoints)
+        kptmap = generate_pose_heatmap(self.H, self.W, kpts, sigma=3) # 1, H, W
+        kptmap = cv2.resize(kptmap, (1920, 960))
+        kptmap = kptmap.astype(np.float32)
+        kptmap /= 255.
+        kptmap = np.transpose(kptmap, (2, 0, 1)) # C, H, W
+
         img = cv2.imread(self.img_paths[idx]) # H, W, C
         img = cv2.resize(img, (1920, 960))
         img = img.astype(np.float32)
         img /= 255.
         img = np.transpose(img, (2, 0, 1)) # C, H, W
-        '''
-        img = torch.as_tensor(img)
-        patches = img.unfold(1, 480, 480).unfold(2, 960, 960)
-        inputs = np.array(inputs)
-        '''
+
+        inputs = {"kptmap" : torch.tensor(kptmap, dtype=torch.float32),
+                  "img" : torch.tensor(img, dtype=torch.float32)}
 
         # labels
-        labels = []
         targets = cv2.imread(self.gt_paths[idx])
-        targets = targets.astype(np.float32)
-        targets = cv2.resize(targets, None, fx=0.1, fy=0.1)
-        targets /= 255.
+        targets = cv2.resize(targets, (384, 192))
         targets = np.transpose(targets, (2, 0, 1)) # C, H, W
-        '''
-        labels.extend(targets)
-        labels = np.array(labels)
-        '''
 
         '''
         if self.transform:
             data = self.transform(data)
         '''
 
-        return torch.tensor(img, dtype=torch.float32), torch.tensor(targets, dtype=torch.float32)
+        return inputs, torch.tensor(targets, dtype=torch.float32)
 
 def load_mmpose_json(json_path):
     with open(json_path) as f:
@@ -188,3 +183,25 @@ def get_head_direction(face_kpt):
 
     return p1, p2, yaw, pitch, roll
 
+def generate_pose_heatmap(img_height, img_width, keypoints, sigma=3):
+    human_num = len(keypoints)
+    pose_heatmap = np.zeros((human_num, img_height, img_width), dtype=np.float32)
+    heatmap = np.zeros((1, img_height, img_width), dtype=np.float32)
+
+    for i, kpts in enumerate(keypoints):
+        for kpt in kpts:
+            x = int(kpt[0])
+            y = int(kpt[1])
+            pose_heatmap[i, y, x] = 255
+
+    ksize = int(6 * sigma) | 1 # XOR (ksize needs to be odd)
+    for i in range(human_num):
+        pose_heatmap[i] = cv2.GaussianBlur(pose_heatmap[i], (ksize, ksize), sigma)
+        heatmap += pose_heatmap[i]
+
+    heatmap = np.max(heatmap, axis=0)
+    heatmap = heatmap[:, :, np.newaxis]
+    heatmap_cat = np.concatenate([heatmap, heatmap], 2)
+    heatmap_cat = np.concatenate([heatmap, heatmap_cat], 2)
+
+    return heatmap_cat
