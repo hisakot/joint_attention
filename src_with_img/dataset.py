@@ -61,7 +61,7 @@ class Dataset(Dataset):
         inputs.extend(kptmap)
         '''
         img = cv2.imread(self.img_paths[idx]) # H, W, C
-        img = cv2.resize(img, (1920, 960))
+# img = cv2.resize(img, (1920, 960))
         img = img.astype(np.float32)
         img /= 255.
         img = np.transpose(img, (2, 0, 1)) # C, H, W

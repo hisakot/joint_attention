@@ -14,7 +14,7 @@ import dataset
 import fusion
 import kptnet
 import transformer
-import swin_transformer
+import swin_transformer_v2
 
 def train(train_dataloader, swin_t, unet, fuse, loss_function, optimizer, device, bptt, ntokens):
     swin_t.train()
@@ -36,8 +36,8 @@ def train(train_dataloader, swin_t, unet, fuse, loss_function, optimizer, device
             # src_mask = transformer.generate_square_subsequent_mask(seq_len).to(device)
             # if batch_size != bptt: # only one last batch
                 # src_mask = src_mask[:batch_size, :batch_size]
-            
             img_pred = swin_t(img.to(device))
+            print(torch.cuda.memory_summary(device=None, abbreviated=False))
             kpt_pred = unet(kptmap.to(device))
             pred = fuse(img_pred, kpt_pred)
             loss = loss_function(pred, targets.to(device))
@@ -45,6 +45,8 @@ def train(train_dataloader, swin_t, unet, fuse, loss_function, optimizer, device
             optimizer.zero_grad()
             loss.backward()
             torch.nn.utils.clip_grad_norm_(swin_t.parameters(), 0.5)
+            torch.nn.utils.clip_grad_norm_(unet.parameters(), 0.5)
+            torch.nn.utils.clip_grad_norm_(fuse.parameters(), 0.5)
             optimizer.step()
 
             total_loss += loss.item()
@@ -73,7 +75,7 @@ def evaluate(val_dataloader, swin_t, unet, fuse, loss_function, device, bptt, nt
                 kpt_pred = unet(kptmap.to(device))
                 pred = fuse(img_pred, kpt_pred.to(device))
                 # pred_frat = pred.view(-1, ntokens)
-                total_loss += batch_size * loss_function(pred, targets).item()
+                total_loss += batch_size * loss_function(pred, targets.to(device)).item()
                 pbar.update()
 
     return total_loss / len(val_dataloader)
@@ -107,10 +109,10 @@ def main():
     dropout = 0.1
     bptt = 35
 
-    img_height = 960
-    img_width = 1920
+    img_height = 1920
+    img_width = 3840
 
-    swin_t = swin_transformer.SwinTransformer(img_height=img_height, img_width=img_width,
+    swin_t = swin_transformer_v2.SwinTransformerV2(img_height=img_height, img_width=img_width,
                                              output_img_size=192*384)
     unet = kptnet.UNet(in_channels=3, out_channels=3)
     fuse = fusion.Fusion(in_channels=6, out_channels=3)

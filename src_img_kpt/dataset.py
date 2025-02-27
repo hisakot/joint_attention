@@ -59,13 +59,13 @@ class Dataset(Dataset):
             if sum(score >= 0.5 for score in scores) > 133 / 5:
                 kpts.append(keypoints)
         kptmap = generate_pose_heatmap(self.H, self.W, kpts, sigma=3) # 1, H, W
-        kptmap = cv2.resize(kptmap, (1920, 960))
+# kptmap = cv2.resize(kptmap, (1920, 960))
         kptmap = kptmap.astype(np.float32)
         kptmap /= 255.
         kptmap = np.transpose(kptmap, (2, 0, 1)) # C, H, W
 
         img = cv2.imread(self.img_paths[idx]) # H, W, C
-        img = cv2.resize(img, (1920, 960))
+# img = cv2.resize(img, (1920, 960))
         img = img.astype(np.float32)
         img /= 255.
         img = np.transpose(img, (2, 0, 1)) # C, H, W

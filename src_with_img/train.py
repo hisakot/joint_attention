@@ -94,8 +94,8 @@ def main():
     bptt = 35
 
     p_size = 384
-    img_height = 960
-    img_width = 1920
+    img_height = 1920
+    img_width = 3840
 
     model = swin_transformer.SwinTransformer(img_height=img_height, img_width=img_width,
                                              output_img_size=192*384)
