@@ -70,8 +70,8 @@ class Dataset(Dataset):
         img /= 255.
         img = np.transpose(img, (2, 0, 1)) # C, H, W
 
-        inputs = {"kptmap" : torch.tensor(kptmap, dtype=torch.float32),
-                  "img" : torch.tensor(img, dtype=torch.float32)}
+        inputs = {"kptmap" : torch.tensor(kptmap, dtype=torch.float16),
+                  "img" : torch.tensor(img, dtype=torch.float16)}
 
         # labels
         targets = cv2.imread(self.gt_paths[idx])
@@ -83,7 +83,7 @@ class Dataset(Dataset):
             data = self.transform(data)
         '''
 
-        return inputs, torch.tensor(targets, dtype=torch.float32)
+        return inputs, torch.tensor(targets, dtype=torch.float16)
 
 def load_mmpose_json(json_path):
     with open(json_path) as f:

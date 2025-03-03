@@ -14,7 +14,14 @@ import dataset
 import fusion
 import kptnet
 import transformer
+import swin_transformer
 import swin_transformer_v2
+
+def print_memory_usage():
+    allocated = torch.cuda.memory_allocated() / 1024**2
+    reserved = torch.cuda.memory_reserved() / 1024**2
+    print(F"GPU Memory Allocated: {allocated:.2f} MB")
+    print(F"GPU Memory Reserved: {reserved:.2f} MB")
 
 def train(train_dataloader, swin_t, unet, fuse, loss_function, optimizer, device, bptt, ntokens):
     swin_t.train()
@@ -36,9 +43,16 @@ def train(train_dataloader, swin_t, unet, fuse, loss_function, optimizer, device
             # src_mask = transformer.generate_square_subsequent_mask(seq_len).to(device)
             # if batch_size != bptt: # only one last batch
                 # src_mask = src_mask[:batch_size, :batch_size]
-            img_pred = swin_t(img.to(device))
-            print(torch.cuda.memory_summary(device=None, abbreviated=False))
-            kpt_pred = unet(kptmap.to(device))
+
+            print("Before loading images: ")
+            print_memory_usage()
+            img = img.to(device)
+            kptmap = kptmap.to(device)
+            print("After loading images: ")
+            print_memory_usage()
+
+            img_pred = swin_t(img)
+            kpt_pred = unet(kptmap)
             pred = fuse(img_pred, kpt_pred)
             loss = loss_function(pred, targets.to(device))
 
@@ -112,8 +126,12 @@ def main():
     img_height = 1920
     img_width = 3840
 
+
+    print("Before loading model:")
+    print_memory_usage()
+
     swin_t = swin_transformer_v2.SwinTransformerV2(img_height=img_height, img_width=img_width,
-                                             output_img_size=192*384)
+                                              output_img_size=192*384)
     unet = kptnet.UNet(in_channels=3, out_channels=3)
     fuse = fusion.Fusion(in_channels=6, out_channels=3)
 
@@ -125,9 +143,18 @@ def main():
         # fuse = nn.DataParallel(fusion)
     else:
         print("---------- Use CPU ----------")
-    swin_t.to(device)
+    print("Before pass model to cuda:")
+    print_memory_usage()
+    swin_t.half().to(device)
+    swin_t = torch.compile(swin_t)
+    print("After swin_t cuda:")
+    print_memory_usage()
     unet.to(device)
+    print("After unet cuda:")
+    print_memory_usage()
     fuse.to(device)
+    print("After unet cuda:")
+    print_memory_usage()
 
     # loss_function = nn.CrossEntropyLoss()
     loss_function = nn.MSELoss()
