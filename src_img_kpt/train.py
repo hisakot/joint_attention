@@ -44,13 +44,8 @@ def train(train_dataloader, swin_t, unet, fuse, loss_function, optimizer, device
             # if batch_size != bptt: # only one last batch
                 # src_mask = src_mask[:batch_size, :batch_size]
 
-            print("Before loading images: ")
-            print_memory_usage()
             img = img.to(device)
             kptmap = kptmap.to(device)
-            print("After loading images: ")
-            print_memory_usage()
-
             img_pred = swin_t(img)
             kpt_pred = unet(kptmap)
             pred = fuse(img_pred, kpt_pred)
@@ -127,9 +122,6 @@ def main():
     img_width = 3840
 
 
-    print("Before loading model:")
-    print_memory_usage()
-
     swin_t = swin_transformer_v2.SwinTransformerV2(img_height=img_height, img_width=img_width,
                                               output_img_size=192*384)
     unet = kptnet.UNet(in_channels=3, out_channels=3)
@@ -143,18 +135,9 @@ def main():
         # fuse = nn.DataParallel(fusion)
     else:
         print("---------- Use CPU ----------")
-    print("Before pass model to cuda:")
-    print_memory_usage()
     swin_t.half().to(device)
-    swin_t = torch.compile(swin_t)
-    print("After swin_t cuda:")
-    print_memory_usage()
-    unet.to(device)
-    print("After unet cuda:")
-    print_memory_usage()
-    fuse.to(device)
-    print("After unet cuda:")
-    print_memory_usage()
+    unet.half().to(device)
+    fuse.half().to(device)
 
     # loss_function = nn.CrossEntropyLoss()
     loss_function = nn.MSELoss()
