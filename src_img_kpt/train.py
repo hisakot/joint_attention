@@ -25,6 +25,8 @@ def print_memory_usage():
 
 def train(train_dataloader, swin_t, unet, fuse, loss_function, optimizer, device, bptt, ntokens):
     swin_t.train()
+    unet.train()
+    fuse.train()
     total_loss =  0
     start_time = time.time()
     # src_mask = transformer.generate_square_subsequent_mask(bptt).to(device)
@@ -65,24 +67,28 @@ def train(train_dataloader, swin_t, unet, fuse, loss_function, optimizer, device
 
 def evaluate(val_dataloader, swin_t, unet, fuse, loss_function, device, bptt, ntokens):
     swin_t.eval()
+    unet.eval()
+    fuse.eval()
     total_loss = 0
     # src_mask = transformer.generate_square_subsequent_mask(bptt).to(device)
 
     with torch.no_grad():
         with tqdm(total=len(val_dataloader)) as pbar:
-            for data, mask, targets, length in val_dataloader:
+            for data in val_dataloader:
                 inputs = data[0]
-                kptmap = data["kptmap"]
+                kptmap = inputs["kptmap"]
                 img = inputs["img"]
                 targets = data[1]
-                batch_size = data.size(0)
+                batch_size = len(data[1])
                 # seq_len = data.size(1)
                 # src_mask = transformer.generate_square_subsequent_mask(seq_len).to(device)
                 # if batch_size != bptt:
                     # src_mask = src_mask[:batch_size, :batch_size]
-                img_pred = swin_t(img.to(device))
-                kpt_pred = unet(kptmap.to(device))
-                pred = fuse(img_pred, kpt_pred.to(device))
+                img = img.to(device)
+                kptmap = kptmap.to(device)
+                img_pred = swin_t(img)
+                kpt_pred = unet(kptmap)
+                pred = fuse(img_pred, kpt_pred)
                 # pred_frat = pred.view(-1, ntokens)
                 total_loss += batch_size * loss_function(pred, targets.to(device)).item()
                 pbar.update()
@@ -103,7 +109,7 @@ def collate_fn(batch):
 def main():
 
     parser = argparse.ArgumentParser(description="Process some integers")
-    parser.add_argument("--batch_size", required=True, type=int)
+    parser.add_argument("--batch_size", required=False, default=1, type=int)
     parser.add_argument("--checkpoint", required=False,
                         help="if you want to retry training, write model path")
     args = parser.parse_args()

@@ -192,7 +192,8 @@ def generate_pose_heatmap(img_height, img_width, keypoints, sigma=3):
         for kpt in kpts:
             x = int(kpt[0])
             y = int(kpt[1])
-            pose_heatmap[i, y, x] = 255
+            if x >= 0 and x < img_width and y >= 0 and y < img_height:
+                pose_heatmap[i, y, x] = 255
 
     ksize = int(6 * sigma) | 1 # XOR (ksize needs to be odd)
     for i in range(human_num):
