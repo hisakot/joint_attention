@@ -13,6 +13,7 @@ from torch.utils.tensorboard import SummaryWriter
 import dataset
 import transformer
 import swin_transformer
+import swin_transformer_v2
 
 def train(train_dataloader, model, loss_function, optimizer, device, bptt, ntokens):
     model.train()
@@ -78,7 +79,7 @@ def collate_fn(batch):
 def main():
 
     parser = argparse.ArgumentParser(description="Process some integers")
-    parser.add_argument("--batch_size", required=True, type=int)
+    parser.add_argument("--batch_size", required=False, type=int, default=1)
     parser.add_argument("--checkpoint", required=False,
                         help="if you want to retry training, write model path")
     args = parser.parse_args()
@@ -97,15 +98,15 @@ def main():
     img_height = 1920
     img_width = 3840
 
-    model = swin_transformer.SwinTransformer(img_height=img_height, img_width=img_width,
-                                             output_img_size=192*384)
+    model = swin_transformer_v2.SwinTransformerV2(img_height=img_height, img_width=img_width,
+                                                  output_img_size=192*384)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:
         print("---------- Use", torch.cuda.device_count(), "GPUs ----------")
         model = nn.DataParallel(model)
     else:
         print("---------- Use CPU ----------")
-    model.to(device)
+    model.half().to(device)
 
     # loss_function = nn.CrossEntropyLoss()
     loss_function = nn.MSELoss()

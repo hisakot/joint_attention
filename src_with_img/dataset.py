@@ -20,13 +20,15 @@ class Dataset(Dataset):
         self.gt_paths = []
         img_height = 1920
         img_width = 3840
-        self.p_size = 384
         self.H = img_height
         self.W = img_width
         
         mmpose_paths = glob.glob(data_dir + "/mmpose/*.json")
-        img_paths = glob.glob(data_dir + "/frames/*.png")
-        gt_paths = glob.glob(data_dir + "/gt_heatmap/*.PNG")
+        mmpose_paths.sort()
+        img_paths = glob.glob(data_dir + "/frames/*/*.png")
+        img_paths.sort()
+        gt_paths = glob.glob(data_dir + "/gt_heatmap/*/*.png")
+        gt_paths.sort()
 
         for file in mmpose_paths:
             instances = load_mmpose_json(file)
@@ -88,7 +90,7 @@ class Dataset(Dataset):
             data = self.transform(data)
         '''
 
-        return torch.tensor(img, dtype=torch.float32), torch.tensor(targets, dtype=torch.float32)
+        return torch.tensor(img, dtype=torch.float16), torch.tensor(targets, dtype=torch.float16)
 
 def load_mmpose_json(json_path):
     with open(json_path) as f:
