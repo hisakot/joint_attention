@@ -22,8 +22,11 @@ class Dataset(Dataset):
         self.W = img_width
         
         mmpose_paths = glob.glob(data_dir + "/mmpose/*.json")
-        img_paths = glob.glob(data_dir + "/frames/*.png")
-        gt_paths = glob.glob(data_dir + "/gt_heatmap/*.PNG")
+        mmpose_paths.sort()
+        img_paths = glob.glob(data_dir + "/frames/*/*.png")
+        img_paths.sort()
+        gt_paths = glob.glob(data_dir + "/gt_heatmap/*/*.PNG")
+        gt_paths.sort()
 
         for file in mmpose_paths:
             instances = load_mmpose_json(file)
@@ -59,13 +62,13 @@ class Dataset(Dataset):
             if sum(score >= 0.5 for score in scores) > 133 / 5:
                 kpts.append(keypoints)
         kptmap = generate_pose_heatmap(self.H, self.W, kpts, sigma=3) # 1, H, W
-# kptmap = cv2.resize(kptmap, (1920, 960))
+        kptmap = cv2.resize(kptmap, (self.W, self.H))
         kptmap = kptmap.astype(np.float32)
         kptmap /= 255.
         kptmap = np.transpose(kptmap, (2, 0, 1)) # C, H, W
 
         img = cv2.imread(self.img_paths[idx]) # H, W, C
-# img = cv2.resize(img, (1920, 960))
+        img = cv2.resize(img, (self.W, self.H))
         img = img.astype(np.float32)
         img /= 255.
         img = np.transpose(img, (2, 0, 1)) # C, H, W
@@ -77,13 +80,14 @@ class Dataset(Dataset):
         targets = cv2.imread(self.gt_paths[idx])
         targets = cv2.resize(targets, (384, 192))
         targets = np.transpose(targets, (2, 0, 1)) # C, H, W
+        targets = torch.tensor(targets, dtype=torch.float16)
 
         '''
         if self.transform:
             data = self.transform(data)
         '''
 
-        return inputs, torch.tensor(targets, dtype=torch.float16)
+        return inputs, targets
 
 def load_mmpose_json(json_path):
     with open(json_path) as f:

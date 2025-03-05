@@ -124,12 +124,11 @@ def main():
     dropout = 0.1
     bptt = 35
 
-    img_height = 1920
-    img_width = 3840
+    H = 480
+    W = 960
 
-
-    swin_t = swin_transformer_v2.SwinTransformerV2(img_height=img_height, img_width=img_width,
-                                              output_img_size=192*384)
+    swin_t = swin_transformer_v2.SwinTransformerV2(img_height=H, img_width=W,
+                                                   output_img_size=192*384)
     unet = kptnet.UNet(in_channels=3, out_channels=3)
     fuse = fusion.Fusion(in_channels=6, out_channels=3)
 
@@ -156,8 +155,6 @@ def main():
 
     train_data_dir = "data/train"
     val_data_dir = "data/val"
-    H = 1920
-    W = 3840
     train_data = dataset.Dataset(train_data_dir, img_height=H, img_width=W, transform=None, is_train=True)
     val_data = dataset.Dataset(val_data_dir, img_height=H, img_width=W, transform=None, is_train=False)
 
