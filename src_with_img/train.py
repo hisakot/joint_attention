@@ -75,7 +75,7 @@ def main():
 
     batch_size = args.batch_size
 
-    lr = 1e-4
+    lr = 1e-3
     img_height = 1920
     img_width = 3840
 
@@ -104,9 +104,9 @@ def main():
     val_data = dataset.Dataset(val_data_dir, transform=None, is_train=False)
 
     train_dataloader = DataLoader(train_data, batch_size=batch_size,
-                                  collate_fn=collate_fn, num_workers=1)
+                                  collate_fn=collate_fn, shuffle=True, num_workers=1)
     val_dataloader = DataLoader(val_data, batch_size=batch_size,
-                                collate_fn=collate_fn, num_workers=1)
+                                collate_fn=collate_fn, shuffle=False, num_workers=1)
 
     if args.checkpoint:
         checkpoint = torch.load(args.checkpoint)

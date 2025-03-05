@@ -162,9 +162,9 @@ def main():
     val_data = dataset.Dataset(val_data_dir, img_height=H, img_width=W, transform=None, is_train=False)
 
     train_dataloader = DataLoader(train_data, batch_size=batch_size,
-                                  num_workers=1)
+                                  shuffle=True, num_workers=1)
     val_dataloader = DataLoader(val_data, batch_size=batch_size,
-                                num_workers=1)
+                                shuffle=False, num_workers=1)
 
     if args.checkpoint:
         checkpoint = torch.load(args.checkpoint)

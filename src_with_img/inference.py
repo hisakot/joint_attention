@@ -5,6 +5,7 @@ import os
 import time
 
 import cv2
+import numpy as np
 from tqdm import tqdm
 
 import torch
@@ -27,11 +28,16 @@ def test(test_dataloader, model, device):
 
     with torch.no_grad():
         for i, (data, mask, targets, length) in enumerate(test_dataloader):
-            data = data.to(device)
-            pred = model(data)
+            img = data.to(device)
+            pred = model(img)
             pred = pred.to("cpu").detach().numpy().copy()
-            pred = cv2.resize(pred, None, fx=10, fy=10)
+            pred = np.squeeze(pred, 0)
+            pred = np.transpose(pred, (1, 2, 0))
+            pred *= 255.
+            pred = pred.astype(np.uint8)
+            pred = cv2.resize(pred, (3840, 1920))
             cv2.imwrite("data/test/pred/" + str(i).zfill(6) + ".png", pred)
+            exit()
 
     return pred
 
@@ -67,12 +73,12 @@ def main():
         model.load_state_dict(state_dict)
     model.eval()
 
-    test_data_dir = "data/test"
+    test_data_dir = "data/val"
     test_data = dataset.Dataset(test_data_dir, transform=None, is_train=False)
-    test_loader = DataLoader(test_data, batch_size=1,
+    test_dataloader = DataLoader(test_data, batch_size=1,
                              collate_fn=train.collate_fn, num_workers=1) # FIXME collate_fn -> common.py or delete
 
-    test(test_data, model, device)
+    test(test_dataloader, model, device)
 
 if __name__ == "__main__":
     main()
