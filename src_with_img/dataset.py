@@ -63,15 +63,10 @@ class Dataset(Dataset):
         inputs.extend(kptmap)
         '''
         img = cv2.imread(self.img_paths[idx]) # H, W, C
-# img = cv2.resize(img, (1920, 960))
         img = img.astype(np.float32)
         img /= 255.
         img = np.transpose(img, (2, 0, 1)) # C, H, W
-        '''
-        img = torch.as_tensor(img)
-        patches = img.unfold(1, 480, 480).unfold(2, 960, 960)
-        inputs = np.array(inputs)
-        '''
+        img = torch.tensor(img, dtype=torch.float16)
 
         # labels
         labels = []
@@ -80,17 +75,14 @@ class Dataset(Dataset):
         targets = cv2.resize(targets, None, fx=0.1, fy=0.1)
         targets /= 255.
         targets = np.transpose(targets, (2, 0, 1)) # C, H, W
-        '''
-        labels.extend(targets)
-        labels = np.array(labels)
-        '''
+        targets = torch.tensor(targets, dtype=torch.float16)
 
         '''
         if self.transform:
             data = self.transform(data)
         '''
 
-        return torch.tensor(img, dtype=torch.float16), torch.tensor(targets, dtype=torch.float16)
+        return img, targets
 
 def load_mmpose_json(json_path):
     with open(json_path) as f:

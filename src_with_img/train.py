@@ -15,21 +15,16 @@ import transformer
 import swin_transformer
 import swin_transformer_v2
 
-def train(train_dataloader, model, loss_function, optimizer, device, bptt, ntokens):
+def train(train_dataloader, model, loss_function, optimizer, device):
     model.train()
     total_loss =  0
     start_time = time.time()
-    # src_mask = transformer.generate_square_subsequent_mask(bptt).to(device)
 
     num_batches = len(train_dataloader)
 
     with tqdm(total=len(train_dataloader)) as pbar:
         for data, mask, targets, length in train_dataloader:
             batch_size = data.size(0)
-            # seq_len = data.size(1)
-            # src_mask = transformer.generate_square_subsequent_mask(seq_len).to(device)
-            # if batch_size != bptt: # only one last batch
-                # src_mask = src_mask[:batch_size, :batch_size]
 
             pred = model(data.to(device))
             loss = loss_function(pred, targets.to(device))
@@ -44,22 +39,16 @@ def train(train_dataloader, model, loss_function, optimizer, device, bptt, ntoke
 
     return total_loss / len(train_dataloader)
 
-def evaluate(val_dataloader, model, loss_function, device, bptt, ntokens):
+def evaluate(val_dataloader, model, loss_function, device):
     model.eval()
     total_loss = 0
-    # src_mask = transformer.generate_square_subsequent_mask(bptt).to(device)
 
     with torch.no_grad():
         with tqdm(total=len(val_dataloader)) as pbar:
             for data, mask, targets, length in val_dataloader:
                 batch_size = data.size(0)
-                # seq_len = data.size(1)
-                # src_mask = transformer.generate_square_subsequent_mask(seq_len).to(device)
-                # if batch_size != bptt:
-                    # src_mask = src_mask[:batch_size, :batch_size]
 
                 pred = model(data.to(device))
-                # pred_frat = pred.view(-1, ntokens)
                 total_loss += batch_size * loss_function(pred, targets.to(device)).item()
                 pbar.update()
 
@@ -83,18 +72,10 @@ def main():
     parser.add_argument("--checkpoint", required=False,
                         help="if you want to retry training, write model path")
     args = parser.parse_args()
-    lr = 1e-4
+
     batch_size = args.batch_size
 
-    ntokens = 3840
-    emsize = 512
-    d_hid = 2048
-    nlayers = 6
-    nhead = 8
-    dropout = 0.1
-    bptt = 35
-
-    p_size = 384
+    lr = 1e-4
     img_height = 1920
     img_width = 3840
 
@@ -148,12 +129,12 @@ def main():
         print(f"Epoch {epoch+1}\n--------------------")
         try:
             # train
-            train_loss = train(train_dataloader, model, loss_function, optimizer, device, bptt, ntokens)
+            train_loss = train(train_dataloader, model, loss_function, optimizer, device)
             train_loss_list.append(train_loss)
 
             # test
             with torch.no_grad():
-                val_loss = evaluate(val_dataloader, model, loss_function, device, bptt, ntokens)
+                val_loss = evaluate(val_dataloader, model, loss_function, device)
                 val_loss_list.append(val_loss)
 
             print("Epoch %d : train_loss %.3f" % (epoch + 1, train_loss))
