@@ -592,8 +592,8 @@ class SwinTransformerV2(nn.Module):
         for bly in self.layers:
             bly._init_respostnorm()
 
-        self.avgpool1d = nn.AvgPool1d(kernel_size=25)
-        self.fc = nn.Linear(1000, 3*output_img_size) # FIXME added self
+        self.avgpool1d = nn.AvgPool1d(kernel_size=25) # FIXME added self
+        self.fc = nn.Linear(self.num_classes, 3*output_img_size) # FIXME added self
 
     def _init_weights(self, m):
         if isinstance(m, nn.Linear):
@@ -613,38 +613,25 @@ class SwinTransformerV2(nn.Module):
         return {"cpb_mlp", "logit_scale", 'relative_position_bias_table'}
 
     def forward_features(self, x):
-        x = self.patch_embed(x)
-        print("after patch_embed: ", x.size())
+        x = self.patch_embed(x) # (1, 460800, 96)
         if self.ape:
             x = x + self.absolute_pos_embed
-        x = self.pos_drop(x)
-        print("after pos_drop: ", x.size())
+        x = self.pos_drop(x) # (1, 460800, 96)
 
         for layer in self.layers:
-            x = layer(x)
-            print("after layer: ", x.size())
+            x = layer(x) # (1, 115200, 192)->(1, 28800, 384)->(1, 7200, 768)->(1, 7200, 768)
 
-        x = self.norm(x)  # B L C
-        print("after norm: ", x.size())
-# x = self.avgpool(x.transpose(1, 2))  # B C 1
-        print("after avgpool: ", x.size())
-        x = torch.flatten(x, 1)
+        x = self.norm(x)  # B L C # (1, 7200, 768)
+        # x = self.avgpool(x.transpose(1, 2))  # B C 1 # FIXME comment out
+        x = torch.flatten(x, 1) # (1, 5529600)
         return x
 
     def forward(self, x):
-        print("num_features: ", self.num_features)
-        print("before forward: ", x.size())
-        print("===== forward features =====")
         x = self.forward_features(x)
-        print("after forward: ", x.size())
-# x = self.head(x)
-        print("after head: ", x.size())
-        x = self.avgpool1d(x)
-        print("after avgpool1d: ", x.size())
-# x = self.fc(x) # FIXME added self
+        # x = self.head(x) # FIXME comment out
+        x = self.avgpool1d(x) # (1, 221184)
+        # x = self.fc(x) # FIXME added self
         x = x.reshape(-1, 3, 192, 384) # FIXME added self
-        print("after reshape: ", x.size())
-        exit()
         return x
 
     def flops(self):
