@@ -1,6 +1,7 @@
 import argparse
 import glob
 import time
+import numpy as np
 from tqdm import tqdm
 
 import torch
@@ -124,7 +125,7 @@ def main():
         start_epoch = 0
 
     epochs = 1000
-    early_stopping = np.inf, 10, 0]
+    early_stopping = [np.inf, 10, 0]
     for epoch in range(epochs):
         epoch += start_epoch
         print(f"Epoch {epoch+1}\n--------------------")
