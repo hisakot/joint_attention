@@ -621,7 +621,7 @@ class SwinTransformerV2(nn.Module):
 
         for layer in self.layers:
             x = layer(x)
-        print("after layer: ", x.size())
+            print("after layer: ", x.size())
 
         x = self.norm(x)  # B L C
         print("after norm: ", x.size())
