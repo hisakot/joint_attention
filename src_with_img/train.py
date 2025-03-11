@@ -80,7 +80,7 @@ def main():
     img_width = 3840
 
     model = swin_transformer_v2.SwinTransformerV2(img_height=img_height, img_width=img_width,
-                                                  embed_dim=192, output_img_size=192*384)
+                                                  embed_dim=96, output_img_size=192*384)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:
         print("---------- Use", torch.cuda.device_count(), "GPUs ----------")

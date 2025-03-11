@@ -592,7 +592,8 @@ class SwinTransformerV2(nn.Module):
         for bly in self.layers:
             bly._init_respostnorm()
 
-        self.fc = nn.Linear(num_classes, 3*output_img_size) # FIXME added self
+        self.avgpool1d = nn.AvgPool1d(kernel_size=25)
+        self.fc = nn.Linear(1000, 3*output_img_size) # FIXME added self
 
     def _init_weights(self, m):
         if isinstance(m, nn.Linear):
@@ -625,7 +626,7 @@ class SwinTransformerV2(nn.Module):
 
         x = self.norm(x)  # B L C
         print("after norm: ", x.size())
-        x = self.avgpool(x.transpose(1, 2))  # B C 1
+# x = self.avgpool(x.transpose(1, 2))  # B C 1
         print("after avgpool: ", x.size())
         x = torch.flatten(x, 1)
         return x
@@ -636,12 +637,14 @@ class SwinTransformerV2(nn.Module):
         print("===== forward features =====")
         x = self.forward_features(x)
         print("after forward: ", x.size())
-        x = self.head(x)
+# x = self.head(x)
         print("after head: ", x.size())
-        x = self.fc(x) # FIXME added self
-        print("after fc: ", x.size())
-        exit()
+        x = self.avgpool1d(x)
+        print("after avgpool1d: ", x.size())
+# x = self.fc(x) # FIXME added self
         x = x.reshape(-1, 3, 192, 384) # FIXME added self
+        print("after reshape: ", x.size())
+        exit()
         return x
 
     def flops(self):
