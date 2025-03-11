@@ -613,21 +613,27 @@ class SwinTransformerV2(nn.Module):
 
     def forward_features(self, x):
         x = self.patch_embed(x)
+        print("after patch_embed: ", x.size())
         if self.ape:
             x = x + self.absolute_pos_embed
         x = self.pos_drop(x)
+        print("after pos_drop: ", x.size())
 
         for layer in self.layers:
             x = layer(x)
+        print("after layer: ", x.size())
 
         x = self.norm(x)  # B L C
+        print("after norm: ", x.size())
         x = self.avgpool(x.transpose(1, 2))  # B C 1
+        print("after avgpool: ", x.size())
         x = torch.flatten(x, 1)
         return x
 
     def forward(self, x):
         print("num_features: ", self.num_features)
         print("before forward: ", x.size())
+        print("===== forward features =====")
         x = self.forward_features(x)
         print("after forward: ", x.size())
         x = self.head(x)
