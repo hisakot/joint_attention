@@ -626,9 +626,15 @@ class SwinTransformerV2(nn.Module):
         return x
 
     def forward(self, x):
+        print("num_features: ", self.num_features)
+        print("before forward: ", x.size())
         x = self.forward_features(x)
+        print("after forward: ", x.size())
         x = self.head(x)
+        print("after head: ", x.size())
         x = self.fc(x) # FIXME added self
+        print("after fc: ", x.size())
+        exit()
         x = x.reshape(-1, 3, 192, 384) # FIXME added self
         return x
 
