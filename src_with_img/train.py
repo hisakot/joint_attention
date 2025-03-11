@@ -124,6 +124,7 @@ def main():
         start_epoch = 0
 
     epochs = 1000
+    early_stopping = np.inf, 10, 0]
     for epoch in range(epochs):
         epoch += start_epoch
         print(f"Epoch {epoch+1}\n--------------------")
@@ -141,12 +142,15 @@ def main():
             print("Epoch %d : val_loss %.3f" % (epoch + 1, val_loss))
 
             # save model
-            torch.save({"epoch" : epoch + 1,
-                        "model_state_dict" : model.state_dict(),
-                        "optimizer_state_dict" : optimizer.state_dict(),
-                        "train_loss_list" : train_loss_list,
-                        "val_loss_list" : val_loss_list,
-                        }, "save_models/" + str(epoch + 1))
+            if val_loss < early_stopping[0]:
+                early_stopping[0] = val_loss
+                early_stopping[2] = 0
+                torch.save({"epoch" : epoch + 1,
+                            "model_state_dict" : model.state_dict(),
+                            "optimizer_state_dict" : optimizer.state_dict(),
+                            "train_loss_list" : train_loss_list,
+                            "val_loss_list" : val_loss_list,
+                            }, "save_models/only_img_best.pth")
 
             # tensorboard
             writer.add_scalar("Train Loss", train_loss, epoch + 1)
