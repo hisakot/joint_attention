@@ -90,6 +90,7 @@ def evaluate(val_dataloader, swin_t, unet, fuse, loss_function, device, bptt, nt
                 kpt_pred = unet(kptmap)
                 pred = fuse(img_pred, kpt_pred)
                 # pred_frat = pred.view(-1, ntokens)
+                pred = torch.clamp(pred, min=-1e3, max=1e3)
                 total_loss += batch_size * loss_function(pred, targets.to(device)).item()
                 pbar.update()
 
@@ -113,7 +114,7 @@ def main():
     parser.add_argument("--checkpoint", required=False,
                         help="if you want to retry training, write model path")
     args = parser.parse_args()
-    lr = 1e-4
+    lr = 1e-3
     batch_size = args.batch_size
 
     ntokens = 3840
@@ -166,7 +167,9 @@ def main():
     if args.checkpoint:
         checkpoint = torch.load(args.checkpoint)
         start_epoch = checkpoint["epoch"]
-        swin_t.load_state_dict(checkpoint["model_state_dict"])
+        swin_t.load_state_dict(checkpoint["swin_t_state_dict"])
+        unet.load_state_dict(checkpoint["unet_state_dict"])
+        fuse.load_state_dict(checkpoint["fuse_state_dict"])
         optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
         train_loss_list = checkpoint["train_loss_list"]
         val_loss_list = checkpoint["val_loss_list"]
@@ -199,7 +202,9 @@ def main():
 
             # save model
             torch.save({"epoch" : epoch + 1,
-                        "model_state_dict" : model.state_dict(),
+                        "swin_t_state_dict" : swin_t.state_dict(),
+                        "unet_state_dict" : unet.state_dict(),
+                        "fuse_state_dict" : fuse.state_dict(),
                         "optimizer_state_dict" : optimizer.state_dict(),
                         "train_loss_list" : train_loss_list,
                         "val_loss_list" : val_loss_list,
