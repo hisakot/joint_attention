@@ -9,6 +9,8 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 
+import config
+
 class Dataset(Dataset):
     def __init__(self, data_dir, transform=None, is_train=True):
         self.data_dir = data_dir
@@ -18,10 +20,9 @@ class Dataset(Dataset):
         self.targets = []
         self.img_paths = []
         self.gt_paths = []
-        img_height = 960
-        img_width = 1920
-        self.H = img_height
-        self.W = img_width
+        cfg = config.Config()
+        self.H = cfg.img_height
+        self.W = cfg.img_width
         
         mmpose_paths = glob.glob(data_dir + "/mmpose/*.json")
         mmpose_paths.sort()

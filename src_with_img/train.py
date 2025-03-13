@@ -11,6 +11,7 @@ from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
 from torch.utils.tensorboard import SummaryWriter
 
+import config
 import dataset
 import transformer
 import swin_transformer
@@ -76,11 +77,13 @@ def main():
                         help="if you want to retry training, write model path")
     args = parser.parse_args()
 
+    cfg = config.Config()
+
     batch_size = args.batch_size
 
     lr = 1e-3
-    img_height = 960
-    img_width = 1920
+    img_height = cfg.img_height
+    img_width = cfg.img_width
 
     model = swin_transformer_v2.SwinTransformerV2(img_height=img_height, img_width=img_width,
                                                   embed_dim=96, output_img_size=192*384)
