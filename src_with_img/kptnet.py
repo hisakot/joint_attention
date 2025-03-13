@@ -23,22 +23,22 @@ class UNet(nn.Module):
         super(UNet, self).__init__()
 
         # Encoder
-        self.enc1 = self.conv_block(in_channels, 64)
-        self.enc2 = self.conv_block(64, 128)
-        self.enc3 = self.conv_block(128, 256)
-        self.enc4 = self.conv_block(256, 512)
+        self.enc1 = self.conv_block(in_channels, 8)
+        self.enc2 = self.conv_block(8, 16)
+        self.enc3 = self.conv_block(16, 32)
+        self.enc4 = self.conv_block(32, 64)
 
         # bottleneck
-        self.bottleneck = self.conv_block(512, 1024)
+        self.bottleneck = self.conv_block(64, 128)
 
         # Decoder
-        self.dec4 = self.conv_block(1024 + 512, 512)
-        self.dec3 = self.conv_block(512 + 256, 256)
-        self.dec2 = self.conv_block(256 + 128, 128)
-        self.dec1 = self.conv_block(128 + 64, 64)
+        self.dec4 = self.conv_block(128 + 64, 64)
+        self.dec3 = self.conv_block(64 + 32, 32)
+        self.dec2 = self.conv_block(32 + 16, 16)
+        self.dec1 = self.conv_block(16 + 8, 8)
 
         # output layer (generate RGB image)
-        self.final = nn.Conv2d(64, out_channels, kernel_size=1, padding=0)
+        self.final = nn.Conv2d(8, out_channels, kernel_size=1, padding=0)
         self.sigmoid = nn.Sigmoid() # output [0, 1] image
 
         # Maxpooling
