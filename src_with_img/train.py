@@ -79,8 +79,8 @@ def main():
     batch_size = args.batch_size
 
     lr = 1e-3
-    img_height = 1920
-    img_width = 3840
+    img_height = 960
+    img_width = 1920
 
     model = swin_transformer_v2.SwinTransformerV2(img_height=img_height, img_width=img_width,
                                                   embed_dim=96, output_img_size=192*384)

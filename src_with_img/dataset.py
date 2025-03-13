@@ -18,8 +18,8 @@ class Dataset(Dataset):
         self.targets = []
         self.img_paths = []
         self.gt_paths = []
-        img_height = 1920
-        img_width = 3840
+        img_height = 960
+        img_width = 1920
         self.H = img_height
         self.W = img_width
         
@@ -63,6 +63,7 @@ class Dataset(Dataset):
         inputs.extend(kptmap)
         '''
         img = cv2.imread(self.img_paths[idx]) # H, W, C
+        img = cv2.resize(img, (self.W, self.H))
         img = img.astype(np.float32)
         img /= 255.
         img = np.transpose(img, (2, 0, 1)) # C, H, W
