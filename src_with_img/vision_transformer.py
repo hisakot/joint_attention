@@ -16,7 +16,7 @@ import numpy as np
 from torch.nn import CrossEntropyLoss, Dropout, Softmax, Linear, Conv2d, LayerNorm
 from torch.nn.modules.utils import _pair
 from scipy import ndimage
-from .swin_transformer_unet_skip_expand_decoder_sys import SwinTransformerSys
+from swin_transformer_unet_skip_expand_decoder_sys import SwinTransformerSys
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +34,7 @@ class SwinUnet(nn.Module):
                                             embed_dim=96,
                                             depths=[2, 2, 6, 2],
                                             num_heads=[3, 6, 12, 24],
-                                            window_size=7,
+                                            window_size=5,
                                             mlp_ratio=4,
                                             qkv_bias=True,
                                             qk_scale=None,
