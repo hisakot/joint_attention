@@ -15,6 +15,7 @@ import dataset
 import transformer
 import swin_transformer
 import swin_transformer_v2
+import kptnet
 
 def train(train_dataloader, model, loss_function, optimizer, device):
     model.train()
@@ -82,6 +83,7 @@ def main():
 
     model = swin_transformer_v2.SwinTransformerV2(img_height=img_height, img_width=img_width,
                                                   embed_dim=96, output_img_size=192*384)
+    model = kptnet.UNet()
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:
         print("---------- Use", torch.cuda.device_count(), "GPUs ----------")
@@ -151,7 +153,7 @@ def main():
                             "optimizer_state_dict" : optimizer.state_dict(),
                             "train_loss_list" : train_loss_list,
                             "val_loss_list" : val_loss_list,
-                            }, "save_models/only_img_best.pth")
+                            }, "save_models/only_img_best_unet.pth")
 
             # tensorboard
             writer.add_scalar("Train Loss", train_loss, epoch + 1)
