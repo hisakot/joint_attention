@@ -154,6 +154,10 @@ def main():
                             "train_loss_list" : train_loss_list,
                             "val_loss_list" : val_loss_list,
                             }, "save_models/only_img_best_unet.pth")
+            else:
+                early_stopping[2] += 1
+                if early_stopping[2] == early_stopping[1]:
+                    break
 
             # tensorboard
             writer.add_scalar("Train Loss", train_loss, epoch + 1)
