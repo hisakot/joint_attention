@@ -15,11 +15,13 @@ from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
 from torch.utils.tensorboard import SummaryWriter
 
+import config
 import dataset
 import train
 import transformer
 import swin_transformer
 import swin_transformer_v2
+import vision_transformer
 
 
 def test(test_dataloader, model, device):
@@ -47,11 +49,14 @@ def main():
     parser.add_argument("--model", required=True, help="Write model path")
     args = parser.parse_args()
 
-    img_height = 1920
-    img_width = 3840
+    cfg = config.Config()
+
+    img_height = cfg.img_height
+    img_width = cfg.img_width
 
     model = swin_transformer_v2.SwinTransformerV2(img_height=img_height, img_width=img_width,
                                                   output_img_size=192*384)
+    model = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:
