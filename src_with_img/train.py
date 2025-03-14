@@ -91,7 +91,7 @@ def main():
                                                   embed_dim=96, output_img_size=192*384)
     model = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width)
     '''
-    model = swin_unet.SwinUnet(img_height=img_height, img_width=img_width)
+    model = swin_unet.SwinUNet(img_height=img_height, img_width=img_width)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:
         print("---------- Use", torch.cuda.device_count(), "GPUs ----------")
@@ -161,7 +161,7 @@ def main():
                             "optimizer_state_dict" : optimizer.state_dict(),
                             "train_loss_list" : train_loss_list,
                             "val_loss_list" : val_loss_list,
-                            }, "save_models/only_img_best_unet.pth")
+                            }, "save_models/only_img_best_swinunet.pth")
             else:
                 early_stopping[2] += 1
                 if early_stopping[2] == early_stopping[1]:

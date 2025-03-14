@@ -14,9 +14,9 @@ class SwinUNet(nn.Module):
         self.enc_out_channels = [96, 192, 384, 768] # output of Swin-Tiny channels
 
         # Decoder (Unet style upsampling with skip connections)
-        self.upconv3 = self._upsample_block(self,enc_out_channels[3], self.enc_out_channels[2])
-        self.upconv2 = self._upsample_block(self,enc_out_channels[2], self.enc_out_channels[1])
-        self.upconv1 = self._upsample_block(self,enc_out_channels[1], self.enc_out_channels[0])
+        self.upconv3 = self._upsample_block(self.enc_out_channels[3], self.enc_out_channels[2])
+        self.upconv2 = self._upsample_block(self.enc_out_channels[2], self.enc_out_channels[1])
+        self.upconv1 = self._upsample_block(self.enc_out_channels[1], self.enc_out_channels[0])
         self.final_conv = nn.Conv2d(self.enc_out_channels[0], num_classes, kernel_size=1)
 
     def _upsample_block(self, in_ch, out_ch):
