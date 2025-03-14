@@ -18,6 +18,7 @@ import swin_transformer
 import swin_transformer_v2
 import kptnet
 import vision_transformer
+import swin_unet
 
 def train(train_dataloader, model, loss_function, optimizer, device):
     model.train()
@@ -85,9 +86,12 @@ def main():
     img_height = cfg.img_height
     img_width = cfg.img_width
 
+    '''
     model = swin_transformer_v2.SwinTransformerV2(img_height=img_height, img_width=img_width,
                                                   embed_dim=96, output_img_size=192*384)
     model = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width)
+    '''
+    model = swin_unet.SwinUnet(img_height=img_height, img_width=img_width)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:
         print("---------- Use", torch.cuda.device_count(), "GPUs ----------")
