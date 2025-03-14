@@ -57,9 +57,9 @@ def main():
     '''
     model = swin_transformer_v2.SwinTransformerV2(img_height=img_height, img_width=img_width,
                                                   output_img_size=192*384)
-    model = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width)
-    '''
     model = swin_unet.SwinUNet(img_height=img_height, img_width=img_width)
+    '''
+    model = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:

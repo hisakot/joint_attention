@@ -89,9 +89,10 @@ def main():
     '''
     model = swin_transformer_v2.SwinTransformerV2(img_height=img_height, img_width=img_width,
                                                   embed_dim=96, output_img_size=192*384)
-    model = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width)
-    '''
     model = swin_unet.SwinUNet(img_height=img_height, img_width=img_width)
+    '''
+    model = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width)
+
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:
         print("---------- Use", torch.cuda.device_count(), "GPUs ----------")
@@ -101,7 +102,8 @@ def main():
     model.half().to(device)
 
     # loss_function = nn.CrossEntropyLoss()
-    loss_function = nn.MSELoss()
+    # loss_function = nn.MSELoss()
+    loss_function = nn.KLDivLoss()
     optimizer = optim.SGD(model.parameters(), lr=lr)
 
     writer = SummaryWriter(log_dir="logs")

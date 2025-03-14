@@ -37,7 +37,7 @@ class SwinUNet(nn.Module):
 
         #Reshape (L = H' * W') -> (B, C, H', W')
         H_new, W_new = H // 32, W // 32 # feature map size of SwinTransformer
-        features = features.permute(0, 2, 1).contiguous().view(B, -1, H_new, W_new) # (B, C, H', W')
+        features = features.contiguous().view(B, 768, 7, 7) # (B, C, H', W')
 
         # Decoder Path with Skip Connection
         d5 = self.upconv5(features) # (120x240)
