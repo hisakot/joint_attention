@@ -23,18 +23,21 @@ class SwinUNet(nn.Module):
 
     def _upsample_block(self, in_ch, out_ch):
         return nn.Sequential(
-                nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True))
+                nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True),
                 nn.Conv2d(in_ch, out_ch, kernel_size=3, padding=1),
-                nn.ReLU(inplace=True),
+                nn.ReLU(inplace=True))
 
     def forward(self, x):
         B, C, H, W = x.shape
+
+        x_resized = F.interpolate(x, size=(224, 224), mode='bilinear', align_corners=True)
+
         # SwinTransformer Forward
-        features = self.encoder.forward_features(x) # (B, L, C)
+        features = self.encoder.forward_features(x_resized) # (B, L, C)
 
         #Reshape (L = H' * W') -> (B, C, H', W')
         H_new, W_new = H // 32, W // 32 # feature map size of SwinTransformer
-        features = features.permute(0, 2, 1).contiguous().view(B, 768, H_new, W_new) # (B, C, H', W')
+        features = features.permute(0, 2, 1).contiguous().view(B, -1, H_new, W_new) # (B, C, H', W')
 
         # Decoder Path with Skip Connection
         d5 = self.upconv5(features) # (120x240)
