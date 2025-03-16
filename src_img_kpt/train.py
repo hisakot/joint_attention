@@ -3,6 +3,8 @@ import glob
 import time
 from tqdm import tqdm
 
+import numpuy as np
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -173,6 +175,7 @@ def main():
         start_epoch = 0
 
     epochs = 1000
+    early_stopping = [np.inf, 10, 0]
     for epoch in range(epochs):
         epoch += start_epoch
         print(f"Epoch {epoch+1}\n--------------------")
@@ -192,14 +195,21 @@ def main():
             print("Epoch %d : val_loss %.3f" % (epoch + 1, val_loss))
 
             # save model
-            torch.save({"epoch" : epoch + 1,
-                        "swin_t_state_dict" : swin_t.state_dict(),
-                        "unet_state_dict" : unet.state_dict(),
-                        "fuse_state_dict" : fuse.state_dict(),
-                        "optimizer_state_dict" : optimizer.state_dict(),
-                        "train_loss_list" : train_loss_list,
-                        "val_loss_list" : val_loss_list,
-                        }, "save_models/" + str(epoch + 1))
+            if va;_loss < early_stopping[0]:
+                early_stopping[0]: = val_loss
+                early_stopping[2] = 0
+                torch.save({"epoch" : epoch + 1,
+                            "swin_t_state_dict" : swin_t.state_dict(),
+                            "unet_state_dict" : unet.state_dict(),
+                            "fuse_state_dict" : fuse.state_dict(),
+                            "optimizer_state_dict" : optimizer.state_dict(),
+                            "train_loss_list" : train_loss_list,
+                            "val_loss_list" : val_loss_list,
+                            }, "save_models/img_kptmap_best_swinunet.pth")
+            else:
+                early_stopping[2] += 1
+                if early_stopping[2] == early_stopping[1]:
+                    break
 
             # tensorboard
             writer.add_scalar("Train Loss", train_loss, epoch + 1)
