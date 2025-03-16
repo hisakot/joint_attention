@@ -3,6 +3,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch_geometric.nn import GCNConv
 
+import config
+
 class GCN(nn.Module):
     def __init__(self):
         super(GCN, self).__init__()
@@ -21,6 +23,10 @@ class GCN(nn.Module):
 class UNet(nn.Module):
     def __init__(self, in_channels=3, out_channels=3):
         super(UNet, self).__init__()
+
+        cfg = config.Config()
+        self.img_height = cfg.img_height
+        self.img_width = cfg.img_width
 
         # Encoder
         self.enc1 = self.conv_block(in_channels, 64)
@@ -72,7 +78,7 @@ class UNet(nn.Module):
         d1 = self.dec1(torch.cat([F.interpolate(d2, scale_factor=2), e1], dim=1))
 
         # output layer
-        output = F.interpolate(self.final(d1), size=(192, 384),
+        output = F.interpolate(self.final(d1), size=(self.img_height, self.img_width),
                               mode="bilinear", align_corners=True)
         output = self.sigmoid(output)
         return output

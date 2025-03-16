@@ -9,6 +9,8 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 
+import config
+
 class Dataset(Dataset):
     def __init__(self, data_dir, img_height, img_width, transform=None, is_train=True):
         self.data_dir = data_dir
@@ -18,8 +20,9 @@ class Dataset(Dataset):
         self.targets = []
         self.img_paths = []
         self.gt_paths = []
-        self.H = img_height
-        self.W = img_width
+        cfg = config.Config()
+        self.H = cfg.img_height
+        self.W = cfg.img_width
         
         mmpose_paths = glob.glob(data_dir + "/mmpose/*.json")
         mmpose_paths.sort()
@@ -78,7 +81,7 @@ class Dataset(Dataset):
 
         # labels
         targets = cv2.imread(self.gt_paths[idx])
-        targets = cv2.resize(targets, (384, 192))
+        targets = cv2.resize(targets, (self.W, self.H))
         targets = np.transpose(targets, (2, 0, 1)) # C, H, W
         targets = torch.tensor(targets, dtype=torch.float16)
 

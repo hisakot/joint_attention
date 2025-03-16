@@ -82,7 +82,7 @@ def main():
 
     batch_size = args.batch_size
 
-    lr = 1e-3
+    lr = cfg.lr
     img_height = cfg.img_height
     img_width = cfg.img_width
 

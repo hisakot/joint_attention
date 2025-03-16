@@ -10,12 +10,14 @@ from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
 from torch.utils.tensorboard import SummaryWriter
 
+import config
 import dataset
 import fusion
 import kptnet
 import transformer
 import swin_transformer
 import swin_transformer_v2
+import vision_transformer
 
 def print_memory_usage():
     allocated = torch.cuda.memory_allocated() / 1024**2
@@ -23,13 +25,12 @@ def print_memory_usage():
     print(F"GPU Memory Allocated: {allocated:.2f} MB")
     print(F"GPU Memory Reserved: {reserved:.2f} MB")
 
-def train(train_dataloader, swin_t, unet, fuse, loss_function, optimizer, device, bptt, ntokens):
+def train(train_dataloader, swin_t, unet, fuse, loss_function, optimizer, device):
     swin_t.train()
     unet.train()
     fuse.train()
     total_loss =  0
     start_time = time.time()
-    # src_mask = transformer.generate_square_subsequent_mask(bptt).to(device)
 
     num_batches = len(train_dataloader)
 
@@ -39,12 +40,6 @@ def train(train_dataloader, swin_t, unet, fuse, loss_function, optimizer, device
             kptmap = inputs["kptmap"]
             img = inputs["img"]
             targets = data[1]
-
-            # batch_size = data.size(0)
-            # seq_len = data.size(1)
-            # src_mask = transformer.generate_square_subsequent_mask(seq_len).to(device)
-            # if batch_size != bptt: # only one last batch
-                # src_mask = src_mask[:batch_size, :batch_size]
 
             img = img.to(device)
             kptmap = kptmap.to(device)
@@ -65,12 +60,11 @@ def train(train_dataloader, swin_t, unet, fuse, loss_function, optimizer, device
 
     return total_loss / len(train_dataloader)
 
-def evaluate(val_dataloader, swin_t, unet, fuse, loss_function, device, bptt, ntokens):
+def evaluate(val_dataloader, swin_t, unet, fuse, loss_function, device):
     swin_t.eval()
     unet.eval()
     fuse.eval()
     total_loss = 0
-    # src_mask = transformer.generate_square_subsequent_mask(bptt).to(device)
 
     with torch.no_grad():
         with tqdm(total=len(val_dataloader)) as pbar:
@@ -80,10 +74,6 @@ def evaluate(val_dataloader, swin_t, unet, fuse, loss_function, device, bptt, nt
                 img = inputs["img"]
                 targets = data[1]
                 batch_size = len(data[1])
-                # seq_len = data.size(1)
-                # src_mask = transformer.generate_square_subsequent_mask(seq_len).to(device)
-                # if batch_size != bptt:
-                    # src_mask = src_mask[:batch_size, :batch_size]
                 img = img.to(device)
                 kptmap = kptmap.to(device)
                 img_pred = swin_t(img)
@@ -114,22 +104,21 @@ def main():
     parser.add_argument("--checkpoint", required=False,
                         help="if you want to retry training, write model path")
     args = parser.parse_args()
-    lr = 1e-3
+
+    cfg = config.Config()
+
     batch_size = args.batch_size
 
-    ntokens = 3840
-    emsize = 512
-    d_hid = 2048
-    nlayers = 6
-    nhead = 8
-    dropout = 0.1
-    bptt = 35
+    lr = cfg.lr
 
-    H = 480
-    W = 960
+    img_height = cfg.img_height
+    img_width = cfg.img_width
 
-    swin_t = swin_transformer_v2.SwinTransformerV2(img_height=H, img_width=W,
+    '''
+    swin_t = swin_transformer_v2.SwinTransformerV2(img_height=img_height, img_width=img_width,
                                                    output_img_size=192*384)
+    '''
+    swin_t = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width)
     unet = kptnet.UNet(in_channels=3, out_channels=3)
     fuse = fusion.Fusion(in_channels=6, out_channels=3)
 
@@ -156,8 +145,10 @@ def main():
 
     train_data_dir = "data/train"
     val_data_dir = "data/val"
-    train_data = dataset.Dataset(train_data_dir, img_height=H, img_width=W, transform=None, is_train=True)
-    val_data = dataset.Dataset(val_data_dir, img_height=H, img_width=W, transform=None, is_train=False)
+    train_data = dataset.Dataset(train_data_dir, img_height=img_height, 
+                                 img_width=img_width, transform=None, is_train=True)
+    val_data = dataset.Dataset(val_data_dir, img_height=img_height, 
+                               img_width=img_width, transform=None, is_train=False)
 
     train_dataloader = DataLoader(train_data, batch_size=batch_size,
                                   shuffle=True, num_workers=1)
@@ -188,13 +179,13 @@ def main():
         try:
             # train
             train_loss = train(train_dataloader, swin_t, unet, fuse,
-                               loss_function, optimizer, device, bptt, ntokens)
+                               loss_function, optimizer, device)
             train_loss_list.append(train_loss)
 
             # test
             with torch.no_grad():
                 val_loss = evaluate(val_dataloader, swin_t, unet, fuse,
-                                    loss_function, device, bptt, ntokens)
+                                    loss_function, device)
                 val_loss_list.append(val_loss)
 
             print("Epoch %d : train_loss %.3f" % (epoch + 1, train_loss))
