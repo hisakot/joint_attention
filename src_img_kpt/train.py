@@ -3,7 +3,7 @@ import glob
 import time
 from tqdm import tqdm
 
-import numpuy as np
+import numpy as np
 
 import torch
 import torch.nn as nn
@@ -195,8 +195,8 @@ def main():
             print("Epoch %d : val_loss %.3f" % (epoch + 1, val_loss))
 
             # save model
-            if va;_loss < early_stopping[0]:
-                early_stopping[0]: = val_loss
+            if val_loss < early_stopping[0]:
+                early_stopping[0] = val_loss
                 early_stopping[2] = 0
                 torch.save({"epoch" : epoch + 1,
                             "swin_t_state_dict" : swin_t.state_dict(),
