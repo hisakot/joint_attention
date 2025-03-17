@@ -81,10 +81,9 @@ def evaluate(val_dataloader, swin_t, unet, fuse, loss_function, device):
                 kptmap = kptmap.to(device)
 
                 img_pred = swin_t(img)
-                kpt_pred = unet(kptmap)
+                kpt_pred = swin_t(kptmap)
                 pred = fuse(img_pred, kpt_pred)
                 pred = torch.clamp(pred, min=-1e3, max=1e3)
-
                 total_loss += batch_size * loss_function(pred, targets.to(device)).item()
                 pbar.update()
 
@@ -171,7 +170,7 @@ def main():
         for i, train_loss in enumerate(train_loss_list):
             writer.add_scalar("Train Loss", train_loss, i+1)
         for i, val_loss in enumerate(val_loss_list):
-            writer.add_scalar("Validation Loss", tval_loss, i+1)
+            writer.add_scalar("Validation Loss", val_loss, i+1)
         print("Reload midel : ", start_epoch, "and restart training")
     else:
         start_epoch = 0
