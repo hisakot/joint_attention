@@ -23,6 +23,7 @@ import swin_transformer
 import swin_transformer_v2
 import vision_transformer
 import swin_unet
+import resnet
 
 def test(test_dataloader, model, device):
     model.eval()
@@ -58,8 +59,9 @@ def main():
     model = swin_transformer_v2.SwinTransformerV2(img_height=img_height, img_width=img_width,
                                                   output_img_size=192*384)
     model = swin_unet.SwinUNet(img_height=img_height, img_width=img_width)
-    '''
     model = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width)
+    '''
+    model = resnet.ResNet50(pretrained=False, in_ch=3)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:
