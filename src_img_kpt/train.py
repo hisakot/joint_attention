@@ -78,6 +78,7 @@ def evaluate(val_dataloader, swin_t, unet, fuse, loss_function, device):
                 batch_size = len(data[1])
                 img = img.to(device)
                 kptmap = kptmap.to(device)
+
                 img_pred = swin_t(img)
                 kpt_pred = unet(kptmap)
                 pred = fuse(img_pred, kpt_pred)

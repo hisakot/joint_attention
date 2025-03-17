@@ -82,6 +82,8 @@ class Dataset(Dataset):
         # labels
         targets = cv2.imread(self.gt_paths[idx])
         targets = cv2.resize(targets, (self.W, self.H))
+        targets = targets.astype(np.float32)
+        targets /= 255.
         targets = np.transpose(targets, (2, 0, 1)) # C, H, W
         targets = torch.tensor(targets, dtype=torch.float16)
 
