@@ -18,7 +18,6 @@ class ResNet50(nn.Module):
         self.resnet50.conv1 = nn.Conv2d(in_ch, 64, kernel_size=7, stride=2,
                                         padding=3, bias=False)
         self.resnet50.fc = nn.Linear(self.resnet50.fc.in_features, num_output)
-        self.sigmoid = nn.Sigmoid()
 
         cfg = config.Config()
         self.img_H = cfg.img_height
@@ -26,7 +25,6 @@ class ResNet50(nn.Module):
 
     def forward(self, x):
         x = self.resnet50(x)
-        x = self.sigmoid(x)
         x = x.reshape(-1, 3, 100, 200)
         x = F.interpolate(x, (self.img_H, self.img_W), mode="bilinear", align_corners=False)
 
