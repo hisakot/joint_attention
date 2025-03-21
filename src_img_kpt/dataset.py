@@ -64,12 +64,27 @@ class Dataset(Dataset):
         '''
             if sum(score >= 0.5 for score in scores) > 133 / 5:
                 kpts.append(keypoints)
+        # whole body keypoints
         kptmap = generate_pose_heatmap(self.H, self.W, kpts, sigma=3) # 1, H, W
         kptmap = cv2.resize(kptmap, (self.W, self.H))
         kptmap = kptmap.astype(np.float32)
         kptmap /= 255.
         kptmap = np.transpose(kptmap, (2, 0, 1)) # C, H, W
 
+        # gaze line
+        gazeline_map = np.zeros((1920, 3840, 3))
+        for kpt in kpts:
+            face_kpt = kpt[23:91]
+            p1, p2, yaw, pitch, roll = get_head_direction(face_kpt)
+            cv2.line(gazeline_map, p1, p2, (225, 225, 255), thickness=10)
+        gazeline_map = cv2.resize(gazeline_map, (self.W, self.H))
+        gazeline_map = gazeline_map.astype(np.float32)
+        gazeline_map /= 255
+        gazeline_map = np.transpose(gazeline_map, (2, 0, 1)) # C, H, W
+        gazeline_map = gazeline_map[0]
+        gazeline_map = gazeline_map[np.newaxis, :, :]
+
+        # frame image
         img = cv2.imread(self.img_paths[idx]) # H, W, C
         img = cv2.resize(img, (self.W, self.H))
         img = img.astype(np.float32)
@@ -77,6 +92,7 @@ class Dataset(Dataset):
         img = np.transpose(img, (2, 0, 1)) # C, H, W
 
         inputs = {"kptmap" : torch.tensor(kptmap, dtype=torch.float16),
+                  "gazeline_map" : torch.tensor(gazeline_map, dtype=torch.float16),
                   "img" : torch.tensor(img, dtype=torch.float16)}
 
         # labels
@@ -183,7 +199,7 @@ def get_head_direction(face_kpt):
     pitch = eulerAngles[0]
     roll = eulerAngles[2]
 
-    (nose_end_point2D, _) = cv2.projectPoints(np.array([(0.0, 0.0, 500.0)]),
+    (nose_end_point2D, _) = cv2.projectPoints(np.array([(0.0, 0.0, 2000.0)]),
                                               rotation_vector, translation_vector,
                                               camera_matrix, dist_coeffs)
     

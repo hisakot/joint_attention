@@ -176,7 +176,7 @@ def get_head_direction(face_kpt):
     pitch = eulerAngles[0]
     roll = eulerAngles[2]
 
-    (nose_end_point2D, _) = cv2.projectPoints(np.array([(0.0, 0.0, 500.0)]),
+    (nose_end_point2D, _) = cv2.projectPoints(np.array([(0.0, 0.0, 2000.0)]),
                                               rotation_vector, translation_vector,
                                               camera_matrix, dist_coeffs)
     

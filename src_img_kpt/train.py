@@ -20,6 +20,7 @@ import transformer
 import swin_transformer
 import swin_transformer_v2
 import vision_transformer
+import resnet
 
 def print_memory_usage():
     allocated = torch.cuda.memory_allocated() / 1024**2
@@ -27,10 +28,13 @@ def print_memory_usage():
     print(F"GPU Memory Allocated: {allocated:.2f} MB")
     print(F"GPU Memory Reserved: {reserved:.2f} MB")
 
-def train(train_dataloader, swin_t, unet, fuse, loss_function, optimizer, device):
+def train(train_dataloader, resnet50, loss_function, optimizer, device):
+    '''
     swin_t.train()
     unet.train()
     fuse.train()
+    '''
+    resnet50.train()
     total_loss =  0
     start_time = time.time()
 
@@ -40,21 +44,32 @@ def train(train_dataloader, swin_t, unet, fuse, loss_function, optimizer, device
         for data in train_dataloader:
             inputs = data[0]
             kptmap = inputs["kptmap"]
+            gazemap = inputs["gazeline_map"]
             img = inputs["img"]
             targets = data[1]
 
+            '''
             img = img.to(device)
+            gazemap = gazemap.to(device)
             kptmap = kptmap.to(device)
             img_pred = swin_t(img)
             kpt_pred = unet(kptmap)
             pred = fuse(img_pred, kpt_pred)
+            '''
+            concat_list = [img, gazemap]
+            concat = torch.cat(concat_list, dim=1)
+            concat = concat.to(device)
+            pred = resnet50(concat)
             loss = loss_function(pred, targets.to(device))
 
             optimizer.zero_grad()
             loss.backward()
+            '''
             torch.nn.utils.clip_grad_norm_(swin_t.parameters(), 0.5)
             torch.nn.utils.clip_grad_norm_(unet.parameters(), 0.5)
             torch.nn.utils.clip_grad_norm_(fuse.parameters(), 0.5)
+            '''
+            torch.nn.utils.clip_grad_norm_(resnet50.parameters(), 0.5)
             optimizer.step()
 
             total_loss += loss.item()
@@ -62,10 +77,13 @@ def train(train_dataloader, swin_t, unet, fuse, loss_function, optimizer, device
 
     return total_loss / len(train_dataloader)
 
-def evaluate(val_dataloader, swin_t, unet, fuse, loss_function, device):
+def evaluate(val_dataloader, resnet50, loss_function, device):
+    '''
     swin_t.eval()
     unet.eval()
     fuse.eval()
+    '''
+    resnet50.eval()
     total_loss = 0
 
     with torch.no_grad():
@@ -73,16 +91,25 @@ def evaluate(val_dataloader, swin_t, unet, fuse, loss_function, device):
             for data in val_dataloader:
                 inputs = data[0]
                 kptmap = inputs["kptmap"]
+                gazemap = inputs["gazeline_map"]
                 img = inputs["img"]
                 targets = data[1]
                 batch_size = len(data[1])
 
+                '''
                 img = img.to(device)
                 kptmap = kptmap.to(device)
+                '''
+                concat_list = [img, gazemap]
+                concat = torch.cat(concat_list, dim=1)
+                concat = concat.to(device)
+                pred = resnet50(concat)
 
+                '''
                 img_pred = swin_t(img)
                 kpt_pred = swin_t(kptmap)
                 pred = fuse(img_pred, kpt_pred)
+                '''
                 pred = torch.clamp(pred, min=-1e3, max=1e3)
                 total_loss += batch_size * loss_function(pred, targets.to(device)).item()
                 pbar.update()
@@ -121,6 +148,7 @@ def main():
     swin_t = swin_transformer_v2.SwinTransformerV2(img_height=img_height, img_width=img_width,
                                                    output_img_size=192*384)
     '''
+    resnet50 = resnet.ResNet50(pretrained=False, in_ch=4)
     swin_t = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width)
     unet = kptnet.UNet(in_channels=3, out_channels=3)
     fuse = fusion.Fusion(in_channels=6, out_channels=3)
@@ -136,6 +164,7 @@ def main():
     swin_t.half().to(device)
     unet.half().to(device)
     fuse.half().to(device)
+    resnet50.half().to(device)
 
     # loss_function = nn.CrossEntropyLoss()
     loss_function = nn.MSELoss()
@@ -182,13 +211,13 @@ def main():
         print(f"Epoch {epoch+1}\n--------------------")
         try:
             # train
-            train_loss = train(train_dataloader, swin_t, unet, fuse,
+            train_loss = train(train_dataloader, resnet50,
                                loss_function, optimizer, device)
             train_loss_list.append(train_loss)
 
             # test
             with torch.no_grad():
-                val_loss = evaluate(val_dataloader, swin_t, unet, fuse,
+                val_loss = evaluate(val_dataloader, resnet50,
                                     loss_function, device)
                 val_loss_list.append(val_loss)
 
