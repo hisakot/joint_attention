@@ -14,7 +14,7 @@ model_urls = {
 class ResNet50(nn.Module):
     def __init__(self, pretrained, in_ch, num_output=3*100*200):
         super(ResNet50, self).__init__()
-        self.resnet50 = models.resnet50(pretrained=pretrained, num_classes=1000)
+        self.resnet50 = models.resnet50(pretrained=pretrained, num_classes=3000)
         self.resnet50.conv1 = nn.Conv2d(in_ch, 64, kernel_size=7, stride=2,
                                         padding=3, bias=False)
         self.resnet50.fc = nn.Linear(self.resnet50.fc.in_features, num_output)
