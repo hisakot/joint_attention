@@ -535,7 +535,7 @@ class SwinTransformerV2(nn.Module):
                  drop_rate=0., attn_drop_rate=0., drop_path_rate=0.1,
                  norm_layer=nn.LayerNorm, ape=False, patch_norm=True,
                  use_checkpoint=False, pretrained_window_sizes=[0, 0, 0, 0],
-                 output_img_size=1920*3840, **kwargs):
+                 output_H=1920, output_W=3840, **kwargs):
         super().__init__()
 
         self.num_classes = num_classes
@@ -545,6 +545,9 @@ class SwinTransformerV2(nn.Module):
         self.patch_norm = patch_norm
         self.num_features = int(embed_dim * 2 ** (self.num_layers - 1))
         self.mlp_ratio = mlp_ratio
+
+        self.output_H = output_H
+        self.output_W = output_W
 
         # split image into non-overlapping patches
         self.patch_embed = PatchEmbed(
@@ -592,7 +595,7 @@ class SwinTransformerV2(nn.Module):
         for bly in self.layers:
             bly._init_respostnorm()
 
-        self.fc = nn.Linear(num_classes, 3*output_img_size) # FIXME added self
+        self.fc = nn.Linear(num_classes, 3*output_H*output_W) # FIXME added self
 
     def _init_weights(self, m):
         if isinstance(m, nn.Linear):
@@ -629,7 +632,7 @@ class SwinTransformerV2(nn.Module):
         x = self.forward_features(x)
         x = self.head(x)
         x = self.fc(x) # FIXME added self
-        x = x.reshape(-1, 3, 192, 384) # FIXME added self
+        x = x.reshape(-1, 3, self.output_H, self.output_W) # FIXME added self
         return x
 
     def flops(self):
