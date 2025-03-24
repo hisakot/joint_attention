@@ -149,9 +149,9 @@ def main():
     '''
     resnet50 = resnet.ResNet50(pretrained=False, in_ch=4)
     swin_t = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width)
+    '''
     unet = kptnet.UNet(in_channels=3, out_channels=3)
     fuse = fusion.Fusion(in_channels=6, out_channels=3)
-    '''
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:
@@ -162,9 +162,9 @@ def main():
     else:
         print("---------- Use CPU ----------")
     swin_t.half().to(device)
-    '''
     unet.half().to(device)
     fuse.half().to(device)
+    '''
     resnet50.half().to(device)
     '''
 
