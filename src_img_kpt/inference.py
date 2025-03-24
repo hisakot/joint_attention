@@ -14,20 +14,52 @@ from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
 from torch.utils.tensorboard import SummaryWriter
 
+import config
 import dataset
+import train
 import transformer
+import swin_transformer
+import swin_transformer_v2
+import vision_transformer
+import resnet
 
 
-def test(test_data, model, device):
+def test(test_dataloader, model, device):
     model.eval()
     total_loss = 0
 
     with torch.no_grad():
-        print(test_data.size())
-        test_data = torch.reshape(test_data, (1, test_data.size(0)))
-        seq_len = test_data.size(1)
-        src_mask = transformer.generate_square_subsequent_mask(seq_len).to(device)
-        pred = model(test_data, src_mask)
+        for i, data in enumerate(test_dataloader):
+            inputs = data[0]
+            kptmap = inputs["kptmap"]
+            gazemap = inputs["gazeline_map"]
+            img = inputs["img"]
+            targets = data[1]
+            batch_size = len(data[1])
+
+            '''
+            img = img.to(device)
+            kptmap = kptmap.to(device)
+            '''
+            concat_list = [img, gazemap]
+            concat = torch.cat(concat_list, dim=1)
+            concat = concat.to(device)
+            pred = model(concat)
+            '''
+            img_pred = swin_t(img)
+            kpt_pred = swin_t(kptmap)
+            pred = fuse(img_pred, kpt_pred)
+            '''
+            pred = torch.clamp(pred, min=-1e3, max=1e3)
+
+            pred = pred.to("cpu").detach().numpy().copy()
+            pred = np.squeeze(pred, 0)
+            pred = np.transpose(pred, (1, 2, 0))
+            pred *= 255.
+            pred = pred.astype(np.uint8)
+            pred = cv2.resize(pred, (3840, 1920))
+            cv2.imwrite("data/test/pred/" + str(i).zfill(6) + ".png", pred)
+            exit()
 
     return pred
 
@@ -37,21 +69,18 @@ def main():
     parser.add_argument("--model", required=True, help="Write model path")
     args = parser.parse_args()
 
-    ntokens = 3840
-    emsize = 512
-    d_hid = 2048
-    nlayers = 6
-    nhead = 8
-    dropout = 0.1
-    bptt = 35
+    cfg = config.Config()
+    img_height = cfg.img_height
+    img_width = cfg.img_width
+
+    model = swin_transformer_v2.SwinTransformerV2(img_height=img_height, img_width=img_width,
+                                                  in_chans=4, output_H=img_height, output_W=img_width)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:
         print("---------- Use GPU ----------")
     else:
         print("---------- Use CPU ----------")
-
-    model = transformer.TransformerModel(ntokens, emsize, nhead, d_hid, nlayers, dropout)
 
     checkpoint = torch.load(args.model)
     if torch.cuda.device_count() >= 1:
@@ -66,52 +95,10 @@ def main():
     model.eval()
 
     test_data_dir = "data/test"
-    json_paths = glob.glob(test_data_dir + "/*.json")
-    datas = []
-    for json_path in json_paths:
-        with open(json_path) as f:
-            data = json.load(f)
-            instance_info = data["instance_info"]
-            datas.extend(instance_info)
-
-    img_paths = glob.glob("data/test/*.png")
-
-    for i, data in enumerate(datas):
-        instances = data["instances"]
-        inputs = []
-
-        for instance in instances:
-            keypoints = instance["keypoints"]
-            face_kpt = keypoints[23:91]
-            scores = instance["keypoint_scores"]
-            face_scores = scores[23:91]
-
-            new_face_kpt = []
-            if sum(score >= 0.5 for score in face_scores) > 68 / 5:
-                p1, p2, yaw, pitch, roll = dataset.get_head_direction(face_kpt)
-                pt1_x, pt1_y, pt2_x, pt2_y = dataset.get_face_rectangle(face_kpt, yaw, pitch)
-
-                pt1_x = max(int(pt1_x), 0)
-                pt1_y = max(int(pt1_y), 0)
-                pt2_x = min(int(pt2_x), 3839)
-                pt2_y = min(int(pt2_y), 1919)
-                gz1_x = int(max(0, min(p1[0], 3839)))
-                gz1_y = int(max(0, min(p1[1], 1919)))
-                gz2_x = int(max(0, min(p2[0], 3839)))
-                gz2_y = int(max(0, min(p2[1], 1919)))
-                face_rec_gaze = [pt1_x, pt1_y, pt2_x, pt2_y, gz1_x, gz1_y, gz2_x, gz2_y]
-                inputs.extend(face_rec_gaze)
-        
-        test_data = torch.tensor(inputs, dtype=torch.long)
-
-        pred = test(test_data, model, device)
-        print(pred)
-
-        img = cv2.imread(img_paths[i])
-        x = int(pred[0][0] * 3840)
-        y = int(pred[0][1] * 1920)
-        cv2.circle(img, (x, y), 30, (0, 0, 255), 2)
-        cv2.imwrite("data/test/gaze_" + os.path.basename(img_paths[i]), img)
+    test_data = dataset.Dataset(test_data_dir, transform=None, is_train=False)
+    test_dataloader = DataLoader(test_data, batch_size=1,
+                                 collate_fn= train.collate_fn, numworkers=1) # FIXME colllate_fn -> common.py or delete
+    test(test_dataloader, model, device)
 
 if __name__ == "__main__":
     main()
