@@ -82,6 +82,7 @@ def main():
         print("---------- Use GPU ----------")
     else:
         print("---------- Use CPU ----------")
+    model.half().to(device)
 
     checkpoint = torch.load(args.model)
     if torch.cuda.device_count() >= 1:
