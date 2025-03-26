@@ -149,7 +149,7 @@ def main():
     resnet50 = resnet.ResNet50(pretrained=False, in_ch=6)
     swin_t = swin_transformer_v2.SwinTransformerV2(img_height=img_height, img_width=img_width,
                                                    in_chans=6, output_H=img_height, output_W=img_width)
-    swin_t = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width)
+    # swin_t = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width)
     unet = kptnet.UNet(in_channels=3, out_channels=3)
     fuse = fusion.Fusion(in_channels=6, out_channels=3)
 
@@ -168,7 +168,7 @@ def main():
 
     # loss_function = nn.CrossEntropyLoss()
     loss_function = nn.MSELoss()
-    optimizer = optim.SGD(swin_t.parameters(), lr=lr)
+    optimizer = optim.SGD(resnet50.parameters(), lr=lr)
 
     writer = SummaryWriter(log_dir="logs")
 
@@ -211,13 +211,13 @@ def main():
         print(f"--------------------\nEpoch {epoch+1}")
         try:
             # train
-            train_loss = train(train_dataloader, swin_t,
+            train_loss = train(train_dataloader, resnet50,
                                loss_function, optimizer, device)
             train_loss_list.append(train_loss)
 
             # test
             with torch.no_grad():
-                val_loss = evaluate(val_dataloader, swin_t,
+                val_loss = evaluate(val_dataloader, resnet50,
                                     loss_function, device)
                 val_loss_list.append(val_loss)
 
