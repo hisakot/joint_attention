@@ -162,11 +162,9 @@ def main():
     else:
         print("---------- Use CPU ----------")
     resnet50.half().to(device)
-    '''
     swin_t.half().to(device)
     unet.half().to(device)
     fuse.half().to(device)
-    '''
 
     # loss_function = nn.CrossEntropyLoss()
     loss_function = nn.MSELoss()
