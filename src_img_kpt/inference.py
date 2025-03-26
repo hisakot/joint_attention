@@ -96,7 +96,8 @@ def main():
     model.eval()
 
     test_data_dir = "data/test"
-    test_data = dataset.Dataset(test_data_dir, transform=None, is_train=False)
+    test_data = dataset.Dataset(test_data_dir, img_height=img_height, img_width=img_width,
+                                transform=None, is_train=False)
     test_dataloader = DataLoader(test_data, batch_size=1,
                                  collate_fn= train.collate_fn, numworkers=1) # FIXME colllate_fn -> common.py or delete
     test(test_dataloader, model, device)
