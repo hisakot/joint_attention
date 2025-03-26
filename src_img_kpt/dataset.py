@@ -89,7 +89,10 @@ class Dataset(Dataset):
         saliency = cv2.saliency.StaticSaliencySpectralResidual_create()
         (success, saliency_map) = saliency.computeSaliency(img)
         saliency_map = cv2.resize(saliency_map, (self.W, self.H))
+        saliency_map = (saliency_map * 255).astype("uint8")
+        saliency_map = cv2.applyColorMap(saliency_map, cv2.COLORMAP_JET)
         saliency_map = saliency_map.astype(np.float32)
+        saliency_map /= 255.
         saliency_map = np.transpose(saliency_map, (2, 0, 1))
 
         # frame image
