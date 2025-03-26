@@ -45,6 +45,7 @@ def train(train_dataloader, swin_t, loss_function, optimizer, device):
             inputs = data[0]
             kptmap = inputs["kptmap"]
             gazemap = inputs["gazeline_map"]
+            saliencymap = inputs["saliency_map"]
             img = inputs["img"]
             targets = data[1]
 
@@ -56,7 +57,7 @@ def train(train_dataloader, swin_t, loss_function, optimizer, device):
             kpt_pred = unet(kptmap)
             pred = fuse(img_pred, kpt_pred)
             '''
-            concat_list = [img, gazemap]
+            concat_list = [img, saliencymap]
             concat = torch.cat(concat_list, dim=1)
             concat = concat.to(device)
             pred = swin_t(concat)
@@ -92,6 +93,7 @@ def evaluate(val_dataloader, swin_t, loss_function, device):
                 inputs = data[0]
                 kptmap = inputs["kptmap"]
                 gazemap = inputs["gazeline_map"]
+                saliencymap = inputs["saliency_map"]
                 img = inputs["img"]
                 targets = data[1]
                 batch_size = len(data[1])
@@ -100,7 +102,7 @@ def evaluate(val_dataloader, swin_t, loss_function, device):
                 img = img.to(device)
                 kptmap = kptmap.to(device)
                 '''
-                concat_list = [img, gazemap]
+                concat_list = [img, saliencymap]
                 concat = torch.cat(concat_list, dim=1)
                 concat = concat.to(device)
                 pred = swin_t(concat)
@@ -145,7 +147,7 @@ def main():
     img_width = cfg.img_width
 
     swin_t = swin_transformer_v2.SwinTransformerV2(img_height=img_height, img_width=img_width,
-                                                   in_chans=4, output_H=img_height, output_W=img_width)
+                                                   in_chans=6, output_H=img_height, output_W=img_width)
     '''
     resnet50 = resnet.ResNet50(pretrained=False, in_ch=4)
     swin_t = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width)
@@ -237,7 +239,7 @@ def main():
                             "optimizer_state_dict" : optimizer.state_dict(),
                             "train_loss_list" : train_loss_list,
                             "val_loss_list" : val_loss_list,
-                            }, "save_models/img_gazeline_best_resnet.pth")
+                            }, "save_models/img_saliency_swintransformer_best.pth")
             else:
                 early_stopping[2] += 1
                 if early_stopping[2] == early_stopping[1]:

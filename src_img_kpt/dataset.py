@@ -84,6 +84,14 @@ class Dataset(Dataset):
         gazeline_map = gazeline_map[0]
         gazeline_map = gazeline_map[np.newaxis, :, :]
 
+        # saliency
+        img = cv2.imread(self.img_paths[idx])
+        saliency = cv2.saliency.StaticSaliencySpectralResidual_create()
+        (success, saliency_map) = saliency.computeSaliency(img)
+        saliency_map = cv2.resize(saliency_map, (self.W, self.H))
+        saliency_map = saliency_map.astype(np.float32)
+        saliency_map = np.transpose(saliency_map, (2, 0, 1))
+
         # frame image
         img = cv2.imread(self.img_paths[idx]) # H, W, C
         img = cv2.resize(img, (self.W, self.H))
@@ -93,6 +101,7 @@ class Dataset(Dataset):
 
         inputs = {"kptmap" : torch.tensor(kptmap, dtype=torch.float16),
                   "gazeline_map" : torch.tensor(gazeline_map, dtype=torch.float16),
+                  "saliency_map" : torch.tensor(saliency_map, dtype=torch.float16),
                   "img" : torch.tensor(img, dtype=torch.float16)}
 
         # labels
