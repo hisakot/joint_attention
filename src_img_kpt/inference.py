@@ -99,7 +99,7 @@ def main():
     test_data = dataset.Dataset(test_data_dir, img_height=img_height, img_width=img_width,
                                 transform=None, is_train=False)
     test_dataloader = DataLoader(test_data, batch_size=1,
-                                 collate_fn= train.collate_fn, numworkers=1) # FIXME colllate_fn -> common.py or delete
+                                 shuffle=False, num_workers=1)
     test(test_dataloader, model, device)
 
 if __name__ == "__main__":
