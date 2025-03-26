@@ -33,6 +33,7 @@ def test(test_dataloader, model, device):
             inputs = data[0]
             kptmap = inputs["kptmap"]
             gazemap = inputs["gazeline_map"]
+            saliencymap = inputs["saliency_map"]
             img = inputs["img"]
             targets = data[1]
             batch_size = len(data[1])
@@ -41,7 +42,7 @@ def test(test_dataloader, model, device):
             img = img.to(device)
             kptmap = kptmap.to(device)
             '''
-            concat_list = [img, gazemap]
+            concat_list = [img, saliencymap]
             concat = torch.cat(concat_list, dim=1)
             concat = concat.to(device)
             pred = model(concat)
@@ -74,7 +75,7 @@ def main():
     img_width = cfg.img_width
 
     model = swin_transformer_v2.SwinTransformerV2(img_height=img_height, img_width=img_width,
-                                                  in_chans=4, output_H=img_height, output_W=img_width)
+                                                  in_chans=6, output_H=img_height, output_W=img_width)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:
