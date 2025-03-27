@@ -21,7 +21,7 @@ from swin_transformer_unet_skip_expand_decoder_sys import SwinTransformerSys
 logger = logging.getLogger(__name__)
 
 class SwinUnet(nn.Module):
-    def __init__(self, img_height=1920, img_width=3840, num_classes=3, zero_head=False, vis=False):
+    def __init__(self, img_height=1920, img_width=3840, in_chans=3, num_classes=3, zero_head=False, vis=False):
         super(SwinUnet, self).__init__()
         self.num_classes = num_classes
         self.zero_head = zero_head
@@ -29,7 +29,7 @@ class SwinUnet(nn.Module):
         self.swin_unet = SwinTransformerSys(img_height=img_height,
                                             img_width=img_width,
                                             patch_size=4,
-                                            in_chans=6, # changed 3 to 6
+                                            in_chans=in_chans, # changed 3 to in_chans
                                             num_classes=self.num_classes,
                                             embed_dim=96,
                                             depths=[2, 2, 6, 2],
