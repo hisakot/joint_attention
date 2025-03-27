@@ -234,6 +234,7 @@ def main():
                 torch.save({"epoch" : epoch + 1,
                             "resnet_state_dict" : resnet50.state_dict(),
                             "swin_t_state_dict" : swin_t.state_dict(),
+                            "swin_unet_state_dict" : swin_unet.state_dict(),
                             "unet_state_dict" : unet.state_dict(),
                             "fuse_state_dict" : fuse.state_dict(),
                             "optimizer_state_dict" : optimizer.state_dict(),

@@ -92,11 +92,11 @@ def main():
 
     checkpoint = torch.load(args.model)
     if torch.cuda.device_count() >= 1:
-        model.load_state_dict(checkpoint["resnet_state_dict"])
+        model.load_state_dict(checkpoint["swin_unet_state_dict"])
     else:
         from collections import OrderedDict
         state_dict = OrderedDict()
-        for k, v in checkpoint["resnet_state_dict"].items():
+        for k, v in checkpoint["swin_unet_state_dict"].items():
             name = k[7:] # remove "module."
             state_dict[name] = v
         model.load_state_dict(state_dict)
