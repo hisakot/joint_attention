@@ -61,10 +61,7 @@ def test(test_dataloader, model, device):
             pred = pred.astype(np.uint8)
             pred = cv2.resize(pred, (3840, 1920))
             cv2.imwrite("data/test/pred/" + str(i).zfill(6) + ".png", pred)
-            print("data/test/pred/"+str(i).zfill(6) + ".png")
-            exit()
 
-    return pred
 
 def main():
 
