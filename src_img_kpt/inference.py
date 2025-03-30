@@ -96,7 +96,7 @@ def main():
     else:
         from collections import OrderedDict
         state_dict = OrderedDict()
-        for k, v in checkpoint["swin_unet_state_dict"].items():
+        for k, v in checkpoint["pjae_state_dict"].items():
             name = k[7:] # remove "module."
             state_dict[name] = v
         model.load_state_dict(state_dict)

@@ -243,6 +243,7 @@ def main():
                             "swin_unet_state_dict" : swin_unet.state_dict(),
                             "unet_state_dict" : unet.state_dict(),
                             "fuse_state_dict" : fuse.state_dict(),
+                            "pjae_state_dict" : spatiotemporal.state_dict(),
                             "optimizer_state_dict" : optimizer.state_dict(),
                             "train_loss_list" : train_loss_list,
                             "val_loss_list" : val_loss_list,
