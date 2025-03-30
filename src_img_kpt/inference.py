@@ -23,6 +23,7 @@ import swin_transformer
 import swin_transformer_v2
 import vision_transformer
 import resnet
+import PJAE_spatiotemporal
 
 
 def test(test_dataloader, model, device):
@@ -43,7 +44,7 @@ def test(test_dataloader, model, device):
             img = img.to(device)
             kptmap = kptmap.to(device)
             '''
-            concat_list = [img, saliencymap]
+            concat_list = [img, gazemap]
             concat = torch.cat(concat_list, dim=1)
             concat = concat.to(device)
             pred = model(concat)
@@ -60,7 +61,7 @@ def test(test_dataloader, model, device):
             pred *= 255.
             pred = pred.astype(np.uint8)
             pred = cv2.applyColorMap(pred, cv2.COLORMAP_JET)
-            pred = cv2.resize(pred, (3840, 1920))
+            pred = cv2.resize(pred, (960, 480))
             cv2.imwrite("data/test/pred/" + str(i).zfill(6) + ".png", pred)
 
 
@@ -78,8 +79,9 @@ def main():
     model = swin_transformer_v2.SwinTransformerV2(img_height=img_height, img_width=img_width,
                                                   in_chans=6, output_H=img_height, output_W=img_width)
     model = resnet.ResNet50(pretrained=False, in_ch=6)
-    '''
     model = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width, in_chans=6)
+    '''
+    model = PJAE_spatiotemporal.ModelSpatioTemporal()
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:
