@@ -68,7 +68,7 @@ class ModelSpatioTemporal(nn.Module):
         self.avgpool = nn.AvgPool2d(7, stride=1)
 
         # scene pathway
-        self.conv1_scene = nn.Conv2d(4, 64, kernel_size=7, stride=2, padding=3, bias=False)
+        self.conv1_scene = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3, bias=False)
         self.bn1_scene = nn.BatchNorm2d(64)
         self.layer1_scene = self._make_layer_scene(block, 64, layers_scene[0])
         self.layer2_scene = self._make_layer_scene(block, 128, layers_scene[1], stride=2)

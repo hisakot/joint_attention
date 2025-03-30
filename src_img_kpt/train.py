@@ -60,10 +60,10 @@ def train(train_dataloader, spatiotemporal, loss_function, optimizer, device):
             kpt_pred = unet(kptmap)
             pred = fuse(img_pred, kpt_pred)
             '''
-            concat_list = [img, gazemap]
+            concat_list = [img, saliencymap]
             concat = torch.cat(concat_list, dim=1)
             concat = concat.to(device)
-            pred = spatiotemporal(concat)
+            pred = spatiotemporal(img.to(device))
             loss = loss_function(pred, targets.to(device))
 
             optimizer.zero_grad()
@@ -108,10 +108,10 @@ def evaluate(val_dataloader, spatiotemporal, loss_function, device):
                 img = img.to(device)
                 kptmap = kptmap.to(device)
                 '''
-                concat_list = [img, gazemap]
+                concat_list = [img, saliencymap]
                 concat = torch.cat(concat_list, dim=1)
                 concat = concat.to(device)
-                pred = spatiotemporal(concat)
+                pred = spatiotemporal(img.to(device))
 
                 '''
                 img_pred = swin_t(img)
@@ -247,7 +247,7 @@ def main():
                             "optimizer_state_dict" : optimizer.state_dict(),
                             "train_loss_list" : train_loss_list,
                             "val_loss_list" : val_loss_list,
-                            }, "save_models/img_gazeline_pjae_best.pth")
+                            }, "save_models/img_pjae_best.pth")
             else:
                 early_stopping[2] += 1
                 if early_stopping[2] == early_stopping[1]:

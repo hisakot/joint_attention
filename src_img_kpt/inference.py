@@ -44,10 +44,10 @@ def test(test_dataloader, model, device):
             img = img.to(device)
             kptmap = kptmap.to(device)
             '''
-            concat_list = [img, gazemap]
+            concat_list = [img, saliencymap]
             concat = torch.cat(concat_list, dim=1)
             concat = concat.to(device)
-            pred = model(concat)
+            pred = model(img.to(device))
             '''
             img_pred = swin_t(img)
             kpt_pred = swin_t(kptmap)
@@ -92,7 +92,7 @@ def main():
 
     checkpoint = torch.load(args.model)
     if torch.cuda.device_count() >= 1:
-        model.load_state_dict(checkpoint["swin_unet_state_dict"])
+        model.load_state_dict(checkpoint["pjae_state_dict"])
     else:
         from collections import OrderedDict
         state_dict = OrderedDict()
