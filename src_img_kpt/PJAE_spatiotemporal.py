@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 import math
+import cv2
 import numpy as np
 from pytorch_convolutional_rnn import convolutional_rnn
 
@@ -116,7 +117,7 @@ class ModelSpatioTemporal(nn.Module):
         self.deconv_bn2 = nn.BatchNorm2d(128)
         self.deconv3 = nn.ConvTranspose2d(128, 1, kernel_size=3, stride=2)
         self.deconv_bn3 = nn.BatchNorm2d(1)
-        self.conv4 = nn.Conv2d(1, 1, kernel_size=1, stride=1)
+        self.conv4 = nn.Conv2d(1, 3, kernel_size=1, stride=1)
 
         # Initialize weights
         for m in self.modules():
@@ -294,9 +295,11 @@ class ModelSpatioTemporal(nn.Module):
         x = x / 255
 
         # pack output data
+        '''
         out = {}
         out['encoding_inout'] = encoding_inout
         out['person_scene_attention_heatmap'] = x.view(batch_size, frame_num, people_num, 63, 63) # 64->63
+        '''
 
         # return deconv, inout_val, hx
         '''
