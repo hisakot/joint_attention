@@ -64,7 +64,7 @@ def train(train_dataloader, spatiotemporal, loss_function, optimizer, device):
             concat_list = [img, gazeconemap]
             concat = torch.cat(concat_list, dim=1)
             concat = concat.to(device)
-            pred = spatiotemporal(img.to(device))
+            pred = spatiotemporal(concat)
             loss = loss_function(pred, targets.to(device))
 
             optimizer.zero_grad()
@@ -113,7 +113,7 @@ def evaluate(val_dataloader, spatiotemporal, loss_function, device):
                 concat_list = [img, gazeconemap]
                 concat = torch.cat(concat_list, dim=1)
                 concat = concat.to(device)
-                pred = spatiotemporal(img.to(device))
+                pred = spatiotemporal(concat)
 
                 '''
                 img_pred = swin_t(img)
