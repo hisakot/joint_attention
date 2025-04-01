@@ -84,6 +84,17 @@ class Dataset(Dataset):
         gazeline_map = gazeline_map[0]
         gazeline_map = gazeline_map[np.newaxis, :, :]
 
+        # gaze cone
+        gazecone_map = np.zeros((1920, 3840), dtype=np.float32)
+        for kpt in kpts:
+            face_kpt = kpt[23:91]
+            p1, p2, yaw, pitch, roll = get_head_direction(face_kpt)
+            gazecone_map = generate_gaze_cone(gazecone_map, p1, p2,
+                                              sigma_angle=0.2, 
+                                              sigma_distance=1000, 
+                                              fade_distance=False)
+        gazecone_map = gazecone_map[np.newaxis, :, :] # 1, H, W
+
         # saliency
         img = cv2.imread(self.img_paths[idx])
         saliency = cv2.saliency.StaticSaliencySpectralResidual_create()
@@ -104,6 +115,7 @@ class Dataset(Dataset):
 
         inputs = {"kptmap" : torch.tensor(kptmap, dtype=torch.float16),
                   "gazeline_map" : torch.tensor(gazeline_map, dtype=torch.float16),
+                  "gazecone_map" : torch.tensor(gazecone_map, dtype=torch.float16),
                   "saliency_map" : torch.tensor(saliency_map, dtype=torch.float16),
                   "img" : torch.tensor(img, dtype=torch.float16)}
 
@@ -243,3 +255,32 @@ def generate_pose_heatmap(img_height, img_width, keypoints, sigma=3):
     heatmap_cat = np.concatenate([heatmap, heatmap_cat], 2)
 
     return heatmap_cat
+
+def generate_gaze_cone(heatmap, p1, p2, sigma_angle, sigma_distance, fade_distance=False):
+    height, width = heatmap.shape
+    y_indices, x_indices = np.meshgrid(np.arange(height), np.arange(width), indexing='ij')
+
+    dx = p2[0] - p1[0]
+    dy = p2[1] - p1[1]
+    norm = np.sqrt(dx**2 + dy**2)
+    dx /= norm
+    dy /= norm
+
+    pixel_theta = np.arctan2(y_indices - p1[1], x_indices - p1[0]) # direction between each pixel and head center
+    gaze_theta = np.arctan2(dy, dx) # gaze direction
+
+    theta_diff = pixel_theta - gaze_theta
+    theta_diff = np.arctan2(np.sin(theta_diff), np.cos(theta_diff))
+
+    # gaze strength based on gauss
+    angle_weight = np.exp(- (theta_diff ** 2) / (2 * sigma_angle ** 2))
+
+    if fade_distance:
+        distances = np.sqrt((x_indices - p1[0])**2 + (y_indices - p1[1])**2)
+        distance_weight = np.exp(- (distances ** 2) / (2 * sigma_distance ** 2))
+    else:
+        distance_weight = 1
+
+    heatmap += angle_weight * distance_weight
+
+    return heatmap

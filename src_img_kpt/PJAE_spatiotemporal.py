@@ -58,7 +58,7 @@ class BottleneckConvLSTM(nn.Module):
         return out
 
 class ModelSpatioTemporal(nn.Module):
-    def __init__(self, block=BottleneckConvLSTM, num_lstm_layers=1, bidirectional=False, layers_scene=[3, 4, 6, 3, 2], layers_face=[3, 4, 6, 3, 2]):
+    def __init__(self, block=BottleneckConvLSTM, num_lstm_layers=1, bidirectional=False, layers_scene=[3, 4, 6, 3, 2], layers_face=[3, 4, 6, 3, 2], in_ch=3):
         self.inplanes_scene = 64
         self.inplanes_face = 64
         super(ModelSpatioTemporal, self).__init__()
@@ -69,7 +69,7 @@ class ModelSpatioTemporal(nn.Module):
         self.avgpool = nn.AvgPool2d(7, stride=1)
 
         # scene pathway
-        self.conv1_scene = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3, bias=False)
+        self.conv1_scene = nn.Conv2d(in_ch, 64, kernel_size=7, stride=2, padding=3, bias=False)
         self.bn1_scene = nn.BatchNorm2d(64)
         self.layer1_scene = self._make_layer_scene(block, 64, layers_scene[0])
         self.layer2_scene = self._make_layer_scene(block, 128, layers_scene[1], stride=2)
