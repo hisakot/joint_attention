@@ -93,6 +93,7 @@ class Dataset(Dataset):
                                               sigma_angle=0.2, 
                                               sigma_distance=1000, 
                                               fade_distance=False)
+        gazecone_map = cv2.resize(gazecone_map, (self.W, self.H))
         gazecone_map = gazecone_map[np.newaxis, :, :] # 1, H, W
 
         # saliency
