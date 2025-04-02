@@ -112,7 +112,10 @@ if __name__ == '__main__':
 
     json_paths = glob.glob(os.path.join(args.mmpose_dir, "*"))
     for json_path in tqdm(json_paths):
-        file_name = os.path.splitext(os.path.basename(json_path))[0] # ex.) ds014
+        if os.path.isfile(json_path):
+            file_name = os.path.splitext(os.path.basename(json_path))[0] # ex.) ds014
+        else:
+            continue
 
         if not os.path.exists(args.save_dir):
             os.mkdir(args.save_dir)
