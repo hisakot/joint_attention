@@ -28,6 +28,8 @@ class Dataset(Dataset):
         mmpose_paths.sort()
         img_paths = glob.glob(data_dir + "/frames/*/*.png")
         img_paths.sort()
+        gazecone_paths = glob.glob(data_dir + "/gazecone/*/*.png")
+        gazecone_paths.sort()
         gt_paths = glob.glob(data_dir + "/gt_heatmap/*/*.PNG")
         gt_paths.sort()
 
@@ -35,7 +37,8 @@ class Dataset(Dataset):
             instances = load_mmpose_json(file)
             self.mmpose.extend(instances)
         self.img_paths = img_paths
-        self.gt_paths = img_paths
+        self.gt_paths = gt_paths
+        self.gazecone_paths = gazecone_paths
 
     def __len__(self):
         return len(self.mmpose)
@@ -85,16 +88,13 @@ class Dataset(Dataset):
         gazeline_map = gazeline_map[np.newaxis, :, :]
 
         # gaze cone
-        gazecone_map = np.zeros((1920, 3840), dtype=np.float32)
-        for kpt in kpts:
-            face_kpt = kpt[23:91]
-            p1, p2, yaw, pitch, roll = get_head_direction(face_kpt)
-            gazecone_map = generate_gaze_cone(gazecone_map, p1, p2,
-                                              sigma_angle=0.2, 
-                                              sigma_distance=1000, 
-                                              fade_distance=False)
+        gazecone_map = cv2.imread(self.gazecone_paths[idx])
         gazecone_map = cv2.resize(gazecone_map, (self.W, self.H))
-        gazecone_map = gazecone_map[np.newaxis, :, :] # 1, H, W
+        print(gazecone_map.shape)
+        exit()
+        gazecone_map = gazecone_map.astype(np.float32)
+        gazecone_map /= 255.
+        gazecone_map = np.transpose(gazecone_map, (2, 0, 1)) # C, H, W
 
         # saliency
         img = cv2.imread(self.img_paths[idx])
