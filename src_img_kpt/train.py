@@ -62,7 +62,10 @@ def train(train_dataloader, spatiotemporal, loss_function, optimizer, device):
             pred = fuse(img_pred, kpt_pred)
             '''
             concat_list = [img, gazeconemap]
+            print(gazecone_map.shape)
+            print(img.shape)
             concat = torch.cat(concat_list, dim=1)
+            print(concat.shape)
             concat = concat.to(device)
             pred = spatiotemporal(concat)
             loss = loss_function(pred, targets.to(device))

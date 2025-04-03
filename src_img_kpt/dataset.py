@@ -88,10 +88,8 @@ class Dataset(Dataset):
         gazeline_map = gazeline_map[np.newaxis, :, :]
 
         # gaze cone
-        gazecone_map = cv2.imread(self.gazecone_paths[idx])
+        gazecone_map = cv2.imread(self.gazecone_paths[idx], 0)
         gazecone_map = cv2.resize(gazecone_map, (self.W, self.H))
-        print(gazecone_map.shape)
-        exit()
         gazecone_map = gazecone_map.astype(np.float32)
         gazecone_map /= 255.
         gazecone_map = np.transpose(gazecone_map, (2, 0, 1)) # C, H, W
