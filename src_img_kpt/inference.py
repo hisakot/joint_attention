@@ -48,7 +48,7 @@ def test(test_dataloader, model, device):
             concat_list = [img, gazeconemap]
             concat = torch.cat(concat_list, dim=1)
             concat = concat.to(device)
-            pred = model(img.to(device))
+            pred = model(concat)
             '''
             img_pred = swin_t(img)
             kpt_pred = swin_t(kptmap)
@@ -80,9 +80,9 @@ def main():
     model = swin_transformer_v2.SwinTransformerV2(img_height=img_height, img_width=img_width,
                                                   in_chans=6, output_H=img_height, output_W=img_width)
     model = resnet.ResNet50(pretrained=False, in_ch=6)
-    model = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width, in_chans=6)
-    '''
     model = PJAE_spatiotemporal.ModelSpatioTemporal(in_ch=3)
+    '''
+    model = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width, in_chans=4)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:
