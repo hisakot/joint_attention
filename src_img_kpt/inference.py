@@ -35,6 +35,7 @@ def test(test_dataloader, model, device):
             inputs = data[0]
             kptmap = inputs["kptmap"]
             gazemap = inputs["gazeline_map"]
+            gazeconemap = inputs["gazecone_map"]
             saliencymap = inputs["saliency_map"]
             img = inputs["img"]
             targets = data[1]
@@ -44,7 +45,7 @@ def test(test_dataloader, model, device):
             img = img.to(device)
             kptmap = kptmap.to(device)
             '''
-            concat_list = [img, saliencymap]
+            concat_list = [img, gazeconemap]
             concat = torch.cat(concat_list, dim=1)
             concat = concat.to(device)
             pred = model(img.to(device))
@@ -81,7 +82,7 @@ def main():
     model = resnet.ResNet50(pretrained=False, in_ch=6)
     model = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width, in_chans=6)
     '''
-    model = PJAE_spatiotemporal.ModelSpatioTemporal()
+    model = PJAE_spatiotemporal.ModelSpatioTemporal(in_ch=3)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:

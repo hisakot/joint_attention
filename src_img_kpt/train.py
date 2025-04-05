@@ -64,7 +64,7 @@ def train(train_dataloader, spatiotemporal, loss_function, optimizer, device):
             concat_list = [img, gazeconemap]
             concat = torch.cat(concat_list, dim=1)
             concat = concat.to(device)
-            pred = spatiotemporal(concat)
+            pred = spatiotemporal(img.to(device))
             loss = loss_function(pred, targets.to(device))
 
             optimizer.zero_grad()
@@ -113,7 +113,7 @@ def evaluate(val_dataloader, spatiotemporal, loss_function, device):
                 concat_list = [img, gazeconemap]
                 concat = torch.cat(concat_list, dim=1)
                 concat = concat.to(device)
-                pred = spatiotemporal(concat)
+                pred = spatiotemporal(img.to(device))
 
                 '''
                 img_pred = swin_t(img)
@@ -160,7 +160,7 @@ def main():
     swin_unet = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width, in_chans=4)
     unet = kptnet.UNet(in_channels=3, out_channels=3)
     fuse = fusion.Fusion(in_channels=6, out_channels=3)
-    spatiotemporal = PJAE_spatiotemporal.ModelSpatioTemporal(in_ch=4)
+    spatiotemporal = PJAE_spatiotemporal.ModelSpatioTemporal(in_ch=3)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:
@@ -254,7 +254,7 @@ def main():
                             "train_loss_list" : train_loss_list,
                             "train_loss_list" : train_loss_list,
                             "val_loss_list" : val_loss_list,
-                            }, "save_models/img_gazecone_pjae_best.pth")
+                            }, "save_models/img_pjae_best.pth")
             else:
                 early_stopping[2] += 1
                 if early_stopping[2] == early_stopping[1]:
