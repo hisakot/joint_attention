@@ -26,7 +26,7 @@ import resnet
 import PJAE_spatiotemporal
 
 
-def test(test_dataloader, model, device):
+def test(test_dataloader, model, loss_function, device):
     model.eval()
     total_loss = 0
 
@@ -55,6 +55,8 @@ def test(test_dataloader, model, device):
             pred = fuse(img_pred, kpt_pred)
             '''
             pred = torch.clamp(pred, min=-1e3, max=1e3)
+            loss = loss_function(pred, targets.to(device))
+            print(loss)
 
             pred = pred.to("cpu").detach().numpy().copy()
             pred = np.squeeze(pred, 0)
