@@ -179,7 +179,7 @@ def main():
 
     # loss_function = nn.CrossEntropyLoss()
     loss_function = nn.MSELoss()
-    optimizer = optim.SGD(swin_unet.parameters(), lr=lr)
+    optimizer = optim.SGD(swin_t.parameters(), lr=lr)
 
     writer = SummaryWriter(log_dir="logs")
 
