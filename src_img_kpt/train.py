@@ -29,15 +29,15 @@ def print_memory_usage():
     print(F"GPU Memory Allocated: {allocated:.2f} MB")
     print(F"GPU Memory Reserved: {reserved:.2f} MB")
 
-def train(train_dataloader, swin_unet, loss_function, optimizer, device):
+def train(train_dataloader, swin_t, loss_function, optimizer, device):
     '''
     resnet50.train()
-    swin_t.train()
     unet.train()
     fuse.train()
+    swin_unet.train()
     spatiotemporal.train()
     '''
-    swin_unet.train()
+    swin_t.train()
     total_loss =  0
     start_time = time.time()
 
@@ -64,7 +64,7 @@ def train(train_dataloader, swin_unet, loss_function, optimizer, device):
             concat_list = [img, gazeconemap]
             concat = torch.cat(concat_list, dim=1)
             concat = concat.to(device)
-            pred = swin_unet(concat)
+            pred = swin_t(concat)
             loss = loss_function(pred, targets.to(device))
 
             optimizer.zero_grad()
@@ -75,7 +75,7 @@ def train(train_dataloader, swin_unet, loss_function, optimizer, device):
             torch.nn.utils.clip_grad_norm_(unet.parameters(), 0.5)
             torch.nn.utils.clip_grad_norm_(fuse.parameters(), 0.5)
             '''
-            torch.nn.utils.clip_grad_norm_(swin_unet.parameters(), 0.5)
+            torch.nn.utils.clip_grad_norm_(swin_t.parameters(), 0.5)
             optimizer.step()
 
             total_loss += loss.item()
@@ -83,15 +83,15 @@ def train(train_dataloader, swin_unet, loss_function, optimizer, device):
 
     return total_loss / len(train_dataloader)
 
-def evaluate(val_dataloader, swin_unet, loss_function, device):
+def evaluate(val_dataloader, swin_t, loss_function, device):
     '''
     resnet50.eval()
-    swin_t.eval()
     unet.eval()
     fuse.eval()
+    swin_unet.eval()
     spatiotemporal.eval()
     '''
-    swin_unet.eval()
+    swin_t.eval()
     total_loss = 0
 
     with torch.no_grad():
@@ -113,7 +113,7 @@ def evaluate(val_dataloader, swin_unet, loss_function, device):
                 concat_list = [img, gazeconemap]
                 concat = torch.cat(concat_list, dim=1)
                 concat = concat.to(device)
-                pred = swin_unet(concat)
+                pred = swin_t(concat)
 
                 '''
                 img_pred = swin_t(img)
@@ -156,7 +156,7 @@ def main():
 
     resnet50 = resnet.ResNet50(pretrained=False, in_ch=6)
     swin_t = swin_transformer_v2.SwinTransformerV2(img_height=img_height, img_width=img_width,
-                                                   in_chans=6, output_H=img_height, output_W=img_width)
+                                                   in_chans=4, output_H=img_height, output_W=img_width)
     swin_unet = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width, in_chans=4)
     unet = kptnet.UNet(in_channels=3, out_channels=3)
     fuse = fusion.Fusion(in_channels=6, out_channels=3)
@@ -226,13 +226,13 @@ def main():
         print(early_stopping)
         try:
             # train
-            train_loss = train(train_dataloader, swin_unet,
+            train_loss = train(train_dataloader, swin_t,
                                loss_function, optimizer, device)
             train_loss_list.append(train_loss)
 
             # test
             with torch.no_grad():
-                val_loss = evaluate(val_dataloader, swin_unet,
+                val_loss = evaluate(val_dataloader, swin_t,
                                     loss_function, device)
                 val_loss_list.append(val_loss)
 
@@ -254,7 +254,7 @@ def main():
                             "train_loss_list" : train_loss_list,
                             "train_loss_list" : train_loss_list,
                             "val_loss_list" : val_loss_list,
-                            }, "save_models/img_gazecone_swinunet_best.pth")
+                            }, "save_models/img_gazecone_swin_t_best.pth")
             else:
                 early_stopping[2] += 1
                 if early_stopping[2] == early_stopping[1]:
