@@ -120,7 +120,6 @@ def evaluate(val_dataloader, resnet50, loss_function, device):
                 kpt_pred = swin_t(kptmap)
                 pred = fuse(img_pred, kpt_pred)
                 '''
-                pred = torch.clamp(pred, min=-1e3, max=1e3)
                 total_loss += batch_size * loss_function(pred, targets.to(device)).item()
                 pbar.update()
 
