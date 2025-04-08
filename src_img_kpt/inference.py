@@ -93,6 +93,8 @@ def main():
         print("---------- Use CPU ----------")
     model.half().to(device)
 
+    loss_function = nn.MSELoss()
+
     checkpoint = torch.load(args.model)
     if torch.cuda.device_count() >= 1:
         model.load_state_dict(checkpoint["swin_t_state_dict"])
@@ -110,7 +112,7 @@ def main():
                                 transform=None, is_train=False)
     test_dataloader = DataLoader(test_data, batch_size=1,
                                  shuffle=False, num_workers=1)
-    test(test_dataloader, model, device)
+    test(test_dataloader, model, loss_function, device)
 
 if __name__ == "__main__":
     main()
