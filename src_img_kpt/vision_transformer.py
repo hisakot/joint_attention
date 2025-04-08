@@ -49,8 +49,6 @@ class SwinUnet(nn.Module):
             x = x.repeat(1,3,1,1)
         logits = self.swin_unet(x)
         logits = torch.nn.functional.sigmoid(logits)
-        print(torch.min(logits), torch.max(logits), torch.unique(logits))
-        exit()
         return logits
 
     def load_from(self):
