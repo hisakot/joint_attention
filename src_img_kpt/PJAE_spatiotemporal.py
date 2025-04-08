@@ -306,6 +306,8 @@ class ModelSpatioTemporal(nn.Module):
         return out
         '''
         x = F.interpolate(x, (320, 640), mode='bilinear')
+        print(torch.unique(x))
+        exit()
         return x
 
 
