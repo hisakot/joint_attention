@@ -157,7 +157,7 @@ def main():
     swin_t = swin_transformer_v2.SwinTransformerV2(img_height=img_height, img_width=img_width,
                                                    in_chans=4, output_H=img_height, output_W=img_width)
     swin_unet = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width,
-                                            in_chans=4, num_classes=256)
+                                            in_chans=4, num_classes=3)
     unet = kptnet.UNet(in_channels=3, out_channels=3)
     fuse = fusion.Fusion(in_channels=6, out_channels=3)
     spatiotemporal = PJAE_spatiotemporal.ModelSpatioTemporal(in_ch=3)
