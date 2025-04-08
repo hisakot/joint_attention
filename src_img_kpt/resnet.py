@@ -25,6 +25,7 @@ class ResNet50(nn.Module):
 
     def forward(self, x):
         x = self.resnet50(x)
+        x = F.sigmoid(x)
         print(torch.min(x), torch.max(x))
         exit()
         x = x.reshape(-1, 3, 100, 200)

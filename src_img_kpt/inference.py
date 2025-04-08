@@ -54,7 +54,6 @@ def test(test_dataloader, model, loss_function, device):
             kpt_pred = swin_t(kptmap)
             pred = fuse(img_pred, kpt_pred)
             '''
-            pred = torch.clamp(pred, min=-1e3, max=1e3)
             loss = loss_function(pred, targets.to(device))
             print(loss)
 
