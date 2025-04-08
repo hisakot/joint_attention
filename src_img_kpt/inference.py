@@ -95,7 +95,7 @@ def main():
 
     checkpoint = torch.load(args.model)
     if torch.cuda.device_count() >= 1:
-        model.load_state_dict(checkpoint["swin_unet_state_dict"])
+        model.load_state_dict(checkpoint["swin_t_state_dict"])
     else:
         from collections import OrderedDict
         state_dict = OrderedDict()
