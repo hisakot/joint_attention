@@ -29,15 +29,15 @@ def print_memory_usage():
     print(F"GPU Memory Allocated: {allocated:.2f} MB")
     print(F"GPU Memory Reserved: {reserved:.2f} MB")
 
-def train(train_dataloader, swin_t, loss_function, optimizer, device):
+def train(train_dataloader, resnet50, loss_function, optimizer, device):
     '''
-    resnet50.train()
     unet.train()
     fuse.train()
     swin_unet.train()
     spatiotemporal.train()
-    '''
     swin_t.train()
+    '''
+    resnet50.train()
     total_loss =  0
     start_time = time.time()
 
@@ -64,7 +64,7 @@ def train(train_dataloader, swin_t, loss_function, optimizer, device):
             concat_list = [img, gazeconemap]
             concat = torch.cat(concat_list, dim=1)
             concat = concat.to(device)
-            pred = swin_t(concat)
+            pred = resnet50(concat)
             loss = loss_function(pred, targets.to(device))
 
             optimizer.zero_grad()
@@ -75,7 +75,7 @@ def train(train_dataloader, swin_t, loss_function, optimizer, device):
             torch.nn.utils.clip_grad_norm_(unet.parameters(), 0.5)
             torch.nn.utils.clip_grad_norm_(fuse.parameters(), 0.5)
             '''
-            torch.nn.utils.clip_grad_norm_(swin_t.parameters(), 0.5)
+            torch.nn.utils.clip_grad_norm_(resnet50.parameters(), 0.5)
             optimizer.step()
 
             total_loss += loss.item()
@@ -83,15 +83,15 @@ def train(train_dataloader, swin_t, loss_function, optimizer, device):
 
     return total_loss / len(train_dataloader)
 
-def evaluate(val_dataloader, swin_t, loss_function, device):
+def evaluate(val_dataloader, resnet50, loss_function, device):
     '''
-    resnet50.eval()
     unet.eval()
     fuse.eval()
     swin_unet.eval()
     spatiotemporal.eval()
-    '''
     swin_t.eval()
+    '''
+    resnet50.eval()
     total_loss = 0
 
     with torch.no_grad():
@@ -113,7 +113,7 @@ def evaluate(val_dataloader, swin_t, loss_function, device):
                 concat_list = [img, gazeconemap]
                 concat = torch.cat(concat_list, dim=1)
                 concat = concat.to(device)
-                pred = swin_t(concat)
+                pred = resnet50(concat)
 
                 '''
                 img_pred = swin_t(img)
@@ -154,7 +154,7 @@ def main():
     img_height = cfg.img_height
     img_width = cfg.img_width
 
-    resnet50 = resnet.ResNet50(pretrained=False, in_ch=6)
+    resnet50 = resnet.ResNet50(pretrained=False, in_ch=4)
     swin_t = swin_transformer_v2.SwinTransformerV2(img_height=img_height, img_width=img_width,
                                                    in_chans=4, output_H=img_height, output_W=img_width)
     swin_unet = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width, in_chans=4)
@@ -179,7 +179,7 @@ def main():
 
     # loss_function = nn.CrossEntropyLoss()
     loss_function = nn.MSELoss()
-    optimizer = optim.SGD(swin_t.parameters(), lr=lr)
+    optimizer = optim.SGD(resnet50.parameters(), lr=lr)
 
     writer = SummaryWriter(log_dir="logs")
 
@@ -226,13 +226,13 @@ def main():
         print(early_stopping)
         try:
             # train
-            train_loss = train(train_dataloader, swin_t,
+            train_loss = train(train_dataloader, resnet50,
                                loss_function, optimizer, device)
             train_loss_list.append(train_loss)
 
             # test
             with torch.no_grad():
-                val_loss = evaluate(val_dataloader, swin_t,
+                val_loss = evaluate(val_dataloader, resnet50,
                                     loss_function, device)
                 val_loss_list.append(val_loss)
 
