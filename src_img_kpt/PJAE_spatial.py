@@ -243,7 +243,7 @@ class ModelSpatial(nn.Module):
         x = self.deconv1(encoding)
         x = self.deconv_bn1(x)
         x = self.relu(x)
-        x = self.deconv2(
+        x = self.deconv2(x)
         x = self.deconv_bn2(x)
         x = self.relu(x)
         x = self.deconv3(x)
