@@ -34,9 +34,12 @@ def test(test_dataloader, model, loss_function, device):
     with torch.no_grad():
         for i, data in enumerate(test_dataloader):
             inputs = data[0]
+            for key, val in inputs.items():
+                if torch.is_tensor(val):
+                    inputs[key] = val.to(device)
             kptmap = inputs["kptmap"]
             gaze_vector = inputs["gaze_vector"]
-            gazemap = inputs["gazeline_map"]
+            gazelinemap = inputs["gazeline_map"]
             gazeconemap = inputs["gazecone_map"]
             saliencymap = inputs["saliency_map"]
             img = inputs["img"]

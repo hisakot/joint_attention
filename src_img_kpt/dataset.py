@@ -101,13 +101,11 @@ class Dataset(Dataset):
         gazeline_map = gazeline_map[np.newaxis, :, :]
 
         # gaze cone
-        '''
         gazecone_map = cv2.imread(self.gazecone_paths[idx], 0) # H, W
         gazecone_map = cv2.resize(gazecone_map, (self.W, self.H))
         gazecone_map = gazecone_map.astype(np.float32)
         gazecone_map /= 255.
         gazecone_map = gazecone_map[np.newaxis, :, :] # 1, H, W
-        '''
 
         # saliency
         img = cv2.imread(self.img_paths[idx])
@@ -130,7 +128,7 @@ class Dataset(Dataset):
         inputs = {"kptmap" : torch.tensor(kptmap, dtype=torch.float16),
                   "gaze_vector" : torch.tensor(gaze_vector, dtype=torch.float16),
                   "gazeline_map" : torch.tensor(gazeline_map, dtype=torch.float16),
-                  # "gazecone_map" : torch.tensor(gazecone_map, dtype=torch.float16),
+                  "gazecone_map" : torch.tensor(gazecone_map, dtype=torch.float16),
                   "saliency_map" : torch.tensor(saliency_map, dtype=torch.float16),
                   "img" : torch.tensor(img, dtype=torch.float16)}
 

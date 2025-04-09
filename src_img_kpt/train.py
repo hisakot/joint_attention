@@ -55,7 +55,7 @@ def train(train_dataloader, spatial, loss_function, optimizer, device):
             kptmap = inputs["kptmap"]
             gaze_vector = inputs["gaze_vector"]
             gazelinemap = inputs["gazeline_map"]
-            # gazeconemap = inputs["gazecone_map"]
+            gazeconemap = inputs["gazecone_map"]
             saliencymap = inputs["saliency_map"]
             img = inputs["img"]
             targets = data[1].to(device)
@@ -106,7 +106,7 @@ def evaluate(val_dataloader, spatial, loss_function, device):
                 kptmap = inputs["kptmap"]
                 gaze_vector = inputs["gaze_vector"]
                 gazelinemap = inputs["gazeline_map"]
-                # gazeconemap = inputs["gazecone_map"]
+                gazeconemap = inputs["gazecone_map"]
                 saliencymap = inputs["saliency_map"]
                 img = inputs["img"]
                 targets = data[1].to(device)
