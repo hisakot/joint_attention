@@ -51,7 +51,7 @@ def test(test_dataloader, model, loss_function, device):
             concat = torch.cat(concat_list, dim=1)
             concat = concat.to(device)
             '''
-            pred = model(inputs.to(device))
+            pred = model(inputs)
             '''
             img_pred = swin_t(img)
             kpt_pred = swin_t(kptmap)
