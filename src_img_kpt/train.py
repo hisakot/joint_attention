@@ -88,10 +88,10 @@ def evaluate(val_dataloader, spatiotemporal, loss_function, device):
     resnet50.eval()
     unet.eval()
     fuse.eval()
-    spatiotemporal.eval()
     swin_t.eval()
-    '''
     swin_unet.eval()
+    '''
+    spatiotemporal.eval()
     total_loss = 0
 
     with torch.no_grad():
