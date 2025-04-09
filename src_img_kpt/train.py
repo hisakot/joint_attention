@@ -34,12 +34,13 @@ def train(train_dataloader, spatial, loss_function, optimizer, device):
     '''
     resnet50.train()
     unet.train()
-    fuse.train()
     swin_t.train()
     swin_unet.train()
     spatiotemporal.train()
+    fuse.train()
     '''
     spatial.train()
+
     total_loss =  0
     start_time = time.time()
 
@@ -48,26 +49,24 @@ def train(train_dataloader, spatial, loss_function, optimizer, device):
     with tqdm(total=len(train_dataloader)) as pbar:
         for data in train_dataloader:
             inputs = data[0]
+            for key, val in inputs.items():
+                if torch.is_tensor(val):
+                    inputs[key] = val.to(device)
             kptmap = inputs["kptmap"]
+            gaze_vector = inputs["gaze_vector"]
             gazelinemap = inputs["gazeline_map"]
-            gazeconemap = inputs["gazecone_map"]
+            # gazeconemap = inputs["gazecone_map"]
             saliencymap = inputs["saliency_map"]
             img = inputs["img"]
-            targets = data[1]
+            targets = data[1].to(device)
 
-            '''
-            img = img.to(device)
-            gazelinemap = gazelinemap.to(device)
-            kptmap = kptmap.to(device)
-            img_pred = swin_t(img)
-            kpt_pred = unet(kptmap)
-            pred = fuse(img_pred, kpt_pred)
             '''
             concat_list = [img, gazeconemap]
             concat = torch.cat(concat_list, dim=1)
             concat = concat.to(device)
-            pred = spatial(concat)
-            loss = loss_function(pred, targets.to(device))
+            '''
+            pred = spatial(inputs)
+            loss = loss_function(pred, targets)
 
             optimizer.zero_grad()
             loss.backward()
@@ -101,29 +100,33 @@ def evaluate(val_dataloader, spatial, loss_function, device):
         with tqdm(total=len(val_dataloader)) as pbar:
             for data in val_dataloader:
                 inputs = data[0]
+                for key, val in inputs.items():
+                    if torch.is_tensor(val):
+                        inputs[key] = val.to(device)
                 kptmap = inputs["kptmap"]
+                gaze_vector = inputs["gaze_vector"]
                 gazelinemap = inputs["gazeline_map"]
-                gazeconemap = inputs["gazecone_map"]
+                # gazeconemap = inputs["gazecone_map"]
                 saliencymap = inputs["saliency_map"]
                 img = inputs["img"]
-                targets = data[1]
+                targets = data[1].to(device)
                 batch_size = len(data[1])
 
                 '''
                 img = img.to(device)
                 kptmap = kptmap.to(device)
-                '''
                 concat_list = [img, gazeconemap]
                 concat = torch.cat(concat_list, dim=1)
                 concat = concat.to(device)
-                pred = spatial(concat)
+                '''
+                pred = spatial(inputs)
 
                 '''
                 img_pred = swin_t(img)
                 kpt_pred = swin_t(kptmap)
                 pred = fuse(img_pred, kpt_pred)
                 '''
-                total_loss += batch_size * loss_function(pred, targets.to(device)).item()
+                total_loss += batch_size * loss_function(pred, targets).item()
                 pbar.update()
 
     return total_loss / len(val_dataloader)
@@ -164,7 +167,7 @@ def main():
     unet = kptnet.UNet(in_channels=3, out_channels=3)
     fuse = fusion.Fusion(in_channels=6, out_channels=3)
     spatiotemporal = PJAE_spatiotemporal.ModelSpatioTemporal(in_ch=4)
-    spatial = PJAE_spatial.ModelSpatial(in_ch=4)
+    spatial = PJAE_spatial.ModelSpatial(in_ch=3)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:
@@ -261,7 +264,7 @@ def main():
                             "train_loss_list" : train_loss_list,
                             "train_loss_list" : train_loss_list,
                             "val_loss_list" : val_loss_list,
-                            }, "save_models/img_gazecone_pjae_best.pth")
+                            }, "save_models/img_gazevector_fusion_best.pth")
             else:
                 early_stopping[2] += 1
                 if early_stopping[2] == early_stopping[1]:

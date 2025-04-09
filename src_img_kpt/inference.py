@@ -35,6 +35,7 @@ def test(test_dataloader, model, loss_function, device):
         for i, data in enumerate(test_dataloader):
             inputs = data[0]
             kptmap = inputs["kptmap"]
+            gaze_vector = inputs["gaze_vector"]
             gazemap = inputs["gazeline_map"]
             gazeconemap = inputs["gazecone_map"]
             saliencymap = inputs["saliency_map"]
@@ -43,13 +44,11 @@ def test(test_dataloader, model, loss_function, device):
             batch_size = len(data[1])
 
             '''
-            img = img.to(device)
-            kptmap = kptmap.to(device)
-            '''
             concat_list = [img, gazeconemap]
             concat = torch.cat(concat_list, dim=1)
             concat = concat.to(device)
-            pred = model(concat)
+            '''
+            pred = model(inputs.to(device))
             '''
             img_pred = swin_t(img)
             kpt_pred = swin_t(kptmap)
@@ -85,7 +84,7 @@ def main():
                                                   in_chans=4, output_H=img_height, output_W=img_width)
     model = PJAE_spatiotemporal.ModelSpatioTemporal(in_ch=4)
     '''
-    model = PJAE_spatial.ModelSpatial(in_ch=4)
+    model = PJAE_spatial.ModelSpatial(in_ch=3)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:

@@ -30,7 +30,7 @@ class Dataset(Dataset):
         img_paths.sort()
         gazecone_paths = glob.glob(data_dir + "/gazecone/*/*.png")
         gazecone_paths.sort()
-        gt_paths = glob.glob(data_dir + "/gt_heatmap/*/*.PNG")
+        gt_paths = glob.glob(data_dir + "/gt_heatmap/*/*.png")
         gt_paths.sort()
 
         for file in mmpose_paths:
@@ -74,6 +74,19 @@ class Dataset(Dataset):
         kptmap /= 255.
         kptmap = np.transpose(kptmap, (2, 0, 1)) # C, H, W
 
+        # gaze_vector
+        gaze_vector = []
+        people_num = len(kpts)
+        for kpt in kpts:
+            face_kpt = kpt[23:91]
+            p1, p2, yaw, pitch, roll = get_head_direction(face_kpt)
+            hx = p1[1] / 1920
+            hy = p1[0] / 3840
+            gx = p2[1] / 1920
+            gy = p2[0] / 3840
+            gaze_vector.append([hx, hy, gx, gy]) 
+        gaze_vector = torch.tensor(gaze_vector, dtype=torch.float32)
+
         # gaze line
         gazeline_map = np.zeros((1920, 3840, 3))
         for kpt in kpts:
@@ -88,11 +101,13 @@ class Dataset(Dataset):
         gazeline_map = gazeline_map[np.newaxis, :, :]
 
         # gaze cone
+        '''
         gazecone_map = cv2.imread(self.gazecone_paths[idx], 0) # H, W
         gazecone_map = cv2.resize(gazecone_map, (self.W, self.H))
         gazecone_map = gazecone_map.astype(np.float32)
         gazecone_map /= 255.
         gazecone_map = gazecone_map[np.newaxis, :, :] # 1, H, W
+        '''
 
         # saliency
         img = cv2.imread(self.img_paths[idx])
@@ -113,8 +128,9 @@ class Dataset(Dataset):
         img = np.transpose(img, (2, 0, 1)) # C, H, W
 
         inputs = {"kptmap" : torch.tensor(kptmap, dtype=torch.float16),
+                  "gaze_vector" : torch.tensor(gaze_vector, dtype=torch.float16),
                   "gazeline_map" : torch.tensor(gazeline_map, dtype=torch.float16),
-                  "gazecone_map" : torch.tensor(gazecone_map, dtype=torch.float16),
+                  # "gazecone_map" : torch.tensor(gazecone_map, dtype=torch.float16),
                   "saliency_map" : torch.tensor(saliency_map, dtype=torch.float16),
                   "img" : torch.tensor(img, dtype=torch.float16)}
 
