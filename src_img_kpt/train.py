@@ -22,6 +22,7 @@ import swin_transformer_v2
 import vision_transformer
 import resnet
 import PJAE_spatiotemporal
+import PJAE_spatial
 
 def print_memory_usage():
     allocated = torch.cuda.memory_allocated() / 1024**2
@@ -29,15 +30,16 @@ def print_memory_usage():
     print(F"GPU Memory Allocated: {allocated:.2f} MB")
     print(F"GPU Memory Reserved: {reserved:.2f} MB")
 
-def train(train_dataloader, spatiotemporal, loss_function, optimizer, device):
+def train(train_dataloader, spatial, loss_function, optimizer, device):
     '''
     resnet50.train()
     unet.train()
     fuse.train()
     swin_t.train()
     swin_unet.train()
-    '''
     spatiotemporal.train()
+    '''
+    spatial.train()
     total_loss =  0
     start_time = time.time()
 
@@ -64,7 +66,7 @@ def train(train_dataloader, spatiotemporal, loss_function, optimizer, device):
             concat_list = [img, gazeconemap]
             concat = torch.cat(concat_list, dim=1)
             concat = concat.to(device)
-            pred = spatiotemporal(concat)
+            pred = spatial(concat)
             loss = loss_function(pred, targets.to(device))
 
             optimizer.zero_grad()
@@ -83,15 +85,16 @@ def train(train_dataloader, spatiotemporal, loss_function, optimizer, device):
 
     return total_loss / len(train_dataloader)
 
-def evaluate(val_dataloader, spatiotemporal, loss_function, device):
+def evaluate(val_dataloader, spatial, loss_function, device):
     '''
     resnet50.eval()
     unet.eval()
     fuse.eval()
     swin_t.eval()
     swin_unet.eval()
-    '''
     spatiotemporal.eval()
+    '''
+    spatial.eval()
     total_loss = 0
 
     with torch.no_grad():
@@ -113,7 +116,7 @@ def evaluate(val_dataloader, spatiotemporal, loss_function, device):
                 concat_list = [img, gazeconemap]
                 concat = torch.cat(concat_list, dim=1)
                 concat = concat.to(device)
-                pred = spatiotemporal(concat)
+                pred = spatial(concat)
 
                 '''
                 img_pred = swin_t(img)
@@ -161,6 +164,7 @@ def main():
     unet = kptnet.UNet(in_channels=3, out_channels=3)
     fuse = fusion.Fusion(in_channels=6, out_channels=3)
     spatiotemporal = PJAE_spatiotemporal.ModelSpatioTemporal(in_ch=4)
+    spatial = PJAE_spatial.ModelSpatial(in_ch=4)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:
@@ -176,10 +180,11 @@ def main():
     unet.half().to(device)
     fuse.half().to(device)
     spatiotemporal.half().to(device)
+    spatial.half().to(device)
 
     # loss_function = nn.CrossEntropyLoss()
     loss_function = nn.MSELoss()
-    optimizer = optim.SGD(spatiotemporal.parameters(), lr=lr)
+    optimizer = optim.SGD(spatial.parameters(), lr=lr)
 
     writer = SummaryWriter(log_dir="logs")
 
@@ -206,7 +211,8 @@ def main():
         swin_unet.load_state_dict(checkpoint["swin_unet_state_dict"])
         unet.load_state_dict(checkpoint["unet_state_dict"])
         fuse.load_state_dict(checkpoint["fuse_state_dict"])
-        spatiotemporal.load_state_dict(checkpoint["pjae_state_dict"])
+        spatiotemporal.load_state_dict(checkpoint["pjae_spatiotemporal_state_dict"])
+        spatial.load_state_dict(checkpoint["pjae_spatial_state_dict"])
         optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
         train_loss_list = checkpoint["train_loss_list"]
         val_loss_list = checkpoint["val_loss_list"]
@@ -226,13 +232,13 @@ def main():
         print(early_stopping)
         try:
             # train
-            train_loss = train(train_dataloader, spatiotemporal,
+            train_loss = train(train_dataloader, spatial,
                                loss_function, optimizer, device)
             train_loss_list.append(train_loss)
 
             # test
             with torch.no_grad():
-                val_loss = evaluate(val_dataloader, spatiotemporal,
+                val_loss = evaluate(val_dataloader, spatial,
                                     loss_function, device)
                 val_loss_list.append(val_loss)
 
@@ -249,7 +255,8 @@ def main():
                             "swin_unet_state_dict" : swin_unet.state_dict(),
                             "unet_state_dict" : unet.state_dict(),
                             "fuse_state_dict" : fuse.state_dict(),
-                            "pjae_state_dict" : spatiotemporal.state_dict(),
+                            "pjae_spatiotemporal_state_dict" : spatiotemporal.state_dict(),
+                            "pjae_spatial_state_dict" : spatial.state_dict(),
                             "optimizer_state_dict" : optimizer.state_dict(),
                             "train_loss_list" : train_loss_list,
                             "train_loss_list" : train_loss_list,
