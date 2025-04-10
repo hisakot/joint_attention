@@ -167,7 +167,7 @@ def main():
     unet = kptnet.UNet(in_channels=3, out_channels=3)
     fuse = fusion.Fusion(in_channels=6, out_channels=3)
     spatiotemporal = PJAE_spatiotemporal.ModelSpatioTemporal(in_ch=4)
-    spatial = PJAE_spatial.ModelSpatial(in_ch=3)
+    spatial = PJAE_spatial.ModelSpatial(in_ch=6)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:
@@ -187,7 +187,7 @@ def main():
 
     # loss_function = nn.CrossEntropyLoss()
     loss_function = nn.MSELoss()
-    optimizer = optim.Adam(spatial.parameters(), lr=lr)
+    optimizer = optim.SGD(spatial.parameters(), lr=lr)
 
     writer = SummaryWriter(log_dir="logs")
 
