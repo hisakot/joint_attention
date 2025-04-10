@@ -21,7 +21,7 @@ for gaze_ann_path in gaze_ann_paths:
     data = load_json(gaze_ann_path)
 
     video_name = os.path.splitext(os.path.basename(gaze_ann_path))[0]
-    save_dir = "data/test/gt_heatmap/" + video_name
+    save_dir = "data/test/gt_heatmap_1ch/" + video_name
     if not os.path.exists(save_dir):
         os.mkdir(save_dir)
 
@@ -41,11 +41,11 @@ for gaze_ann_path in gaze_ann_paths:
             gazemap[int(round(gaze_y)) - 1][int(round(gaze_x)) - 1] = 1
 
         # gazemap = ndimage.filters.gaussian_filter(gazemap, 99)
-        gazemap = cv2.GaussianBlur(gazemap, ksize=(333, 333), sigmaX=0)
+        gazemap = cv2.GaussianBlur(gazemap, ksize=(555, 555), sigmaX=0)
         gazemap -= np.min(gazemap)
         gazemap /= np.max(gazemap)
         gazemap = (gazemap * 255).astype(np.uint8)
-        gazeim = cv2.applyColorMap(gazemap, cv2.COLORMAP_JET)
+        # gazeim = cv2.applyColorMap(gazemap, cv2.COLORMAP_JET)
 
         save_path = os.path.join(save_dir, str(i).zfill(6) + ".png")
         cv2.imwrite(save_path, gazeim)
