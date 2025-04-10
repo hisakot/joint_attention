@@ -41,7 +41,7 @@ for gaze_ann_path in gaze_ann_paths:
             gazemap[int(round(gaze_y)) - 1][int(round(gaze_x)) - 1] = 1
 
         # gazemap = ndimage.filters.gaussian_filter(gazemap, 99)
-        gazemap = cv2.GaussianBlur(gazemap, ksize=(555, 555), sigmaX=0)
+        gazemap = cv2.GaussianBlur(gazemap, ksize=(999, 999), sigmaX=0)
         gazemap -= np.min(gazemap)
         gazemap /= np.max(gazemap)
         gazemap = (gazemap * 255).astype(np.uint8)
