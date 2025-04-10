@@ -48,5 +48,5 @@ for gaze_ann_path in gaze_ann_paths:
         # gazeim = cv2.applyColorMap(gazemap, cv2.COLORMAP_JET)
 
         save_path = os.path.join(save_dir, str(i).zfill(6) + ".png")
-        cv2.imwrite(save_path, gazeim)
+        cv2.imwrite(save_path, gazemap)
             
