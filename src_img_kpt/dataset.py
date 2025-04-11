@@ -30,7 +30,7 @@ class Dataset(Dataset):
         img_paths.sort()
         gazecone_paths = glob.glob(data_dir + "/gazecone/*/*.png")
         gazecone_paths.sort()
-        gt_paths = glob.glob(data_dir + "/gt_heatmap/*/*.png")
+        gt_paths = glob.glob(data_dir + "/gt_heatmap_1ch/*/*.png")
         gt_paths.sort()
 
         for file in mmpose_paths:
@@ -133,8 +133,9 @@ class Dataset(Dataset):
                   "img" : torch.tensor(img, dtype=torch.float16)}
 
         # labels
-        targets = cv2.imread(self.gt_paths[idx])
+        targets = cv2.imread(self.gt_paths[idx], 0) # Gray scale
         targets = cv2.resize(targets, (self.W, self.H))
+        targets = targets[:, :, np.newaxis]
         targets = targets.astype(np.float32)
         targets /= 255.
         targets = np.transpose(targets, (2, 0, 1)) # C, H, W

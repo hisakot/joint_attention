@@ -16,12 +16,12 @@ def load_json(json_path):
 W = 3840
 H = 1920
 
-gaze_ann_paths = glob.glob("data/test/gaze_ann/*.json")
+gaze_ann_paths = glob.glob("data/val/gaze_ann/*.json")
 for gaze_ann_path in gaze_ann_paths:
     data = load_json(gaze_ann_path)
 
     video_name = os.path.splitext(os.path.basename(gaze_ann_path))[0]
-    save_dir = "data/test/gt_heatmap_1ch/" + video_name
+    save_dir = "data/val/gt_heatmap_1ch/" + video_name
     if not os.path.exists(save_dir):
         os.mkdir(save_dir)
 

@@ -167,7 +167,7 @@ def main():
     unet = kptnet.UNet(in_channels=3, out_channels=3)
     fuse = fusion.Fusion(in_channels=6, out_channels=3)
     spatiotemporal = PJAE_spatiotemporal.ModelSpatioTemporal(in_ch=4)
-    spatial = PJAE_spatial.ModelSpatial(in_ch=6)
+    spatial = PJAE_spatial.ModelSpatial(in_ch=3)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:
@@ -264,7 +264,7 @@ def main():
                             "train_loss_list" : train_loss_list,
                             "train_loss_list" : train_loss_list,
                             "val_loss_list" : val_loss_list,
-                            }, "save_models/img_gazevector_fusion_best.pth")
+                            }, "save_models/img_spatial.pth")
             else:
                 early_stopping[2] += 1
                 if early_stopping[2] == early_stopping[1]:

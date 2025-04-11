@@ -38,8 +38,8 @@ class VariableLengthVectorToImage(nn.Module):
         self.image_width = image_width
         self.patch_size = patch_size
         self.num_patches = (image_height // patch_size) * (image_width // patch_size)
-        self.project = nn.Linear(embed_dim, 3 * patch_size * patch_size)
-        self.unpatchfy = PatchToImage(patch_size, image_height, image_width, channels=3)
+        self.project = nn.Linear(embed_dim, 1 * patch_size * patch_size) # TODO changed 3 -> 1
+        self.unpatchfy = PatchToImage(patch_size, image_height, image_width, channels=1)
 
     def forward(self, x): # x: [B, L, input_dim]
         B, L, _ = x.shape
@@ -57,7 +57,7 @@ class VariableLengthVectorToImage(nn.Module):
         return img
 
 class Fusion(nn.Module):
-    def __init__(self, in_channels=6, out_channels=3):
+    def __init__(self, in_channels=2, out_channels=1):
         super(Fusion, self).__init__()
 
         self.fusion_layer = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1)
@@ -165,7 +165,7 @@ class ModelSpatial(nn.Module):
         self.deconv_bn2 = nn.BatchNorm2d(128)
         self.deconv3 = nn.ConvTranspose2d(128, 1, kernel_size=3, stride=2)
         self.deconv_bn3 = nn.BatchNorm2d(1)
-        self.conv4 = nn.Conv2d(1, 3, kernel_size=1, stride=1) # out_ch 1 -> 3
+        self.conv4 = nn.Conv2d(1, 1, kernel_size=1, stride=1)
 
         # Initialize weights
         for m in self.modules():
@@ -219,9 +219,9 @@ class ModelSpatial(nn.Module):
         _, _, _, image_height, image_width = images.shape
         resousion_height, resousion_width = 224, 224
         '''
-        image = inp["img"]
-        saliency = inp["saliency_map"]
-        images = torch.cat([image, saliency], dim=1)
+        images = inp["img"]
+        # gazecone = inp["gazecone_map"]
+        # images = torch.cat([image, gazecone], dim=1)
         batch_size, img_ch, image_height, image_width = images.shape
         resousion_height, resousion_width = 224, 224
         frame_num = 1
@@ -338,7 +338,9 @@ class ModelSpatial(nn.Module):
         return out
         '''
         x = F.interpolate(x, (320, 640), mode='bilinear')
+        output = x
 
+        '''
         # gazevector
         gaze_vector = inp["gaze_vector"]
         B, L, D = gaze_vector.shape
@@ -348,6 +350,7 @@ class ModelSpatial(nn.Module):
 
         # fuse 
         output = self.fusion(x, y)
+        '''
 
         return output
 
