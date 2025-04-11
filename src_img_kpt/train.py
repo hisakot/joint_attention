@@ -167,7 +167,7 @@ def main():
     unet = kptnet.UNet(in_channels=3, out_channels=3)
     fuse = fusion.Fusion(in_channels=6, out_channels=3)
     spatiotemporal = PJAE_spatiotemporal.ModelSpatioTemporal(in_ch=4)
-    spatial = PJAE_spatial.ModelSpatial(in_ch=3)
+    spatial = PJAE_spatial.ModelSpatial(in_ch=4)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:
@@ -228,7 +228,7 @@ def main():
         start_epoch = 0
 
     epochs = 1000
-    early_stopping = [np.inf, 25, 0]
+    early_stopping = [np.inf, 50, 0]
     for epoch in range(epochs):
         epoch += start_epoch
         print(f"--------------------\nEpoch {epoch+1}")
@@ -264,7 +264,7 @@ def main():
                             "train_loss_list" : train_loss_list,
                             "train_loss_list" : train_loss_list,
                             "val_loss_list" : val_loss_list,
-                            }, "save_models/img_spatial.pth")
+                            }, "save_models/img_gazecone_spatial.pth")
             else:
                 early_stopping[2] += 1
                 if early_stopping[2] == early_stopping[1]:
