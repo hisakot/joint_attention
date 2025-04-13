@@ -338,9 +338,7 @@ class ModelSpatial(nn.Module):
         return out
         '''
         x = F.interpolate(x, (320, 640), mode='bilinear')
-        output = x
 
-        '''
         # gazevector
         gaze_vector = inp["gaze_vector"]
         B, L, D = gaze_vector.shape
@@ -350,7 +348,6 @@ class ModelSpatial(nn.Module):
 
         # fuse 
         output = self.fusion(x, y)
-        '''
 
         return output
 
