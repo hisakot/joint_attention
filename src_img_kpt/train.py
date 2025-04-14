@@ -186,6 +186,13 @@ def main():
     spatiotemporal.half().to(device)
     spatial.half().to(device)
     '''
+    resnet50.to(device)
+    swin_t.to(device)
+    swin_unet.to(device)
+    unet.to(device)
+    fuse.to(device)
+    spatiotemporal.to(device)
+    spatial.to(device)
 
     # loss_function = nn.CrossEntropyLoss()
     loss_function = nn.MSELoss()
