@@ -343,7 +343,8 @@ class ModelSpatial(nn.Module):
         gaze_vector = inp["gaze_vector"]
         B, L, D = gaze_vector.shape
         device = gaze_vector.device
-        gaze_vector_transformer = VariableLengthVectorToImage(input_dim=D).half().to(device)
+        # gaze_vector_transformer = VariableLengthVectorToImage(input_dim=D).half().to(device) # TODO half ver
+        gaze_vector_transformer = VariableLengthVectorToImage(input_dim=D).to(device)
         y = gaze_vector_transformer(gaze_vector)
 
         # fuse 
