@@ -125,12 +125,12 @@ class Dataset(Dataset):
         img /= 255.
         img = np.transpose(img, (2, 0, 1)) # C, H, W
 
-        inputs = {"kptmap" : torch.tensor(kptmap, dtype=torch.float16),
-                  "gaze_vector" : torch.tensor(gaze_vector, dtype=torch.float16),
-                  "gazeline_map" : torch.tensor(gazeline_map, dtype=torch.float16),
-                  "gazecone_map" : torch.tensor(gazecone_map, dtype=torch.float16),
-                  "saliency_map" : torch.tensor(saliency_map, dtype=torch.float16),
-                  "img" : torch.tensor(img, dtype=torch.float16)}
+        inputs = {"kptmap" : torch.tensor(kptmap, dtype=torch.float32),
+                  "gaze_vector" : torch.tensor(gaze_vector, dtype=torch.float32),
+                  "gazeline_map" : torch.tensor(gazeline_map, dtype=torch.float32),
+                  "gazecone_map" : torch.tensor(gazecone_map, dtype=torch.float32),
+                  "saliency_map" : torch.tensor(saliency_map, dtype=torch.float32),
+                  "img" : torch.tensor(img, dtype=torch.float32)}
 
         # labels
         targets = cv2.imread(self.gt_paths[idx], 0) # Gray scale
@@ -139,7 +139,7 @@ class Dataset(Dataset):
         targets = targets.astype(np.float32)
         targets /= 255.
         targets = np.transpose(targets, (2, 0, 1)) # C, H, W
-        targets = torch.tensor(targets, dtype=torch.float16)
+        targets = torch.tensor(targets, dtype=torch.float32)
 
         '''
         if self.transform:

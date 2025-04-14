@@ -177,6 +177,7 @@ def main():
         # fuse = nn.DataParallel(fusion)
     else:
         print("---------- Use CPU ----------")
+    '''
     resnet50.half().to(device)
     swin_t.half().to(device)
     swin_unet.half().to(device)
@@ -184,6 +185,7 @@ def main():
     fuse.half().to(device)
     spatiotemporal.half().to(device)
     spatial.half().to(device)
+    '''
 
     # loss_function = nn.CrossEntropyLoss()
     loss_function = nn.MSELoss()
