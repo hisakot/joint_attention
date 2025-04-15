@@ -2,6 +2,7 @@ import csv
 import glob
 import json
 import os
+import random
 import statistics
 
 import cv2
@@ -44,6 +45,13 @@ class Dataset(Dataset):
         return len(self.mmpose)
 
     def __getitem__(self, idx):
+        # rotation anguler
+        '''
+        roll = random.uniform(0, 360)
+        pitch = random.uniform(0, 360)
+        '''
+        yaw = random.uniform(0, 360)
+
         # inputs
         inputs = []
         mmpose = self.mmpose[idx]
@@ -70,6 +78,7 @@ class Dataset(Dataset):
         # whole body keypoints
         kptmap = generate_pose_heatmap(self.H, self.W, kpts, sigma=3) # 1, H, W
         kptmap = cv2.resize(kptmap, (self.W, self.H))
+        kptmap = rotate_omni_img(kptmap, roll, pitch, yaw)
         kptmap = kptmap.astype(np.float32)
         kptmap /= 255.
         kptmap = np.transpose(kptmap, (2, 0, 1)) # C, H, W
@@ -94,6 +103,7 @@ class Dataset(Dataset):
             p1, p2, yaw, pitch, roll = get_head_direction(face_kpt)
             cv2.line(gazeline_map, p1, p2, (225, 225, 255), thickness=10)
         gazeline_map = cv2.resize(gazeline_map, (self.W, self.H))
+        gazeline_map = rotate_omni_img(gazeline_map, roll, pitch, yaw)
         gazeline_map = gazeline_map.astype(np.float32)
         gazeline_map /= 255
         gazeline_map = np.transpose(gazeline_map, (2, 0, 1)) # C, H, W
@@ -103,6 +113,7 @@ class Dataset(Dataset):
         # gaze cone
         gazecone_map = cv2.imread(self.gazecone_paths[idx], 0) # H, W
         gazecone_map = cv2.resize(gazecone_map, (self.W, self.H))
+        gazecone_map = rotate_omni_img(gazecone_map, roll, pitch, yaw)
         gazecone_map = gazecone_map.astype(np.float32)
         gazecone_map /= 255.
         gazecone_map = gazecone_map[np.newaxis, :, :] # 1, H, W
@@ -114,6 +125,7 @@ class Dataset(Dataset):
         saliency_map = cv2.resize(saliency_map, (self.W, self.H))
         saliency_map = (saliency_map * 255).astype("uint8")
         saliency_map = cv2.applyColorMap(saliency_map, cv2.COLORMAP_JET)
+        saliency_map = rotate_omni_img(saliency_map, roll, pitch, yaw)
         saliency_map = saliency_map.astype(np.float32)
         saliency_map /= 255.
         saliency_map = np.transpose(saliency_map, (2, 0, 1))
@@ -121,6 +133,7 @@ class Dataset(Dataset):
         # frame image
         img = cv2.imread(self.img_paths[idx]) # H, W, C
         img = cv2.resize(img, (self.W, self.H))
+        img = rotate_omni_img(img, roll, pitch, yaw)
         img = img.astype(np.float32)
         img /= 255.
         img = np.transpose(img, (2, 0, 1)) # C, H, W
@@ -135,6 +148,7 @@ class Dataset(Dataset):
         # labels
         targets = cv2.imread(self.gt_paths[idx], 0) # Gray scale
         targets = cv2.resize(targets, (self.W, self.H))
+        targets = rotate_omni_img(targets, roll, pitch, yaw)
         targets = targets[:, :, np.newaxis]
         targets = targets.astype(np.float32)
         targets /= 255.
@@ -298,3 +312,58 @@ def generate_gaze_cone(heatmap, p1, p2, sigma_angle, sigma_distance, fade_distan
     heatmap += angle_weight * distance_weight
 
     return heatmap
+
+def rotate_omni_img(img, roll, pitch, yaw, interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WARP):
+    H, W, C = img.shape
+    w = W // 2
+    h = H // 2
+
+    # make (H, W) grid
+    theta = np.linspace(-np.pi, np.pi, W)
+    phi = np.linspace(np.pi/2, -np.pi/2, H)
+    theta, phi = np.meshgrid(theta, phi)
+
+    # 3d coordinate
+    x = np.cos(phi) * np.cos(theta)
+    y = np.cos(phi) * np.sin(theta)
+    z = np.sin(phi)
+
+    # rolling
+    roll = roll * np.pi / 180
+    pitch = pitch * np.pi / 180
+    yaw = yaw * np.pi / 180
+
+    # 3d rollong array
+    mtx1 = np.array([[1, 0, 0],
+                     [0, np.cos(roll), np.sin(roll)],
+                     [0, -np.sin(roll), np.cos(roll)]])
+    mtx2 = np.array([[np.cos(pitch), 0, -np.sin(pitch)],
+                     [0, 1, 0],
+                     [np.sin(pitch), 0, np.cos(pitch)]])
+    mtx3 = np.array([[np.cos(yaw), np.sin(yaw), 0],
+                     [-np.sin(yaw), np.cos(yaw), 0],
+                     [0, 0, 1]])
+
+    # inner product of rolling array
+    mtx4 = np.dot(mtx3, np.dot(mtx2, mtx1))
+
+    # formula of coordinate
+    xx = mtx4[0][0] * x + mtx4[0][1] * y + mtx4[0][2] * z
+    yy = mtx4[1][0] * x + mtx4[1][1] * y + mtx4[1][2] * z
+    zz = mtx4[2][0] * x + mtx4[2][1] * y + mtx4[2][2] * z
+
+    # transport to latitude and longitude
+    phi = np.arcsin(zz) / (np.pi / 2)
+    theta = np.arctan2(yy, xx) / np.pi
+
+    # origin is center of img
+    X = theta * w
+    Y = phi * h
+
+    # origin is left upper
+    x = X + w
+    y = -Y + h
+
+    out = cv2.remap(img, x.astype(np.float32), y.astype(np.float32), interpolation, borderMode)
+
+    return out

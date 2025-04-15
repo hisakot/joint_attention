@@ -94,7 +94,8 @@ def main():
         print("---------- Use GPU ----------")
     else:
         print("---------- Use CPU ----------")
-    model.half().to(device)
+    # model.half().to(device)
+    model.to(device)
 
     loss_function = nn.MSELoss()
 
