@@ -46,11 +46,10 @@ class Dataset(Dataset):
 
     def __getitem__(self, idx):
         # rotation anguler
-        '''
-        roll = random.uniform(0, 360)
-        pitch = random.uniform(0, 360)
-        '''
+        roll = random.uniform(0, 0) # FIXME if need, change angular range
+        pitch = random.uniform(0, 0) # FIXME if need, change angular range
         yaw = random.uniform(0, 360)
+        map_x, map_y = rotate_omni_img(self.H, self.W, roll, pitch, yaw)
 
         # inputs
         inputs = []
@@ -78,7 +77,7 @@ class Dataset(Dataset):
         # whole body keypoints
         kptmap = generate_pose_heatmap(self.H, self.W, kpts, sigma=3) # 1, H, W
         kptmap = cv2.resize(kptmap, (self.W, self.H))
-        kptmap = rotate_omni_img(kptmap, roll, pitch, yaw)
+        kptmap = cv2.remap(kptmap, map_x.astype(np.float32), map_y.astype(np.float32), interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
         kptmap = kptmap.astype(np.float32)
         kptmap /= 255.
         kptmap = np.transpose(kptmap, (2, 0, 1)) # C, H, W
@@ -89,10 +88,15 @@ class Dataset(Dataset):
         for kpt in kpts:
             face_kpt = kpt[23:91]
             p1, p2, yaw, pitch, roll = get_head_direction(face_kpt)
-            hx = p1[1] / 1920
-            hy = p1[0] / 3840
-            gx = p2[1] / 1920
-            gy = p2[0] / 3840
+            # rotation
+            loc_h = (map_x - p1[0])**2 + (map_y - p1[1])**2
+            loc_g = (map_x - p2[0])**2 + (map_y - p2[1])**2
+            hx, hy = np.unravel_index(np.argmin(loc_h), loc_h.shape)
+            gx, gy = np.unravel_index(np.argmin(loc_g), loc_g.shape)
+            hx /= 3840
+            hy /= 1920
+            gx /= 3840
+            gy /= 1920
             gaze_vector.append([hx, hy, gx, gy]) 
         gaze_vector = torch.tensor(gaze_vector, dtype=torch.float32)
 
@@ -103,7 +107,7 @@ class Dataset(Dataset):
             p1, p2, yaw, pitch, roll = get_head_direction(face_kpt)
             cv2.line(gazeline_map, p1, p2, (225, 225, 255), thickness=10)
         gazeline_map = cv2.resize(gazeline_map, (self.W, self.H))
-        gazeline_map = rotate_omni_img(gazeline_map, roll, pitch, yaw)
+        gazeline_map = cv2.remap(gazeline_map, map_x.astype(np.float32), map_y.astype(np.float32), interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
         gazeline_map = gazeline_map.astype(np.float32)
         gazeline_map /= 255
         gazeline_map = np.transpose(gazeline_map, (2, 0, 1)) # C, H, W
@@ -113,7 +117,11 @@ class Dataset(Dataset):
         # gaze cone
         gazecone_map = cv2.imread(self.gazecone_paths[idx], 0) # H, W
         gazecone_map = cv2.resize(gazecone_map, (self.W, self.H))
-        gazecone_map = rotate_omni_img(gazecone_map, roll, pitch, yaw)
+        cv2.imshow("org_gazecone", gazecone_map)
+        gazecone_map = cv2.remap(gazecone_map, map_x.astype(np.float32), map_y.astype(np.float32), interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
+        cv2.imshow("rotate_gazecone", gazecone_map)
+        cv2.waitKey(0)
+        cv2.destroyAllWIndows()
         gazecone_map = gazecone_map.astype(np.float32)
         gazecone_map /= 255.
         gazecone_map = gazecone_map[np.newaxis, :, :] # 1, H, W
@@ -123,9 +131,9 @@ class Dataset(Dataset):
         saliency = cv2.saliency.StaticSaliencySpectralResidual_create()
         (success, saliency_map) = saliency.computeSaliency(img)
         saliency_map = cv2.resize(saliency_map, (self.W, self.H))
+        saliency_map = cv2.remap(saliency_map, map_x.astype(np.float32), map_y.astype(np.float32), interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
         saliency_map = (saliency_map * 255).astype("uint8")
         saliency_map = cv2.applyColorMap(saliency_map, cv2.COLORMAP_JET)
-        saliency_map = rotate_omni_img(saliency_map, roll, pitch, yaw)
         saliency_map = saliency_map.astype(np.float32)
         saliency_map /= 255.
         saliency_map = np.transpose(saliency_map, (2, 0, 1))
@@ -133,7 +141,11 @@ class Dataset(Dataset):
         # frame image
         img = cv2.imread(self.img_paths[idx]) # H, W, C
         img = cv2.resize(img, (self.W, self.H))
-        img = rotate_omni_img(img, roll, pitch, yaw)
+        cv2.imshow("org_img", img)
+        img = cv2.remap(img, map_x.astype(np.float32), map_y.astype(np.float32), interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
+        cv2.imshow("rotate_img", img)
+        cv2.waitKey(0)
+        cv2.destroyAllWIndows()
         img = img.astype(np.float32)
         img /= 255.
         img = np.transpose(img, (2, 0, 1)) # C, H, W
@@ -148,7 +160,7 @@ class Dataset(Dataset):
         # labels
         targets = cv2.imread(self.gt_paths[idx], 0) # Gray scale
         targets = cv2.resize(targets, (self.W, self.H))
-        targets = rotate_omni_img(targets, roll, pitch, yaw)
+        img = cv2.remap(targets, map_x.astype(np.float32), map_y.astype(np.float32), interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
         targets = targets[:, :, np.newaxis]
         targets = targets.astype(np.float32)
         targets /= 255.
@@ -261,7 +273,7 @@ def get_head_direction(face_kpt):
     return p1, p2, yaw, pitch, roll
 
 def generate_pose_heatmap(img_height, img_width, keypoints, sigma=3):
-    human_num = len(keypoints)
+    human_num = len(keypoints) 
     pose_heatmap = np.zeros((human_num, img_height, img_width), dtype=np.float32)
     heatmap = np.zeros((1, img_height, img_width), dtype=np.float32)
 
@@ -313,8 +325,7 @@ def generate_gaze_cone(heatmap, p1, p2, sigma_angle, sigma_distance, fade_distan
 
     return heatmap
 
-def rotate_omni_img(img, roll, pitch, yaw, interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WARP):
-    H, W, C = img.shape
+def rotate_omni_img(H, W, roll, pitch, yaw):
     w = W // 2
     h = H // 2
 
@@ -361,9 +372,7 @@ def rotate_omni_img(img, roll, pitch, yaw, interpolation=cv2.INTER_CUBIC, border
     Y = phi * h
 
     # origin is left upper
-    x = X + w
-    y = -Y + h
+    map_x = X + w
+    map_y = -Y + h
 
-    out = cv2.remap(img, x.astype(np.float32), y.astype(np.float32), interpolation, borderMode)
-
-    return out
+    return map_x, map_y
