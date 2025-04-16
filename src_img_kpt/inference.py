@@ -59,8 +59,8 @@ def test(test_dataloader, model, loss_function, device):
             '''
             if loss_function == "cos_similarity":
                 pred = pred.view(pred.size(0), -1)
-                target = target.view(pred.size(0), -1)
-                cos_loss = F.cosine_similarity(pred, target)
+                targets = targets.view(pred.size(0), -1)
+                cos_loss = F.cosine_similarity(pred, targets)
                 loss = (1 - cos_loss).mean()
             elif loss_function == "MSE":
                 loss = nn.MSELoss(pred, targets)
