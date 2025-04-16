@@ -76,8 +76,8 @@ class Dataset(Dataset):
                 kpts.append(keypoints)
         # whole body keypoints
         kptmap = generate_pose_heatmap(self.H, self.W, kpts, sigma=3) # H, W, 1
-        kptmap = cv2.resize(kptmap, (self.W, self.H))
         kptmap = cv2.remap(kptmap, map_x.astype(np.float32), map_y.astype(np.float32), interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
+        kptmap = kptmap[:, :, np.newaxis]
         kptmap = kptmap.astype(np.float32)
         kptmap /= 255.
         kptmap = np.transpose(kptmap, (2, 0, 1)) # C, H, W
