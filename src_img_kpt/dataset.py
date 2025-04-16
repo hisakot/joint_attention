@@ -117,11 +117,7 @@ class Dataset(Dataset):
         # gaze cone
         gazecone_map = cv2.imread(self.gazecone_paths[idx], 0) # H, W
         gazecone_map = cv2.resize(gazecone_map, (self.W, self.H))
-        cv2.imshow("org_gazecone", gazecone_map)
         gazecone_map = cv2.remap(gazecone_map, map_x.astype(np.float32), map_y.astype(np.float32), interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
-        cv2.imshow("rotate_gazecone", gazecone_map)
-        cv2.waitKey(0)
-        cv2.destroyAllWIndows()
         gazecone_map = gazecone_map.astype(np.float32)
         gazecone_map /= 255.
         gazecone_map = gazecone_map[np.newaxis, :, :] # 1, H, W
@@ -141,11 +137,7 @@ class Dataset(Dataset):
         # frame image
         img = cv2.imread(self.img_paths[idx]) # H, W, C
         img = cv2.resize(img, (self.W, self.H))
-        cv2.imshow("org_img", img)
         img = cv2.remap(img, map_x.astype(np.float32), map_y.astype(np.float32), interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
-        cv2.imshow("rotate_img", img)
-        cv2.waitKey(0)
-        cv2.destroyAllWIndows()
         img = img.astype(np.float32)
         img /= 255.
         img = np.transpose(img, (2, 0, 1)) # C, H, W

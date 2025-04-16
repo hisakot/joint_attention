@@ -156,7 +156,7 @@ class ModelSpatial(nn.Module):
         self.compress_bn1_inout = nn.BatchNorm2d(512)
         self.compress_conv2_inout = nn.Conv2d(512, 1, kernel_size=1, stride=1, padding=0, bias=False)
         self.compress_bn2_inout = nn.BatchNorm2d(1)
-        self.fc_inout = nn.Linear(49, 1)
+        self.fc_inout = nn.Linear(300, 1) # TODO (49, 1) <- img size 224, 224
 
         # decoding
         self.deconv1 = nn.ConvTranspose2d(512, 256, kernel_size=3, stride=2)
@@ -223,7 +223,7 @@ class ModelSpatial(nn.Module):
         gazecone = inp["gazecone_map"]
         images = torch.cat([image, gazecone], dim=1)
         batch_size, img_ch, image_height, image_width = images.shape
-        resousion_height, resousion_width = 224, 224
+        resousion_height, resousion_width = 320, 640 
         frame_num = 1
         people_num = 1
 
@@ -289,14 +289,16 @@ class ModelSpatial(nn.Module):
         '''
         encoding_inout = self.compress_conv1_inout(scene_face_feat)
         '''
+        '''
         encoding_inout = self.compress_conv1_inout(scene_feat)
         encoding_inout = self.compress_bn1_inout(encoding_inout)
         encoding_inout = self.relu(encoding_inout)
         encoding_inout = self.compress_conv2_inout(encoding_inout)
         encoding_inout = self.compress_bn2_inout(encoding_inout)
         encoding_inout = self.relu(encoding_inout)
-        encoding_inout = encoding_inout.view(-1, 49)
+        encoding_inout = encoding_inout.view(-1, 300) # TODO 49 <- img size 224, 224
         encoding_inout = self.fc_inout(encoding_inout)
+         '''
 
         # scene + face feat -> encoding -> decoding
         '''
@@ -320,11 +322,13 @@ class ModelSpatial(nn.Module):
         x = self.relu(x)
         x = self.conv4(x)
 
+        '''
         raw_hm = x * 255
         inout = 1 / (1 + torch.exp(-encoding_inout))
         inout = (1 - inout) * 255
         x = raw_hm - inout[:, :, None, None]
         x = x / 255
+        '''
 
         # pack output data
         '''
@@ -339,6 +343,7 @@ class ModelSpatial(nn.Module):
         '''
         x = F.interpolate(x, (320, 640), mode='bilinear')
 
+        '''
         # gazevector
         gaze_vector = inp["gaze_vector"]
         B, L, D = gaze_vector.shape
@@ -349,6 +354,8 @@ class ModelSpatial(nn.Module):
 
         # fuse 
         output = self.fusion(x, y)
+        '''
+        output = x
 
         return output
 
