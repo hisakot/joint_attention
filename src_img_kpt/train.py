@@ -73,7 +73,7 @@ def train(train_dataloader, spatial, loss_function, optimizer, device):
                 target = target.view(pred.size(0), -1)
                 cos_loss = F.cosine_similarity(pred, target)
                 loss = (1 - cos_loss).mean()
-            elif: loss_function == "MSE":
+            elif loss_function == "MSE":
                 loss = nn.MSELoss(pred, targets)
 
             optimizer.zero_grad()
@@ -139,7 +139,7 @@ def evaluate(val_dataloader, spatial, loss_function, device):
                     target = target.view(pred.size(0), -1)
                     cos_loss = F.cosine_similarity(pred, target)
                     loss = (1 - cos_loss).mean()
-                elif: loss_function == "MSE":
+                elif loss_function == "MSE":
                     loss = nn.MSELoss(pred, targets)
 
                 total_loss += batch_size * loss.item()
