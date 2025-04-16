@@ -43,7 +43,7 @@ def test(test_dataloader, model, loss_function, device):
             gazeconemap = inputs["gazecone_map"]
             saliencymap = inputs["saliency_map"]
             img = inputs["img"]
-            targets = data[1]
+            targets = data[1].to(device)
             batch_size = len(data[1])
 
             '''
@@ -57,7 +57,13 @@ def test(test_dataloader, model, loss_function, device):
             kpt_pred = swin_t(kptmap)
             pred = fuse(img_pred, kpt_pred)
             '''
-            loss = loss_function(pred, targets.to(device))
+            if loss_function == "cos_similarity":
+                pred = pred.view(pred.size(0), -1)
+                target = target.view(pred.size(0), -1)
+                cos_loss = F.cosine_similarity(pred, target)
+                loss = (1 - cos_loss).mean()
+            elif: loss_function == "MSE":
+                loss = nn.MSELoss(pred, targets)
             print(loss)
 
             pred = pred.to("cpu").detach().numpy().copy()
@@ -97,7 +103,8 @@ def main():
     # model.half().to(device)
     model.to(device)
 
-    loss_function = nn.MSELoss()
+    # loss_function = "MSE"
+    loss_function = "cos_similarity"
 
     checkpoint = torch.load(args.model)
     if torch.cuda.device_count() >= 1:
