@@ -284,7 +284,7 @@ def generate_pose_heatmap(img_height, img_width, keypoints, sigma=3):
     heatmap = np.max(heatmap, axis=0)
     heatmap = heatmap[:, :, np.newaxis]
 
-    return heatmap_cat
+    return heatmap
 
 def generate_gaze_cone(heatmap, p1, p2, sigma_angle, sigma_distance, fade_distance=False):
     height, width = heatmap.shape
