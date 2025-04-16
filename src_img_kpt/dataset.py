@@ -75,7 +75,7 @@ class Dataset(Dataset):
             if sum(score >= 0.5 for score in scores) > 133 / 5:
                 kpts.append(keypoints)
         # whole body keypoints
-        kptmap = generate_pose_heatmap(self.H, self.W, kpts, sigma=3) # 1, H, W
+        kptmap = generate_pose_heatmap(self.H, self.W, kpts, sigma=3) # H, W, 1
         kptmap = cv2.resize(kptmap, (self.W, self.H))
         kptmap = cv2.remap(kptmap, map_x.astype(np.float32), map_y.astype(np.float32), interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
         kptmap = kptmap.astype(np.float32)
@@ -283,8 +283,6 @@ def generate_pose_heatmap(img_height, img_width, keypoints, sigma=3):
 
     heatmap = np.max(heatmap, axis=0)
     heatmap = heatmap[:, :, np.newaxis]
-    heatmap_cat = np.concatenate([heatmap, heatmap], 2)
-    heatmap_cat = np.concatenate([heatmap, heatmap_cat], 2)
 
     return heatmap_cat
 
