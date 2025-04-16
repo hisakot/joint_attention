@@ -282,6 +282,7 @@ def main():
             # tensorboard
             writer.add_scalar("Train Loss", train_loss, epoch + 1)
             writer.add_scalar("Valid Loss", val_loss, epoch + 1)
+            print("log updated")
 
         except ValueError:
             continue
