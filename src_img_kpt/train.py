@@ -8,6 +8,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
 from torch.utils.tensorboard import SummaryWriter
@@ -66,7 +67,14 @@ def train(train_dataloader, spatial, loss_function, optimizer, device):
             concat = concat.to(device)
             '''
             pred = spatial(inputs)
-            loss = loss_function(pred, targets)
+
+            if loss_function == "cos_similarity":
+                pred = pred.view(pred.size(0), -1)
+                target = target.view(pred.size(0), -1)
+                cos_loss = F.cosine_similarity(pred, target)
+                loss = (1 - cos_loss).mean()
+            elif: loss_function == "MSE":
+                loss = nn.MSELoss(pred, targets)
 
             optimizer.zero_grad()
             loss.backward()
@@ -126,7 +134,15 @@ def evaluate(val_dataloader, spatial, loss_function, device):
                 kpt_pred = swin_t(kptmap)
                 pred = fuse(img_pred, kpt_pred)
                 '''
-                total_loss += batch_size * loss_function(pred, targets).item()
+                if loss_function == "cos_similarity":
+                    pred = pred.view(pred.size(0), -1)
+                    target = target.view(pred.size(0), -1)
+                    cos_loss = F.cosine_similarity(pred, target)
+                    loss = (1 - cos_loss).mean()
+                elif: loss_function == "MSE":
+                    loss = nn.MSELoss(pred, targets)
+
+                total_loss += batch_size * loss.item()
                 pbar.update()
 
     return total_loss / len(val_dataloader)
@@ -195,7 +211,8 @@ def main():
     spatial.to(device)
 
     # loss_function = nn.CrossEntropyLoss()
-    loss_function = nn.MSELoss()
+    # loss_function = "MSE"
+    loss_function = "cos_similarity"
     optimizer = optim.SGD(spatial.parameters(), lr=lr)
 
     writer = SummaryWriter(log_dir="logs")
