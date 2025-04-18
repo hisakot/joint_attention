@@ -29,7 +29,7 @@ class Dataset(Dataset):
         mmpose_paths.sort()
         img_paths = glob.glob(data_dir + "/frames/*/*.png")
         img_paths.sort()
-        gazecone_paths = glob.glob(data_dir + "/gazecone/*/*.png")
+        gazecone_paths = glob.glob(data_dir + "/gazecone/*/*.npy")
         gazecone_paths.sort()
         gt_paths = glob.glob(data_dir + "/gt_heatmap_1ch/*/*.png")
         gt_paths.sort()
@@ -115,12 +115,19 @@ class Dataset(Dataset):
         gazeline_map = gazeline_map[np.newaxis, :, :]
 
         # gaze cone
-        gazecone_map = cv2.imread(self.gazecone_paths[idx], 0) # H, W
-        gazecone_map = cv2.resize(gazecone_map, (self.W, self.H))
-        gazecone_map = cv2.remap(gazecone_map, map_x.astype(np.float32), map_y.astype(np.float32), interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
+        gazecone = cv2.imread(self.gazecone_paths[idx], 0) # H, W
+        gazecone = np.load(self.gazecone_paths[idx])
+        height, width, people_num = gazecone.shape
+        gazecone_list = []
+        for i in range(people_num):
+            one_person_map = gazecone[:, :, i]
+            one_person_map = cv2.resize(one_person_map, (self.W, self.H))
+            one_person_map = cv2.remap(one_person_map, map_x.astype(np.float32), map_y.astype(np.float32), interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
+            gazecone_list.append(one_person_map)
+        gazecone_map = np.concatenate(gazecone_list, axis=2)
         gazecone_map = gazecone_map.astype(np.float32)
         gazecone_map /= 255.
-        gazecone_map = gazecone_map[np.newaxis, :, :] # 1, H, W
+# gazecone_map = gazecone_map[np.newaxis, :, :] # 1, H, W
 
         # saliency
         img = cv2.imread(self.img_paths[idx])
