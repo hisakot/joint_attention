@@ -122,6 +122,9 @@ if __name__ == '__main__':
         save_gazecone_dir = os.path.join(args.save_dir, file_name)
         if not os.path.exists(save_gazecone_dir):
             os.mkdir(save_gazecone_dir)
+        else:
+            print(save_gazecone_dir, " is exists")
+            continue
 
         with open(json_path) as f:
             data = json.load(f)
