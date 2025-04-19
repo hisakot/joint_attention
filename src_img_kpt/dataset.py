@@ -29,8 +29,10 @@ class Dataset(Dataset):
         mmpose_paths.sort()
         img_paths = glob.glob(data_dir + "/frames/*/*.png")
         img_paths.sort()
-        gazecone_paths = glob.glob(data_dir + "/gazecone/*/*.npy")
+        gazecone_paths = glob.glob(data_dir + "/gazecone/*/*.png")
         gazecone_paths.sort()
+        gazecone_nch_paths = glob.glob(data_dir + "/gazecone_nch/*/*.npy")
+        gazecone_nch_paths.sort()
         gt_paths = glob.glob(data_dir + "/gt_heatmap_1ch/*/*.png")
         gt_paths.sort()
 
@@ -116,7 +118,15 @@ class Dataset(Dataset):
 
         # gaze cone
         gazecone = cv2.imread(self.gazecone_paths[idx], 0) # H, W
-        gazecone = np.load(self.gazecone_paths[idx])
+        height, width, people_num = gazecone.shape
+        gazecone = cv2.resize(gazecone, (self.W, self.H))
+        gazecone = cv2.remap(one_person_map, map_x.astype(np.float32), map_y.astype(np.float32), interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
+        gazecone_map = gazecone_map.astype(np.float32)
+        gazecone_map /= 255.
+        gazecone_map = gazecone_map[np.newaxis, :, :] # 1, H, W
+
+        # gaze cone nch
+        gazecone_nch = np.load(self.gazecone_paths[idx])
         height, width, people_num = gazecone.shape
         gazecone_list = []
         for i in range(people_num):
@@ -124,10 +134,9 @@ class Dataset(Dataset):
             one_person_map = cv2.resize(one_person_map, (self.W, self.H))
             one_person_map = cv2.remap(one_person_map, map_x.astype(np.float32), map_y.astype(np.float32), interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
             gazecone_list.append(one_person_map)
-        gazecone_map = np.concatenate(gazecone_list, axis=2)
-        gazecone_map = gazecone_map.astype(np.float32)
-        gazecone_map /= 255.
-# gazecone_map = gazecone_map[np.newaxis, :, :] # 1, H, W
+        gazecone_nch_map = np.concatenate(gazecone_list, axis=2)
+        gazecone_nch_map = gazecone_map.astype(np.float32)
+        gazecone_nch_map /= 255.
 
         # saliency
         img = cv2.imread(self.img_paths[idx])
@@ -153,6 +162,7 @@ class Dataset(Dataset):
                   "gaze_vector" : torch.tensor(gaze_vector, dtype=torch.float32),
                   "gazeline_map" : torch.tensor(gazeline_map, dtype=torch.float32),
                   "gazecone_map" : torch.tensor(gazecone_map, dtype=torch.float32),
+                  "gazecone_nch_map" : torch.tensor(gazecone_nch_map, dtype=torch.float32),
                   "saliency_map" : torch.tensor(saliency_map, dtype=torch.float32),
                   "img" : torch.tensor(img, dtype=torch.float32)}
 
