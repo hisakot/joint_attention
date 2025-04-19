@@ -148,9 +148,10 @@ if __name__ == '__main__':
                         # normalize heatmap [0, 1]
                         heatmap = (heatmap - heatmap.min()) / (heatmap.max() - heatmap.min() + 1e-6)
                         heatmap = (heatmap * 255).astype(np.float32)
+                        heatmap = cv2.resize(heatmap, (480, 960))
                         heatmap = heatmap[:, :, np.newaxis] # H, W, 1
                         hm_list.append(heatmap)
                 heatmap_nch = np.concatenate(hm_list, axis=2)
-                np.save(os.path.join(save_gazecone_dir, str(i).zfill(6)) + ".npy", heatmap_nch)
+                np.savez(os.path.join(save_gazecone_dir, str(i).zfill(6)) + ".npz", heatmap_nch)
 # cv2.imwrite(os.path.join(save_gazecone_dir, str(i).zfill(6)) + ".png", heatmap_nch)
 
