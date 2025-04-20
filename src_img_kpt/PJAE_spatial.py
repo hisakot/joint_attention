@@ -117,7 +117,10 @@ class ModelSpatial(nn.Module):
         self.inplanes_face = 64
         super(ModelSpatial, self).__init__()
 
-        self.fusion = Fusion() # TODO added
+        # TODO added
+        self.fusion = Fusion()
+        self.fixed_in_ch = in_ch
+        self.input_convs = nn.ModuleDict()
 
         # common
         self.relu = nn.ReLU(inplace=True)
@@ -246,6 +249,16 @@ class ModelSpatial(nn.Module):
         images = images.view(batch_size*frame_num, img_ch, image_height, image_width)
         images = F.interpolate(images, (resousion_height, resousion_width), mode='bilinear')
 
+        num_input_ch = images.size(1)
+        print(num_input_ch)
+        key = str(num_input_ch)
+        if key not in self.input_convs:
+            print("not")
+            self.input_convs[key] = nn.Conv2d(num_input_ch, self.fixed_in_ch, kernel_size=1).to(images.devoce)
+            print(images.size())
+        images = self.input_convs[key](images)
+        print(images.size())
+        exit()
 
         '''
         images = images.repeat(people_num, 1, 1, 1)
