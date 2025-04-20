@@ -220,7 +220,7 @@ class ModelSpatial(nn.Module):
         resousion_height, resousion_width = 224, 224
         '''
         image = inp["img"]
-        gazecone = inp["gazecone_map"]
+        gazecone = inp["gazecone_nch_map"]
         images = torch.cat([image, gazecone], dim=1)
         batch_size, img_ch, image_height, image_width = images.shape
         resousion_height, resousion_width = 320, 640 
@@ -243,9 +243,14 @@ class ModelSpatial(nn.Module):
         face = head_img.view(batch_size*frame_num*people_num, 3, resize_head_height, resize_head_width)
         face = F.interpolate(face, (resousion_height, resousion_width), mode='bilinear')
         '''
+        print(" 1: ", images.shape)
         images = images.view(batch_size*frame_num, img_ch, image_height, image_width)
+        print(" 2: ", images.shape)
         images = F.interpolate(images, (resousion_height, resousion_width), mode='bilinear')
+        print(" 3: ", images.shape)
         images = images.repeat(people_num, 1, 1, 1)
+        print(" 4: ", images.shape)
+        exit()
 
         '''
         face = self.conv1_face(face)
