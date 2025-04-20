@@ -118,31 +118,29 @@ class Dataset(Dataset):
         gazeline_map = gazeline_map[np.newaxis, :, :]
 
         # gaze cone
-        gazecone = cv2.imread(self.gazecone_paths[idx], 0) # H, W
-        height, width, people_num = gazecone.shape
-        gazecone = cv2.resize(gazecone, (self.W, self.H))
-        gazecone = cv2.remap(one_person_map, map_x.astype(np.float32), map_y.astype(np.float32), interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
+        gazecone_map = cv2.imread(self.gazecone_paths[idx], 0) # H, W
+        gazecone_map = cv2.resize(gazecone_map, (self.W, self.H))
+        gazecone_map = cv2.remap(gazecone_map, map_x.astype(np.float32), map_y.astype(np.float32), interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
         gazecone_map = gazecone_map.astype(np.float32)
         gazecone_map /= 255.
         gazecone_map = gazecone_map[np.newaxis, :, :] # 1, H, W
 
         # gaze cone nch
-        print(idx, self.gazecone_paths[idx])
-        print(self.gazecone_nch_paths[idx])
         gazecone_nch = np.load(self.gazecone_nch_paths[idx])
         gazecone_nch = gazecone_nch['arr_0']
-        print(type(gazecone_nch), gazecone_nch.shape)
-        height, width, people_num = gazecone.shape
+        height, width, people_num = gazecone_nch.shape
         gazecone_list = []
         for i in range(people_num):
-            one_person_map = gazecone[:, :, i]
+            one_person_map = gazecone_nch[:, :, i]
             one_person_map = cv2.resize(one_person_map, (self.W, self.H))
             one_person_map = cv2.remap(one_person_map, map_x.astype(np.float32), map_y.astype(np.float32), interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
+            one_person_map = one_person_map[:, :, np.newaxis]
             gazecone_list.append(one_person_map)
         gazecone_nch_map = np.concatenate(gazecone_list, axis=2)
-        gazecone_nch_map = gazecone_map.astype(np.float32)
-        gazecone_nch_map /= 255.
-        print(type(gazecone_nch_map), gazecone_nch_map.shape)
+        gazecone_nch_map = gazecone_nch_map.astype(np.float32)
+        gazecone_nch_map = np.transpose(gazecone_nch_map, (2, 0, 1)) # C, H, W
+# print("gazecone_nch: ", np.max(gazecone_nch_map)) # 1.0
+# gazecone_nch_map /= 255.
 
         # saliency
         img = cv2.imread(self.img_paths[idx])
