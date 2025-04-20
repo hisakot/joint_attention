@@ -31,7 +31,7 @@ class Dataset(Dataset):
         img_paths.sort()
         gazecone_paths = glob.glob(data_dir + "/gazecone/*/*.png")
         gazecone_paths.sort()
-        gazecone_nch_paths = glob.glob(data_dir + "/gazecone_nch/*/*.npy")
+        gazecone_nch_paths = glob.glob(data_dir + "/gazecone_nch/*/*.npz")
         gazecone_nch_paths.sort()
         gt_paths = glob.glob(data_dir + "/gt_heatmap_1ch/*/*.png")
         gt_paths.sort()
