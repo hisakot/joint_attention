@@ -43,8 +43,6 @@ class Dataset(Dataset):
         self.gt_paths = gt_paths
         self.gazecone_paths = gazecone_paths
         self.gazecone_nch_paths = gazecone_nch_paths
-        print(self.gazecone_nch_paths)
-        print(len(self.gazecone_nch_paths))
 
     def __len__(self):
         return len(self.mmpose)
@@ -129,7 +127,7 @@ class Dataset(Dataset):
         gazecone_map = gazecone_map[np.newaxis, :, :] # 1, H, W
 
         # gaze cone nch
-        print(gazecone_nch_paths[idx])
+        print(self.gazecone_nch_paths[idx])
         gazecone_nch = np.load(self.gazecone_nch_paths[idx])
         gazecone_nch = gazecone_nch['arr_0']
         print(type(gazecone_nch), gazecone_nch.shape)
