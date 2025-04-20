@@ -43,6 +43,8 @@ class Dataset(Dataset):
         self.gt_paths = gt_paths
         self.gazecone_paths = gazecone_paths
         self.gazecone_nch_paths = gazecone_nch_paths
+        print(self.gazecone_nch_paths)
+        print(len(self.gazecone_nch_paths))
 
     def __len__(self):
         return len(self.mmpose)
