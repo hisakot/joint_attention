@@ -127,6 +127,8 @@ class Dataset(Dataset):
 
         # gaze cone nch
         gazecone_nch = np.load(self.gazecone_paths[idx])
+        gazecone_nch = gazecone_nch['arr_0']
+        print(type(gazecone_nch), gazecone_nch.shape)
         height, width, people_num = gazecone.shape
         gazecone_list = []
         for i in range(people_num):
