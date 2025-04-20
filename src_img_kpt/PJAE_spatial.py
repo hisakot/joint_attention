@@ -250,15 +250,10 @@ class ModelSpatial(nn.Module):
         images = F.interpolate(images, (resousion_height, resousion_width), mode='bilinear')
 
         num_input_ch = images.size(1)
-        print(num_input_ch)
         key = str(num_input_ch)
         if key not in self.input_convs:
-            print("not")
-            self.input_convs[key] = nn.Conv2d(num_input_ch, self.fixed_in_ch, kernel_size=1).to(images.devoce)
-            print(images.size())
+            self.input_convs[key] = nn.Conv2d(num_input_ch, self.fixed_in_ch, kernel_size=1).to(images.device)
         images = self.input_convs[key](images)
-        print(images.size())
-        exit()
 
         '''
         images = images.repeat(people_num, 1, 1, 1)
