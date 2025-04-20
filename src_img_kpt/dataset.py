@@ -42,6 +42,7 @@ class Dataset(Dataset):
         self.img_paths = img_paths
         self.gt_paths = gt_paths
         self.gazecone_paths = gazecone_paths
+        self.gazecone_nch_paths = gazecone_nch_paths
 
     def __len__(self):
         return len(self.mmpose)
@@ -126,7 +127,7 @@ class Dataset(Dataset):
         gazecone_map = gazecone_map[np.newaxis, :, :] # 1, H, W
 
         # gaze cone nch
-        gazecone_nch = np.load(self.gazecone_paths[idx])
+        gazecone_nch = np.load(self.gazecone_nch_paths[idx])
         gazecone_nch = gazecone_nch['arr_0']
         print(type(gazecone_nch), gazecone_nch.shape)
         height, width, people_num = gazecone.shape
@@ -139,6 +140,7 @@ class Dataset(Dataset):
         gazecone_nch_map = np.concatenate(gazecone_list, axis=2)
         gazecone_nch_map = gazecone_map.astype(np.float32)
         gazecone_nch_map /= 255.
+        print(type(gazecone_nch_map), gazecone_nch_map.shape)
 
         # saliency
         img = cv2.imread(self.img_paths[idx])
