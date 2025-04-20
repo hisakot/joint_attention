@@ -127,6 +127,7 @@ class Dataset(Dataset):
         gazecone_map = gazecone_map[np.newaxis, :, :] # 1, H, W
 
         # gaze cone nch
+        print(idx, self.gazecone_paths[idx])
         print(self.gazecone_nch_paths[idx])
         gazecone_nch = np.load(self.gazecone_nch_paths[idx])
         gazecone_nch = gazecone_nch['arr_0']
