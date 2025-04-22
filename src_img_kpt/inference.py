@@ -94,7 +94,7 @@ def main():
                                                   in_chans=4, output_H=img_height, output_W=img_width)
     model = PJAE_spatiotemporal.ModelSpatioTemporal(in_ch=4)
     '''
-    model = PJAE_spatial.ModelSpatial(in_ch=4)
+    model = PJAE_spatial.ModelSpatial(in_ch=64)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:
@@ -109,7 +109,7 @@ def main():
 
     checkpoint = torch.load(args.model)
     if torch.cuda.device_count() >= 1:
-        model.load_state_dict(checkpoint["pjae_spatial_state_dict"])
+        model.load_state_dict(checkpoint["pjae_spatial_state_dict"], strict=False)
     else:
         from collections import OrderedDict
         state_dict = OrderedDict()
