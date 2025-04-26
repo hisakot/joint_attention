@@ -223,8 +223,9 @@ class ModelSpatial(nn.Module):
         resousion_height, resousion_width = 224, 224
         '''
         image = inp["img"]
-        gazecone = inp["gazecone_nch_map"]
-        images = torch.cat([image, gazecone], dim=1)
+        gazecone = inp["gazecone_map"]
+        kptmap = inp["kptmap"]
+        images = torch.cat([image, gazecone, kptmap], dim=1)
         batch_size, img_ch, image_height, image_width = images.shape
         resousion_height, resousion_width = 320, 640 
         frame_num = 1
@@ -249,11 +250,13 @@ class ModelSpatial(nn.Module):
         images = images.view(batch_size*frame_num, img_ch, image_height, image_width)
         images = F.interpolate(images, (resousion_height, resousion_width), mode='bilinear')
 
+        '''
         num_input_ch = images.size(1)
         key = str(num_input_ch)
         if key not in self.input_convs:
             self.input_convs[key] = nn.Conv2d(num_input_ch, self.fixed_in_ch, kernel_size=1).to(images.device)
         images = self.input_convs[key](images)
+        '''
 
         '''
         images = images.repeat(people_num, 1, 1, 1)

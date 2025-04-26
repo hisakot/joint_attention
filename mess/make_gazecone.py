@@ -77,7 +77,7 @@ def head_direction(face_kpt, H, W):
 
     return p1, p2, yaw, pitch, roll
 
-def generate_gaze_heatmap(heatmap, p1, p2, sigma_angle=0.2, sigma_distance=1000):
+def generate_gaze_heatmap(heatmap, p1, p2, sigma_angle=0.2, sigma_distance=500):
     height, width = heatmap.shape
     y_indices, x_indices = np.meshgrid(np.arange(height), np.arange(width), indexing='ij')
 
@@ -98,7 +98,7 @@ def generate_gaze_heatmap(heatmap, p1, p2, sigma_angle=0.2, sigma_distance=1000)
     # gaze strength based on gauss
     angle_weight = np.exp(- (theta_diff ** 2) / (2 * sigma_angle ** 2))
     distance_weight = np.exp(- (distances ** 2) / (2 * sigma_distance ** 2))
-    distance_weight = 1
+    # distance_weight = 1
 
     heatmap += angle_weight * distance_weight
 

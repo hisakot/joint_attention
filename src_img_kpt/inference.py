@@ -94,7 +94,7 @@ def main():
                                                   in_chans=4, output_H=img_height, output_W=img_width)
     model = PJAE_spatiotemporal.ModelSpatioTemporal(in_ch=4)
     '''
-    model = PJAE_spatial.ModelSpatial(in_ch=64)
+    model = PJAE_spatial.ModelSpatial(in_ch=5)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:
@@ -119,7 +119,7 @@ def main():
         model.load_state_dict(state_dict)
     model.eval()
 
-    test_data_dir = "data/test"
+    test_data_dir = "data/train"
     test_data = dataset.Dataset(test_data_dir, img_height=img_height, img_width=img_width,
                                 transform=None, is_train=False)
     test_dataloader = DataLoader(test_data, batch_size=1,
