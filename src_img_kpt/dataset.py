@@ -31,8 +31,8 @@ class Dataset(Dataset):
         img_paths.sort()
         gazecone_paths = glob.glob(data_dir + "/gazecone_close/*/*.png")
         gazecone_paths.sort()
-        gazecone_nch_paths = glob.glob(data_dir + "/gazecone_nch/*/*.npz")
-        gazecone_nch_paths.sort()
+        # gazecone_nch_paths = glob.glob(data_dir + "/gazecone_nch/*/*.npz")
+        # gazecone_nch_paths.sort()
         gt_paths = glob.glob(data_dir + "/gt_heatmap_1ch/*/*.png")
         gt_paths.sort()
 
@@ -42,7 +42,7 @@ class Dataset(Dataset):
         self.img_paths = img_paths
         self.gt_paths = gt_paths
         self.gazecone_paths = gazecone_paths
-        self.gazecone_nch_paths = gazecone_nch_paths
+        # self.gazecone_nch_paths = gazecone_nch_paths
 
     def __len__(self):
         return len(self.mmpose)
@@ -65,27 +65,20 @@ class Dataset(Dataset):
         for instance in instances:
             keypoints = instance["keypoints"] # 133 human points
             scores = instance["keypoint_scores"]
-            '''
-            if sum(score >= 0.5 for score in scores) > 133 / 5:
-                for kpt in keypoints:
-                    gaze_x = kpt[0]
-                    gaze_y = kpt[1]
-                    kptmap[int(round(gaze_y)) - 1][int(round(gaze_x)) - 1] = 1
-        kptmap = kptmap[:, :, np.newaxis]
-        kptmap = (kptmap * 255).astype(np.uint8)
-        kptmap = torch.tensor(kptmap, dtype=torch.int64)
-        '''
             if sum(score >= 0.5 for score in scores) > 133 / 5:
                 kpts.append(keypoints)
         # whole body keypoints
+        '''
         kptmap = generate_pose_heatmap(self.H, self.W, kpts, sigma=3) # H, W, 1
         kptmap = cv2.remap(kptmap, map_x.astype(np.float32), map_y.astype(np.float32), interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
         kptmap = kptmap[:, :, np.newaxis]
         kptmap = kptmap.astype(np.float32)
         kptmap /= 255.
         kptmap = np.transpose(kptmap, (2, 0, 1)) # C, H, W
+        '''
 
         # gaze_vector
+        '''
         gaze_vector = []
         people_num = len(kpts)
         for kpt in kpts:
@@ -102,8 +95,10 @@ class Dataset(Dataset):
             gy /= 1920
             gaze_vector.append([hx, hy, gx, gy]) 
         gaze_vector = torch.tensor(gaze_vector, dtype=torch.float32)
+        '''
 
         # gaze line
+        '''
         gazeline_map = np.zeros((1920, 3840, 3))
         for kpt in kpts:
             face_kpt = kpt[23:91]
@@ -116,6 +111,7 @@ class Dataset(Dataset):
         gazeline_map = np.transpose(gazeline_map, (2, 0, 1)) # C, H, W
         gazeline_map = gazeline_map[0]
         gazeline_map = gazeline_map[np.newaxis, :, :]
+        '''
 
         # gaze cone
         gazecone_map = cv2.imread(self.gazecone_paths[idx], 0) # H, W
@@ -126,6 +122,7 @@ class Dataset(Dataset):
         gazecone_map = gazecone_map[np.newaxis, :, :] # 1, H, W
 
         # gaze cone nch
+        '''
         gazecone_nch = np.load(self.gazecone_nch_paths[idx])
         gazecone_nch = gazecone_nch['arr_0']
         height, width, people_num = gazecone_nch.shape
@@ -139,10 +136,11 @@ class Dataset(Dataset):
         gazecone_nch_map = np.concatenate(gazecone_list, axis=2)
         gazecone_nch_map = gazecone_nch_map.astype(np.float32)
         gazecone_nch_map = np.transpose(gazecone_nch_map, (2, 0, 1)) # C, H, W
-# print("gazecone_nch: ", np.max(gazecone_nch_map)) # 1.0
-# gazecone_nch_map /= 255.
+        # gazecone_nch_map /= 255.
+        '''
 
         # saliency
+        '''
         img = cv2.imread(self.img_paths[idx])
         saliency = cv2.saliency.StaticSaliencySpectralResidual_create()
         (success, saliency_map) = saliency.computeSaliency(img)
@@ -153,6 +151,7 @@ class Dataset(Dataset):
         saliency_map = saliency_map.astype(np.float32)
         saliency_map /= 255.
         saliency_map = np.transpose(saliency_map, (2, 0, 1))
+        '''
 
         # frame image
         img = cv2.imread(self.img_paths[idx]) # H, W, C
@@ -162,12 +161,12 @@ class Dataset(Dataset):
         img /= 255.
         img = np.transpose(img, (2, 0, 1)) # C, H, W
 
-        inputs = {"kptmap" : torch.tensor(kptmap, dtype=torch.float32),
-                  "gaze_vector" : torch.tensor(gaze_vector, dtype=torch.float32),
-                  "gazeline_map" : torch.tensor(gazeline_map, dtype=torch.float32),
+        inputs = {# "kptmap" : torch.tensor(kptmap, dtype=torch.float32),
+                  # "gaze_vector" : torch.tensor(gaze_vector, dtype=torch.float32),
+                  # "gazeline_map" : torch.tensor(gazeline_map, dtype=torch.float32),
                   "gazecone_map" : torch.tensor(gazecone_map, dtype=torch.float32),
-                  "gazecone_nch_map" : torch.tensor(gazecone_nch_map, dtype=torch.float32),
-                  "saliency_map" : torch.tensor(saliency_map, dtype=torch.float32),
+                  # "gazecone_nch_map" : torch.tensor(gazecone_nch_map, dtype=torch.float32),
+                  # "saliency_map" : torch.tensor(saliency_map, dtype=torch.float32),
                   "img" : torch.tensor(img, dtype=torch.float32)}
 
         # labels

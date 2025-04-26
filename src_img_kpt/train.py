@@ -53,11 +53,11 @@ def train(train_dataloader, spatial, loss_function, optimizer, device):
             for key, val in inputs.items():
                 if torch.is_tensor(val):
                     inputs[key] = val.to(device)
-            kptmap = inputs["kptmap"]
-            gaze_vector = inputs["gaze_vector"]
-            gazelinemap = inputs["gazeline_map"]
+            # kptmap = inputs["kptmap"]
+            # gaze_vector = inputs["gaze_vector"]
+            # gazelinemap = inputs["gazeline_map"]
             gazeconemap = inputs["gazecone_map"]
-            saliencymap = inputs["saliency_map"]
+            # saliencymap = inputs["saliency_map"]
             img = inputs["img"]
             targets = data[1].to(device)
 
@@ -111,11 +111,11 @@ def evaluate(val_dataloader, spatial, loss_function, device):
                 for key, val in inputs.items():
                     if torch.is_tensor(val):
                         inputs[key] = val.to(device)
-                kptmap = inputs["kptmap"]
-                gaze_vector = inputs["gaze_vector"]
-                gazelinemap = inputs["gazeline_map"]
+                # kptmap = inputs["kptmap"]
+                # gaze_vector = inputs["gaze_vector"]
+                # gazelinemap = inputs["gazeline_map"]
                 gazeconemap = inputs["gazecone_map"]
-                saliencymap = inputs["saliency_map"]
+                # saliencymap = inputs["saliency_map"]
                 img = inputs["img"]
                 targets = data[1].to(device)
                 batch_size = len(data[1])
