@@ -68,14 +68,12 @@ class Dataset(Dataset):
             if sum(score >= 0.5 for score in scores) > 133 / 5:
                 kpts.append(keypoints)
         # whole body keypoints
-        '''
         kptmap = generate_pose_heatmap(self.H, self.W, kpts, sigma=3) # H, W, 1
         kptmap = cv2.remap(kptmap, map_x.astype(np.float32), map_y.astype(np.float32), interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
         kptmap = kptmap[:, :, np.newaxis]
         kptmap = kptmap.astype(np.float32)
         kptmap /= 255.
         kptmap = np.transpose(kptmap, (2, 0, 1)) # C, H, W
-        '''
 
         # gaze_vector
         '''
@@ -161,7 +159,7 @@ class Dataset(Dataset):
         img /= 255.
         img = np.transpose(img, (2, 0, 1)) # C, H, W
 
-        inputs = {# "kptmap" : torch.tensor(kptmap, dtype=torch.float32),
+        inputs = {"kptmap" : torch.tensor(kptmap, dtype=torch.float32),
                   # "gaze_vector" : torch.tensor(gaze_vector, dtype=torch.float32),
                   # "gazeline_map" : torch.tensor(gazeline_map, dtype=torch.float32),
                   "gazecone_map" : torch.tensor(gazecone_map, dtype=torch.float32),

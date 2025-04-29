@@ -142,7 +142,7 @@ def evaluate(val_dataloader, spatial, loss_function, device):
                 elif loss_function == "MSE":
                     loss = nn.MSELoss(pred, targets)
 
-                total_loss += batch_size * loss.item()
+                total_loss += loss.item() # * batch_size
                 pbar.update()
 
     return total_loss / len(val_dataloader)
@@ -183,7 +183,7 @@ def main():
     unet = kptnet.UNet(in_channels=3, out_channels=3)
     fuse = fusion.Fusion(in_channels=6, out_channels=3)
     spatiotemporal = PJAE_spatiotemporal.ModelSpatioTemporal(in_ch=4)
-    spatial = PJAE_spatial.ModelSpatial(in_ch=4)
+    spatial = PJAE_spatial.ModelSpatial(in_ch=5)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:
