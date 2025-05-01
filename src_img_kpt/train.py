@@ -182,7 +182,7 @@ def main():
                                             in_chans=4, num_classes=3)
     unet = kptnet.UNet(in_channels=3, out_channels=3)
     fuse = fusion.Fusion(in_channels=6, out_channels=3)
-    spatiotemporal = PJAE_spatiotemporal.ModelSpatioTemporal(in_ch=4)
+    spatiotemporal = PJAE_spatiotemporal.ModelSpatioTemporal(in_ch=2)
     spatial = PJAE_spatial.ModelSpatial(in_ch=5)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
