@@ -121,6 +121,7 @@ class ModelSpatial(nn.Module):
         self.fusion = Fusion()
         self.fixed_in_ch = in_ch
         self.input_convs = nn.ModuleDict()
+        self.sigmoid = nn.Sigmoid()
 
         # common
         self.relu = nn.ReLU(inplace=True)
@@ -334,7 +335,7 @@ class ModelSpatial(nn.Module):
         x = self.deconv_bn3(x)
         x = self.relu(x)
         x = self.conv4(x)
-        print("max: ", np.max(x), "\nmin: ", np.min(x))
+        x = self.sigmoid(x)
 
         '''
         raw_hm = x * 255
