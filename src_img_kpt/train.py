@@ -75,6 +75,8 @@ def train(train_dataloader, spatial, loss_function, optimizer, device):
                 loss = (1 - cos_loss).mean()
             elif loss_function == "MSE":
                 loss = nn.MSELoss(pred, targets)
+            elif loss_function == "MAE":
+                loss = nn.L1Loss(pred, targets)
 
             optimizer.zero_grad()
             loss.backward()
@@ -141,6 +143,8 @@ def evaluate(val_dataloader, spatial, loss_function, device):
                     loss = (1 - cos_loss).mean()
                 elif loss_function == "MSE":
                     loss = nn.MSELoss(pred, targets)
+                elif loss_function == "MAE":
+                    loss = nn.L1Loss(pred, targets)
 
                 total_loss += loss.item() # * batch_size
                 pbar.update()
@@ -212,7 +216,8 @@ def main():
 
     # loss_function = nn.CrossEntropyLoss()
     # loss_function = "MSE"
-    loss_function = "cos_similarity"
+    loss_function = "MAE"
+    # loss_function = "cos_similarity"
     optimizer = optim.SGD(spatial.parameters(), lr=lr)
 
     writer = SummaryWriter(log_dir="logs")
@@ -290,7 +295,7 @@ def main():
                             "train_loss_list" : train_loss_list,
                             "train_loss_list" : train_loss_list,
                             "val_loss_list" : val_loss_list,
-                            }, "save_models/img_gazecone_spatial.pth")
+                            }, "save_models/newest_model.pth")
             else:
                 early_stopping[2] += 1
                 if early_stopping[2] == early_stopping[1]:

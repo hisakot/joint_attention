@@ -60,9 +60,9 @@ def test(test_dataloader, model, loss_function, device):
             '''
 
             if loss_function == "cos_similarity":
-                pred_1vec = pred.view(pred.size(0), -1)
-                targets = targets.view(targets.size(0), -1)
-                cos_loss = F.cosine_similarity(pred_1vec, targets)
+# pred_1vec = pred.view(pred.size(0), -1)
+# targets = targets.view(targets.size(0), -1)
+                cos_loss = F.cosine_similarity(pred, targets, dim=2)
                 loss = (1 - cos_loss).mean()
             elif loss_function == "MSE":
                 loss = nn.MSELoss(pred, targets)
@@ -94,7 +94,7 @@ def main():
                                                   in_chans=4, output_H=img_height, output_W=img_width)
     model = PJAE_spatiotemporal.ModelSpatioTemporal(in_ch=4)
     '''
-    model = PJAE_spatial.ModelSpatial(in_ch=5)
+    model = PJAE_spatial.ModelSpatial(in_ch=2)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:
