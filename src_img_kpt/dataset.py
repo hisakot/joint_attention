@@ -85,8 +85,6 @@ class Dataset(Dataset):
         kptmap = cv2.resize(kptmap, (self.W, self.H))
         kptmap = cv2.remap(kptmap, map_x.astype(np.float32), map_y.astype(np.float32), interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
         kptmap = kptmap.astype(np.float32)
-        print(np.max(kptmap))
-        exit()
         kptmap /= 255.
         kptmap = kptmap[np.newaxis, :, :] # 1, H, W
 
