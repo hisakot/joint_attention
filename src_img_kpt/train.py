@@ -218,8 +218,8 @@ def main():
 
     # loss_function = nn.CrossEntropyLoss()
     # loss_function = "MSE"
-    loss_function = "MAE"
-    # loss_function = "cos_similarity"
+    # loss_function = "MAE"
+    loss_function = "cos_similarity"
     optimizer = optim.SGD(spatial.parameters(), lr=lr)
 
     writer = SummaryWriter(log_dir="logs")

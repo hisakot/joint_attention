@@ -72,10 +72,7 @@ def test(test_dataloader, model, loss_function, device):
             print(loss)
 
             pred = pred.to("cpu").detach().numpy().copy()
-            print(pred.shape, np.max(pred))
             pred = np.squeeze(pred, 0)
-            print(pred.shape)
-            exit()
             pred = np.transpose(pred, (1, 2, 0))
             pred *= 255.
             pred = pred.astype(np.uint8)

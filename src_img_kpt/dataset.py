@@ -33,6 +33,8 @@ class Dataset(Dataset):
         gazecone_paths.sort()
         # gazecone_nch_paths = glob.glob(data_dir + "/gazecone_nch/*/*.npz")
         # gazecone_nch_paths.sort()
+        kpt_paths = glob.glob(data_dir + "/kptmap/*/*.png")
+        kpt_paths.sort()
         gt_paths = glob.glob(data_dir + "/gt_heatmap_1ch/*/*.png")
         gt_paths.sort()
 
@@ -43,6 +45,7 @@ class Dataset(Dataset):
         self.gt_paths = gt_paths
         self.gazecone_paths = gazecone_paths
         # self.gazecone_nch_paths = gazecone_nch_paths
+        self.kpt_paths = kpt_paths
 
     def __len__(self):
         return len(self.mmpose)
@@ -68,12 +71,25 @@ class Dataset(Dataset):
             if sum(score >= 0.5 for score in scores) > 133 / 5:
                 kpts.append(keypoints)
         # whole body keypoints
+        '''
         kptmap = generate_pose_heatmap(self.H, self.W, kpts, sigma=3) # H, W, 1
         kptmap = cv2.remap(kptmap, map_x.astype(np.float32), map_y.astype(np.float32), interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
         kptmap = kptmap[:, :, np.newaxis]
         kptmap = kptmap.astype(np.float32)
         kptmap /= 255.
         kptmap = np.transpose(kptmap, (2, 0, 1)) # C, H, W
+        '''
+
+        # lined keypoints
+        kptmap = cv2.imread(self.kpt_paths[idx], 0) # H, W
+        kptmap = cv2.resize(kptmap, (self.W, self.H))
+        kptmap = cv2.remap(kptmap, map_x.astype(np.float32), map_y.astype(np.float32), interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
+        kptmap = kptmap.astype(np.float32)
+        print(np.max(kptmap))
+        exit()
+        kptmap /= 255.
+        kptmap = kptmap[np.newaxis, :, :] # 1, H, W
+
 
         # gaze_vector
         '''
