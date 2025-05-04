@@ -66,10 +66,16 @@ def test(test_dataloader, model, loss_function, device):
                 loss = (1 - cos_loss).mean()
             elif loss_function == "MSE":
                 loss = nn.MSELoss(pred, targets)
+            elif loss_function == "MAE":
+                lossfunc = nn.L1Loss()
+                loss = lossfunc(pred, targets)
             print(loss)
 
             pred = pred.to("cpu").detach().numpy().copy()
+            print(pred.shape, np.max(pred))
             pred = np.squeeze(pred, 0)
+            print(pred.shape)
+            exit()
             pred = np.transpose(pred, (1, 2, 0))
             pred *= 255.
             pred = pred.astype(np.uint8)
@@ -105,7 +111,8 @@ def main():
     model.to(device)
 
     # loss_function = "MSE"
-    loss_function = "cos_similarity"
+    loss_function = "MAE"
+    # loss_function = "cos_similarity"
 
     checkpoint = torch.load(args.model)
     if torch.cuda.device_count() >= 1:

@@ -76,7 +76,8 @@ def train(train_dataloader, spatial, loss_function, optimizer, device):
             elif loss_function == "MSE":
                 loss = nn.MSELoss(pred, targets)
             elif loss_function == "MAE":
-                loss = nn.L1Loss(pred, targets)
+                lossfunc = nn.L1Loss()
+                loss = lossfunc(pred, targets)
 
             optimizer.zero_grad()
             loss.backward()
@@ -144,7 +145,8 @@ def evaluate(val_dataloader, spatial, loss_function, device):
                 elif loss_function == "MSE":
                     loss = nn.MSELoss(pred, targets)
                 elif loss_function == "MAE":
-                    loss = nn.L1Loss(pred, targets)
+                    lossfunc = nn.L1Loss()
+                    loss = lossfunc(pred, targets)
 
                 total_loss += loss.item() # * batch_size
                 pbar.update()
