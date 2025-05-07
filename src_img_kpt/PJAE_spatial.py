@@ -226,7 +226,7 @@ class ModelSpatial(nn.Module):
         image = inp["img"]
         gazecone = inp["gazecone_map"]
         kptmap = inp["kptmap"]
-        images = torch.cat([gazecone, kptmap], dim=1)
+        images = torch.cat([image, gazecone, kptmap], dim=1)
         batch_size, img_ch, image_height, image_width = images.shape
         resousion_height, resousion_width = 224, 448 
         frame_num = 1
