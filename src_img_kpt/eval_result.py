@@ -14,7 +14,7 @@ pred_paths = glob.glob("data/test/pred/gazecone_close_kpt_lined_cossim/*.png")
 pred_paths.sort()
 print(len(gt_paths), len(pred_paths))
 
-x, y, xy = 0, 0, 0
+x, y, xy, auc = 0, 0, 0, 0
 for i, gt_path in tqdm(enumerate(gt_paths), total=len(gt_paths)):
     gt = cv2.imread(gt_path, 0)
     gt = cv2.resize(gt, (640, 320))
@@ -33,8 +33,6 @@ for i, gt_path in tqdm(enumerate(gt_paths), total=len(gt_paths)):
     pred_max = np.max(pred)
     pred_argmax = np.unravel_index(np.argmax(pred), pred.shape)
     pred_flat = pred.reshape(-1)
-    print(pred.shape, pred_flat.shape)
-    print(pred_max, gt_max)
 
     dist_x = abs(pred_argmax[0] - gt_argmax[0])
     dist_y = abs(pred_argmax[1] - gt_argmax[1])
@@ -45,6 +43,7 @@ for i, gt_path in tqdm(enumerate(gt_paths), total=len(gt_paths)):
 
     fpr, tpr, thresholds = roc_curve(gt_flat, pred_flat)
     roc_auc = auc(fpr, tpr)
+    auc += roc_auc
 
     plt.figure(figsize=(8, 6))
     plt.plot(fpr, tpr, color='darkorange', lw=2, label=f'ROC curve (area = {roc_auc:.2f})')
@@ -56,10 +55,12 @@ for i, gt_path in tqdm(enumerate(gt_paths), total=len(gt_paths)):
     plt.title('ROC Curve')
     plt.legend(loc="lower right")
     plt.savefig('data/test/pred/roc/roc_example' + str(i).zfill(6) + '.png')
-    plt.show()
+
+    print(dist_x, dist_y, dist_xy, roc_auc)
 
 x /= len(gt_paths)
 y /= len(gt_paths)
 xy /= len(gt_paths)
-print(x, y, xy)
+auc /= len(gt_paths)
+print(x, y, xy, auc)
 
