@@ -79,6 +79,18 @@ def test(test_dataloader, model, loss_function, device):
 # pred = cv2.applyColorMap(pred, cv2.COLORMAP_JET)
             pred = cv2.resize(pred, (960, 480))
             cv2.imwrite("data/test/pred/" + str(i).zfill(6) + ".png", pred)
+            pred_max = np.max(pred)
+            pred_argmax = np.unravel_index(np.argmax(pred), pred.shape)
+            target = targets.to("cpu").detach().numpy().copy()
+            target = np.squeeze(target, 0)
+            target = np.transpose(target, (1, 2, 0))
+            target *= 255.
+            target = target.astype(np.uint8)
+            target = cv2.resize(target, (960, 480))
+            gt_max = np.max(target)
+            gt_argmax = np.unravel_index(np.argmax(target), target.shape)
+            print(pred_argmax, pred_max, gt_argmax, gt_max)
+            print("------------")
 
 def main():
 
