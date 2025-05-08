@@ -14,7 +14,7 @@ pred_paths = glob.glob("data/test/pred/gazecone_close_kpt_lined_cossim/*.png")
 pred_paths.sort()
 print(len(gt_paths), len(pred_paths))
 
-x, y, xy, auc = 0, 0, 0, 0
+x, y, xy, auc_sum = 0, 0, 0, 0
 for i, gt_path in tqdm(enumerate(gt_paths), total=len(gt_paths)):
     gt = cv2.imread(gt_path, 0)
     gt = cv2.resize(gt, (640, 320))
@@ -43,7 +43,7 @@ for i, gt_path in tqdm(enumerate(gt_paths), total=len(gt_paths)):
 
     fpr, tpr, thresholds = roc_curve(gt_flat, pred_flat)
     roc_auc = auc(fpr, tpr)
-    auc += roc_auc
+    auc_sum += roc_auc
 
     plt.figure(figsize=(8, 6))
     plt.plot(fpr, tpr, color='darkorange', lw=2, label=f'ROC curve (area = {roc_auc:.2f})')
@@ -61,6 +61,6 @@ for i, gt_path in tqdm(enumerate(gt_paths), total=len(gt_paths)):
 x /= len(gt_paths)
 y /= len(gt_paths)
 xy /= len(gt_paths)
-auc /= len(gt_paths)
+auc_sum /= len(gt_paths)
 print(x, y, xy, auc)
 
