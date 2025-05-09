@@ -10,11 +10,14 @@ from tqdm import tqdm
 
 gt_paths = glob.glob("data/test/gt_heatmap_1ch/*/*.png")
 gt_paths.sort()
-pred_paths = glob.glob("data/test/pred/gazecone_close_kpt_lined_cossim/*.png")
+pred_paths = glob.glob("data/test/pred/img_gazecone_cossim/*.png")
 pred_paths.sort()
 print(len(gt_paths), len(pred_paths))
 
 x, y, xy, auc_sum = 0, 0, 0, 0
+list_x = []
+list_y = []
+list_xy = []
 for i, gt_path in tqdm(enumerate(gt_paths), total=len(gt_paths)):
     gt = cv2.imread(gt_path, 0)
     gt = cv2.resize(gt, (640, 320))
@@ -34,12 +37,20 @@ for i, gt_path in tqdm(enumerate(gt_paths), total=len(gt_paths)):
     pred_argmax = np.unravel_index(np.argmax(pred), pred.shape)
     pred_flat = pred.reshape(-1)
 
-    dist_x = abs(pred_argmax[0] - gt_argmax[0])
-    dist_y = abs(pred_argmax[1] - gt_argmax[1])
+    result = cv2.imread(pred_path, 1)
+    result = cv2.resize(result, (640, 320))
+    result = cv2.circle(result, (pred_argmax[1], pred_argmax[0]), 10, (255, 0, 0), 3)
+    result = cv2.circle(result, (gt_argmax[1], gt_argmax[0]), 10, (0, 0, 255), 3)
+    cv2.imwrite("data/test/pred/result/" + str(i).zfill(6) + ".png", result)
+    dist_x = abs(pred_argmax[1] - gt_argmax[1])
+    dist_y = abs(pred_argmax[0] - gt_argmax[0])
     dist_xy = math.sqrt(dist_x^2 + dist_y^2)
     x += dist_x
     y += dist_y
     xy += dist_xy
+    list_x.append(dist_x)
+    list_y.append(dist_y)
+    list_xy.append(dist_xy)
 
     fpr, tpr, thresholds = roc_curve(gt_flat, pred_flat)
     roc_auc = auc(fpr, tpr)
@@ -62,5 +73,13 @@ x /= len(gt_paths)
 y /= len(gt_paths)
 xy /= len(gt_paths)
 auc_sum /= len(gt_paths)
-print(x, y, xy, auc)
-
+max_x = max(list_x)
+min_x = min(list_x)
+max_y = max(list_y)
+min_y = min(list_y)
+max_xy = max(list_xy)
+min_xy = min(list_xy)
+print("x", max_x, min_x, x)
+print("y", max_y, min_y, y)
+print("xy", max_xy, min_xy, xy)
+print("auc", auc_sum)
