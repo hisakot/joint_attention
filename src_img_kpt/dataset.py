@@ -166,10 +166,10 @@ class Dataset(Dataset):
         '''
 
         # frame image
-        img = cv2.imread(self.img_paths[idx], 0) # H, W, C (gray scale-> 0)
+        img = cv2.imread(self.img_paths[idx], 1) # H, W, C (gray scale-> 0)
         img = cv2.resize(img, (self.W, self.H))
         img = cv2.remap(img, map_x.astype(np.float32), map_y.astype(np.float32), interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
-        img = img[:, :, np.newaxis] # H, W, 1 if Gray scale
+        # img = img[:, :, np.newaxis] # H, W, 1 if Gray scale
         img = img.astype(np.float32)
         img /= 255.
         img = np.transpose(img, (2, 0, 1)) # C, H, W
