@@ -78,12 +78,73 @@ def head_direction(face_kpt, H, W):
 
     return p1, p2, yaw, pitch, roll
 
+def get_body_forward(kpts):
+    kpt_num = [5, 6, 11, 12]
+    def get_point(num):
+        return np.array(kpts[num]) if kpts[num] is not None else None
+
+    def normalize(v):
+        norm = np.linalg.norm(v)
+        return v / norm if norm > 0 else v
+
+    ls = get_point(kpt_num[0]) # left shouldrt
+    rs = get_point(kpt_num[1]) # right shoulder
+    lh = get_point(kpt_num[2]) # left hip
+    rh = get_point(kpt_num[3]) # right hip
+
+    shoulder_center = None
+    if ls is not None and rs is not None:
+        shoulder_center = (ls + rs) / 2
+    elif ls is not None:
+        shoulder_center = ls
+    elif rs is not None:
+        shoulder_center = rs
+    else:
+        return None
+
+    hip_center = None
+    if lh is not None and rh is not None:
+        hip_center = (lh + rh) / 2
+    elif lh is not None:
+        hip_center = lh
+    elif rh is not None:
+        hip_center = rh
+    else:
+        return None
+
+    if shoulder_center is None or hip_center is None:
+        return None
+
+    if ls is not None and rs is not None:
+        shoulder_vec = np.array(rs) - np.array(ls)
+        shoulder_vec = normalize(shoulder_vec)
+
+        body_forward = np.array([-shoulder_vec[1], shoulder_vec[0]])
+        body_forward = normalize(body_forward)
+
+        spine_vec = normalize(hip_center - shoulder_center)
+        if np.dot(body_forward, spine_vec) < 0:
+            body_forward = -body_forward
+        return body_forward
+    else:
+        spine_vec = normalize(hip_center - shoulder_center)
+        return spine_vec
+
+
 def generate_gazecone(hs_kpts, H, W, fov_deg=30, cone_length=800, sigma_angle=0.2, sigma_distance=400, max_intensity=1.0):
     gazecone_map = np.zeros((H, W), dtype=np.float32)
     for kpt in hs_kpts:
-        face_kpt = kpt[23:91]
         yv, xv = np.meshgrid(np.arange(H), np.arange(W), indexing='ij')
+
+        body_forward = get_body_forward(kpt)
+        face_kpt = kpt[23:91]
         p1, p2, yaw, pitch, roll = head_direction(face_kpt, H, W)
+        face_vec = [p2[0] - p1[0], p2[1] - p1[1]]
+        face_forward = (face_vec) / np.linalg.norm(face_vec)
+        if body_forward is not None:
+            similality = np.dot(face_forward, body_forward)
+            if similality < 0:
+                p2 = (2 * p1[0] - p2[0], 2 * p1[1] - p2[1])
 
         dx = p2[0] - p1[0]
         dy = p2[1] - p1[1]
