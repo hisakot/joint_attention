@@ -6,7 +6,7 @@ import os
 
 gt_paths = glob.glob("data/test/gt_heatmap_1ch/*/*.png")
 gt_paths.sort()
-pred_paths = glob.glob("data/test/pred/img_rgb_gazecone_kpt_lined/*.png")
+pred_paths = glob.glob("data/test/pred/no_data_augmentation/*.png")
 pred_paths.sort()
 img_paths = glob.glob("data/test/frames/*/*.png")
 img_paths.sort()

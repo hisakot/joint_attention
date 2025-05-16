@@ -132,19 +132,21 @@ def get_body_forward(kpts):
 
 
 def generate_gazecone(hs_kpts, H, W, fov_deg=30, cone_length=800, sigma_angle=0.2, sigma_distance=400, max_intensity=1.0):
-    gazecone_map = np.zeros((H, W), dtype=np.float32)
+    gazecone_map = np.ones((H, W), dtype=np.float32)
     for kpt in hs_kpts:
         yv, xv = np.meshgrid(np.arange(H), np.arange(W), indexing='ij')
 
-        body_forward = get_body_forward(kpt)
         face_kpt = kpt[23:91]
         p1, p2, yaw, pitch, roll = head_direction(face_kpt, H, W)
+        '''
+        body_forward = get_body_forward(kpt)
         face_vec = [p2[0] - p1[0], p2[1] - p1[1]]
         face_forward = (face_vec) / np.linalg.norm(face_vec)
         if body_forward is not None:
             similality = np.dot(face_forward, body_forward)
             if similality < 0:
                 p2 = (2 * p1[0] - p2[0], 2 * p1[1] - p2[1])
+        '''
 
         dx = p2[0] - p1[0]
         dy = p2[1] - p1[1]
@@ -170,9 +172,10 @@ def generate_gazecone(hs_kpts, H, W, fov_deg=30, cone_length=800, sigma_angle=0.
         angle_weight = np.exp(- (angle_diff ** 2) / (2 * sigma_angle ** 2))
         distance_weight = np.exp(- (distance ** 2) / (2 * sigma_distance ** 2))
         weight = max_intensity * angle_weight * distance_weight
+        weight += 1
         # weight[~in_cone] = 0
 
-        gazecone_map += weight
+        gazecone_map *= weight
 
     # normalize heatmap [0, 1]
     gazecone_map = (gazecone_map - gazecone_map.min()) / (gazecone_map.max() - gazecone_map.min() + 1e-6) # TODO 
@@ -214,13 +217,12 @@ def load_mmpose_json(json_path):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Process some integers")
-    parser.add_argument("--mmpose_dir", required=True, type=str)
     parser.add_argument("--root", required=True, type=str) # data/train/
-    parser.add_argument("--gazecone", required=False, type=str)
-    parser.add_argument("--posemap", required=False, type=str)
+    parser.add_argument("--save_gazecone", required=False, type=str, help="save file name")
+    parser.add_argument("--save_posemap", required=False, type=str, help="save file name")
     args = parser.parse_args()
 
-    json_paths = glob.glob(os.path.join(args.mmpose_dir, "*"))
+    json_paths = glob.glob(os.path.join(args.root, "mmpose/*"))
     for json_path in tqdm(json_paths):
         if os.path.isfile(json_path):
             file_name = os.path.splitext(os.path.basename(json_path))[0] # ex.) ds014
@@ -240,8 +242,8 @@ if __name__ == '__main__':
                 scores = instance["keypoint_scores"]
                 if sum(score >= 0.5 for score in scores) > 133 / 5:
                     hs_kpts.append(keypoints)
-            if args.gazecone:
-                save_dir = os.path.join(args.root, args.gazecone)
+            if args.save_gazecone:
+                save_dir = os.path.join(args.root, args.save_gazecone)
                 if not os.path.exists(save_dir):
                     os.mkdir(save_dir)
                 save_gazecone_dir = os.path.join(save_dir, file_name)
@@ -249,8 +251,8 @@ if __name__ == '__main__':
                     os.mkdir(save_gazecone_dir)
                 gazecone_map = generate_gazecone(hs_kpts, H, W, sigma_angle=0.2, sigma_distance=500)
                 cv2.imwrite(os.path.join(save_gazecone_dir, str(frame_id).zfill(6)) + ".png", gazecone_map)
-            if args.posemap:
-                save_dir = os.path.join(args.root, args.posemap)
+            if args.save_posemap:
+                save_dir = os.path.join(args.root, args.save_posemap)
                 if not os.path.exists(save_dir):
                     os.mkdir(save_dir)
                 save_posemap_dir = os.path.join(save_dir, file_name)
