@@ -42,7 +42,7 @@ def test(test_dataloader, model, loss_function, device):
             kptmap = inp["kptmap"]
             gazecone = inp["gazecone_map"]
             img = inp["img"]
-            inputs = torch.cat([image, gazecone, kptmap], dim=1)
+            inputs = torch.cat([img, gazecone, kptmap], dim=1)
 
             targets = data[1].to(device)
 

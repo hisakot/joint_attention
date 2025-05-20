@@ -55,10 +55,10 @@ def train(train_dataloader, spatial, loss_function, optimizer, device):
             for key, val in inp.items():
                 if torch.is_tensor(val):
                     inp[key] = val.to(device)
-            image = inp["img"]
+            img = inp["img"]
             gazecone = inp["gazecone_map"]
             kptmap = inp["kptmap"]
-            inputs = torch.cat([image, gazecone, kptmap], dim=1)
+            inputs = torch.cat([img, gazecone, kptmap], dim=1)
 
             targets = data[1].to(device)
 
@@ -113,7 +113,7 @@ def evaluate(val_dataloader, spatial, loss_function, device):
                 kptmap = inp["kptmap"]
                 gazecone = inp["gazecone_map"]
                 img = inp["img"]
-                inputs = torch.cat([image, gazecone, kptmap], dim=1)
+                inputs = torch.cat([img, gazecone, kptmap], dim=1)
 
                 targets = data[1].to(device)
 
