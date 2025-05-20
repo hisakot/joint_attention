@@ -182,21 +182,26 @@ class ModelSpatial(nn.Module):
     def forward(self, inputs):
         batch_size, seq_len, inp_ch, inp_height, inp_width = inputs.shape
         resousion_height, resousion_width = 224, 448 
-        frame_num = 1
-        people_num = 1
 
-        inputs = inputs.view(batch_size*frame_num, inp_ch, inp_height, inp_width)
-        inputs = F.interpolate(inputs, (resousion_height, resousion_width), mode='bilinear')
+        for seq in seq_len:
+            inp = inputs[:, seq, :, :, :]
+            print(inp.shape)
+            inp = inp.view(batch_size, inp_ch, inp_height, inp_width)
+            print(inp.shape)
+            inp = F.interpolate(inp, (resousion_height, resousion_width), mode='bilinear')
 
-        im = self.conv1_scene(inputs)
-        im = self.bn1_scene(im)
-        im = self.relu(im)
-        im = self.maxpool(im)
-        im = self.layer1_scene(im)
-        im = self.layer2_scene(im)
-        im = self.layer3_scene(im)
-        im = self.layer4_scene(im)
-        scene_feat = self.layer5_scene(im)
+            im = self.conv1_scene(inp)
+            im = self.bn1_scene(im)
+            im = self.relu(im)
+            im = self.maxpool(im)
+            im = self.layer1_scene(im)
+            im = self.layer2_scene(im)
+            im = self.layer3_scene(im)
+            im = self.layer4_scene(im)
+            scene_feat = self.layer5_scene(im)
+            print(scene_feat.shape)
+            print("-----------------------")
+            exit()
 
         encoding = self.compress_conv1(scene_feat)
         encoding = self.compress_bn1(encoding)
