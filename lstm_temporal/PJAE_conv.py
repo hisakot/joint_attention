@@ -105,6 +105,8 @@ class ModelSpatial(nn.Module):
         self.fixed_in_ch = in_ch
         self.input_convs = nn.ModuleDict()
         self.sigmoid = nn.Sigmoid()
+        self.lstm = nn.LSTM(input_size=512, hidden_size=512, batch_first=True)
+        self.lstm_linear = nn.Linear(512, 512)
 
         # common
         self.relu = nn.ReLU(inplace=True)
@@ -120,30 +122,11 @@ class ModelSpatial(nn.Module):
         self.layer4_scene = self._make_layer_scene(block, 512, layers_scene[3], stride=2)
         self.layer5_scene = self._make_layer_scene(block, 256, layers_scene[4], stride=1) # additional to resnet50
 
-        # face pathway
-        self.conv1_face = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3, bias=False)
-        self.bn1_face = nn.BatchNorm2d(64)
-        self.layer1_face = self._make_layer_face(block, 64, layers_face[0])
-        self.layer2_face = self._make_layer_face(block, 128, layers_face[1], stride=2)
-        self.layer3_face = self._make_layer_face(block, 256, layers_face[2], stride=2)
-        self.layer4_face = self._make_layer_face(block, 512, layers_face[3], stride=2)
-        self.layer5_face = self._make_layer_face(block, 256, layers_face[4], stride=1) # additional to resnet50
-
-        # attention
-        self.attn = nn.Linear(1808, 1*7*7)
-
         # encoding for saliency
         self.compress_conv1 = nn.Conv2d(1024, 1024, kernel_size=1, stride=1, padding=0, bias=False) # 2048->1024
         self.compress_bn1 = nn.BatchNorm2d(1024)
         self.compress_conv2 = nn.Conv2d(1024, 512, kernel_size=1, stride=1, padding=0, bias=False)
         self.compress_bn2 = nn.BatchNorm2d(512)
-
-        # encoding for in/out
-        self.compress_conv1_inout = nn.Conv2d(1024, 512, kernel_size=1, stride=1, padding=0, bias=False) # 2048->1024
-        self.compress_bn1_inout = nn.BatchNorm2d(512)
-        self.compress_conv2_inout = nn.Conv2d(512, 1, kernel_size=1, stride=1, padding=0, bias=False)
-        self.compress_bn2_inout = nn.BatchNorm2d(1)
-        self.fc_inout = nn.Linear(300, 1) # TODO (49, 1) <- img size 224, 224
 
         # decoding
         self.deconv1 = nn.ConvTranspose2d(512, 256, kernel_size=3, stride=2)
@@ -222,6 +205,9 @@ class ModelSpatial(nn.Module):
         encoding = self.compress_bn2(encoding)
         encoding = self.relu(encoding)
 
+        lstm_out = self.lstm(encoding)
+        lstm_out = self.lstm_linear(lstm_out)
+
         x = self.deconv1(encoding)
         x = self.deconv_bn1(x)
         x = self.relu(x)
@@ -234,9 +220,7 @@ class ModelSpatial(nn.Module):
         x = self.conv4(x)
         x = self.sigmoid(x)
 
-        # return deconv, inout_val, hx
-        x = F.interpolate(x, (320, 640), mode='bilinear')
-        output = x
+        output = F.interpolate(x, (320, 640), mode='bilinear')
 
         return output
 
