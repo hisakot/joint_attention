@@ -60,6 +60,7 @@ class Dataset(Dataset):
 
         # inputs
         inputs = []
+        targets = []
         for i in range(self.seq_len):
             try:
                 mmpose = self.mmpose[idx+i]
@@ -170,6 +171,7 @@ class Dataset(Dataset):
 
                 # frame image
                 img = cv2.imread(self.img_paths[idx+i], 1) # H, W, C (gray scale-> 0)
+                print(self.img_paths[idx+1])
                 img = cv2.resize(img, (self.W, self.H))
                 # img = cv2.remap(img, map_x.astype(np.float32), map_y.astype(np.float32), interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
                 # img = img[:, :, np.newaxis] # H, W, 1 if Gray scale
@@ -192,9 +194,9 @@ class Dataset(Dataset):
                     data = self.transform(data)
                 '''
 
-                one_seq = torch.cat([img, kptmap, gazecone_map], dim=0)
-                print(one_seq.shape)
+                one_seq = np.concatenate([img, kptmap, gazecone_map], axis=0)
                 inputs.append(torch.tensor(one_seq, dtype=torch.float32))
+                print("-------------------------")
                 targets.append(torch.tensor(target, dtype=torch.float32))
             except IndexError:
                 pass

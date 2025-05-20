@@ -35,8 +35,8 @@ def train(train_dataloader, net, loss_function, optimizer, device):
     with tqdm(total=len(train_dataloader)) as pbar:
         for data in train_dataloader:
             inp = data[0]
-            print(inp.shape)
-            print(inp.items())
+            print(type(inp[0]))
+            print(inp[0].shape)
             exit()
 
             for key, val in inp.items():
