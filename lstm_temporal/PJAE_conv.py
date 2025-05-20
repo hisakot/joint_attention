@@ -219,6 +219,7 @@ class ModelSpatial(nn.Module):
             x = self.deconv_bn3(x)
             x = self.relu(x)
             x = self.conv4(x)
+            print(x.shape)
             x = self.sigmoid(x)
             print(x.shape)
             print("-----------------------")
