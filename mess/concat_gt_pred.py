@@ -68,12 +68,12 @@ for i, img_path in enumerate(img_paths):
 
     result2 = cv2.addWeighted(img, 0.7, result, 1, 0)
     gazecone = np.concatenate([zeros, gazecone, gazecone], axis=2)
-    result3 = cv2.addWeighted(img, 0.7, gazecone, 1, 0)
-
     for gt_center in gt_centers:
         result2 = cv2.drawMarker(result2, gt_center, (0, 0, 255), markerType=cv2.MARKER_CROSS, markerSize=20, thickness=3)
     for pred_center in pred_centers:
         result2 = cv2.drawMarker(result2, pred_center, (255, 0, 0), markerType=cv2.MARKER_CROSS, markerSize=20, thickness=3)
+    result3 = cv2.addWeighted(result2, 0.7, gazecone, 1, 0)
+
     '''
     cv2.imshow("result2", result2)
     cv2.waitKey(0)

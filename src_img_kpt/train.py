@@ -8,7 +8,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch,optim import lr_scheduler
+from torch.optim import lr_scheduler
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
@@ -222,7 +222,7 @@ def main():
     # loss_function = "MAE"
     loss_function = "cos_similarity"
     optimizer = optim.SGD(spatial.parameters(), lr=lr)
-    scheduler = lr_scheduler.LamdaLR(optimizer, lr_lamda=lamda, epoch: 0.95**epoch)
+    scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda epoch: 0.95**epoch)
 
     writer = SummaryWriter(log_dir="logs")
 
