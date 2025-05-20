@@ -65,6 +65,7 @@ class Dataset(Dataset):
         for i in range(self.seq_len):
             try:
                 if not video_name in self.img_paths[idx+i]:
+                    print(video_name)
                     continue
                 mmpose = self.mmpose[idx+i]
                 frame_id = mmpose["frame_id"]
