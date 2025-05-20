@@ -35,16 +35,17 @@ def test(test_dataloader, model, loss_function, device):
 
     with torch.no_grad():
         for i, data in enumerate(test_dataloader):
-            inp = data[0]
+            inputs = data[0]
+            '''
             for key, val in inp.items():
                 if torch.is_tensor(val):
                     inp[key] = val.to(device)
-            kptmap = inp["kptmap"]
-            gazecone = inp["gazecone_map"]
-            img = inp["img"]
-            inputs = torch.cat([img, gazecone, kptmap], dim=1)
+            '''
 
             targets = data[1].to(device)
+
+            if inputs is None or targets is None:
+                continue
 
             pred = model(inputs)
 
