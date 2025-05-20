@@ -200,6 +200,7 @@ class Dataset(Dataset):
                 inputs.append(one_seq)
             except IndexError:
                 pass
+        inputs = np.array(inputs)
         inputs = torch.tensor(inputs, dtype=torch.float32)
 
         return inputs, target

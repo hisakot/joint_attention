@@ -183,7 +183,7 @@ class ModelSpatial(nn.Module):
         batch_size, seq_len, inp_ch, inp_height, inp_width = inputs.shape
         resousion_height, resousion_width = 224, 448 
 
-        for seq in seq_len:
+        for seq in range(seq_len):
             inp = inputs[:, seq, :, :, :]
             print(inp.shape)
             inp = inp.view(batch_size, inp_ch, inp_height, inp_width)
@@ -200,15 +200,16 @@ class ModelSpatial(nn.Module):
             im = self.layer4_scene(im)
             scene_feat = self.layer5_scene(im)
             print(scene_feat.shape)
+
+            encoding = self.compress_conv1(scene_feat)
+            encoding = self.compress_bn1(encoding)
+            encoding = self.relu(encoding)
+            encoding = self.compress_conv2(encoding)
+            encoding = self.compress_bn2(encoding)
+            encoding = self.relu(encoding)
+            print(encoding.shape)
             print("-----------------------")
             exit()
-
-        encoding = self.compress_conv1(scene_feat)
-        encoding = self.compress_bn1(encoding)
-        encoding = self.relu(encoding)
-        encoding = self.compress_conv2(encoding)
-        encoding = self.compress_bn2(encoding)
-        encoding = self.relu(encoding)
 
         lstm_out = self.lstm(encoding)
         lstm_out = self.lstm_linear(lstm_out)
