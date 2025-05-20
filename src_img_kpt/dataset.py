@@ -178,7 +178,6 @@ class Dataset(Dataset):
         targets = cv2.imread(self.gt_paths[idx], 0) # Gray scale
         targets = cv2.resize(targets, (self.W, self.H))
         # targets = cv2.remap(targets, map_x.astype(np.float32), map_y.astype(np.float32), interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
-        argmax = np.unravel_index(np.argmax(targets), targets.shape)
         targets = targets[:, :, np.newaxis]
         targets = targets.astype(np.float32)
         targets /= 255.
@@ -197,7 +196,7 @@ class Dataset(Dataset):
                   # "gazecone_nch_map" : torch.tensor(gazecone_nch_map, dtype=torch.float32),
                   # "saliency_map" : torch.tensor(saliency_map, dtype=torch.float32),
                   "img" : torch.tensor(img, dtype=torch.float32),
-                  "gt_argmax" : torch.tensor(argmax)}
+                  }
 
         return inputs, targets
 

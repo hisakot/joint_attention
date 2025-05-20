@@ -25,6 +25,7 @@ import vision_transformer
 import resnet
 import PJAE_spatiotemporal
 import PJAE_spatial
+import PJAE_conv
 
 def print_memory_usage():
     allocated = torch.cuda.memory_allocated() / 1024**2
@@ -50,23 +51,17 @@ def train(train_dataloader, spatial, loss_function, optimizer, device):
 
     with tqdm(total=len(train_dataloader)) as pbar:
         for data in train_dataloader:
-            inputs = data[0]
-            for key, val in inputs.items():
+            inp = data[0]
+            for key, val in inp.items():
                 if torch.is_tensor(val):
-                    inputs[key] = val.to(device)
-            # kptmap = inputs["kptmap"]
-            # gaze_vector = inputs["gaze_vector"]
-            # gazelinemap = inputs["gazeline_map"]
-            gazeconemap = inputs["gazecone_map"]
-            # saliencymap = inputs["saliency_map"]
-            img = inputs["img"]
+                    inp[key] = val.to(device)
+            image = inp["img"]
+            gazecone = inp["gazecone_map"]
+            kptmap = inp["kptmap"]
+            inputs = torch.cat([image, gazecone, kptmap], dim=1)
+
             targets = data[1].to(device)
 
-            '''
-            concat_list = [img, gazeconemap]
-            concat = torch.cat(concat_list, dim=1)
-            concat = concat.to(device)
-            '''
             pred = spatial(inputs)
 
             if loss_function == "cos_similarity":
@@ -111,33 +106,19 @@ def evaluate(val_dataloader, spatial, loss_function, device):
     with torch.no_grad():
         with tqdm(total=len(val_dataloader)) as pbar:
             for data in val_dataloader:
-                inputs = data[0]
-                for key, val in inputs.items():
+                inp = data[0]
+                for key, val in inp.items():
                     if torch.is_tensor(val):
-                        inputs[key] = val.to(device)
-                # kptmap = inputs["kptmap"]
-                # gaze_vector = inputs["gaze_vector"]
-                # gazelinemap = inputs["gazeline_map"]
-                gazeconemap = inputs["gazecone_map"]
-                # saliencymap = inputs["saliency_map"]
-                img = inputs["img"]
-                targets = data[1].to(device)
-                batch_size = len(data[1])
+                        inp[key] = val.to(device)
+                kptmap = inp["kptmap"]
+                gazecone = inp["gazecone_map"]
+                img = inp["img"]
+                inputs = torch.cat([image, gazecone, kptmap], dim=1)
 
-                '''
-                img = img.to(device)
-                kptmap = kptmap.to(device)
-                concat_list = [img, gazeconemap]
-                concat = torch.cat(concat_list, dim=1)
-                concat = concat.to(device)
-                '''
+                targets = data[1].to(device)
+
                 pred = spatial(inputs)
 
-                '''
-                img_pred = swin_t(img)
-                kpt_pred = swin_t(kptmap)
-                pred = fuse(img_pred, kpt_pred)
-                '''
                 if loss_function == "cos_similarity":
                     pred = pred.view(pred.size(0), -1)
                     targets = targets.view(targets.size(0), -1)
@@ -149,7 +130,7 @@ def evaluate(val_dataloader, spatial, loss_function, device):
                     lossfunc = nn.L1Loss()
                     loss = lossfunc(pred, targets)
 
-                total_loss += loss.item() # * batch_size
+                total_loss += loss.item()
                 pbar.update()
 
     return total_loss / len(val_dataloader)
@@ -190,7 +171,7 @@ def main():
     unet = kptnet.UNet(in_channels=3, out_channels=3)
     fuse = fusion.Fusion(in_channels=6, out_channels=3)
     spatiotemporal = PJAE_spatiotemporal.ModelSpatioTemporal(in_ch=2)
-    spatial = PJAE_spatial.ModelSpatial(in_ch=5)
+    spatial = PJAE_conv.ModelSpatial(in_ch=5)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:
