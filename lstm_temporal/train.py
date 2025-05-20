@@ -33,62 +33,8 @@ def train(train_dataloader, net, loss_function, optimizer, device):
     num_batches = len(train_dataloader)
 
     with tqdm(total=len(train_dataloader)) as pbar:
-        for data in train_dataloader:
-            inputs = data[0]
-            '''
-            for key, val in inp.items():
-                if torch.is_tensor(val):
-                    inp[key] = val.to(device)
-            '''
-
-            targets = data[1].to(device)
-            if inputs is None or targets is None:
-                continue
-
-            pred = net(inputs)
-
-            if loss_function == "cos_similarity":
-                pred = pred.view(pred.size(0), -1)
-                targets = targets.view(targets.size(0), -1)
-                cos_loss = F.cosine_similarity(pred, targets)
-                loss = (1 - cos_loss).mean()
-            elif loss_function == "MSE":
-                loss = nn.MSELoss(pred, targets)
-            elif loss_function == "MAE":
-                lossfunc = nn.L1Loss()
-                loss = lossfunc(pred, targets)
-
-            optimizer.zero_grad()
-            loss.backward()
-            '''
-            torch.nn.utils.clip_grad_norm_(swin_unet.parameters(), 0.5)
-            torch.nn.utils.clip_grad_norm_(swin_t.parameters(), 0.5)
-            torch.nn.utils.clip_grad_norm_(unet.parameters(), 0.5)
-            torch.nn.utils.clip_grad_norm_(fuse.parameters(), 0.5)
-            # torch.nn.utils.clip_grad_norm_(resnet50.parameters(), 0.5)
-            '''
-            optimizer.step()
-
-            total_loss += loss.item()
-            pbar.update()
-
-    return total_loss / len(train_dataloader)
-
-def evaluate(val_dataloader, net, loss_function, device):
-    '''
-    resnet50.eval()
-    unet.eval()
-    fuse.eval()
-    swin_t.eval()
-    swin_unet.eval()
-    spatiotemporal.eval()
-    '''
-    net.eval()
-    total_loss = 0
-
-    with torch.no_grad():
-        with tqdm(total=len(val_dataloader)) as pbar:
-            for data in val_dataloader:
+        try:
+            for data in train_dataloader:
                 inputs = data[0]
                 '''
                 for key, val in inp.items():
@@ -113,8 +59,70 @@ def evaluate(val_dataloader, net, loss_function, device):
                     lossfunc = nn.L1Loss()
                     loss = lossfunc(pred, targets)
 
+                optimizer.zero_grad()
+                loss.backward()
+                '''
+                torch.nn.utils.clip_grad_norm_(swin_unet.parameters(), 0.5)
+                torch.nn.utils.clip_grad_norm_(swin_t.parameters(), 0.5)
+                torch.nn.utils.clip_grad_norm_(unet.parameters(), 0.5)
+                torch.nn.utils.clip_grad_norm_(fuse.parameters(), 0.5)
+                # torch.nn.utils.clip_grad_norm_(resnet50.parameters(), 0.5)
+                '''
+                optimizer.step()
+
                 total_loss += loss.item()
                 pbar.update()
+        except TypeError:
+            print("Error: TypeError")
+            pass
+
+    return total_loss / len(train_dataloader)
+
+def evaluate(val_dataloader, net, loss_function, device):
+    '''
+    resnet50.eval()
+    unet.eval()
+    fuse.eval()
+    swin_t.eval()
+    swin_unet.eval()
+    spatiotemporal.eval()
+    '''
+    net.eval()
+    total_loss = 0
+
+    with torch.no_grad():
+        with tqdm(total=len(val_dataloader)) as pbar:
+            try:
+                for data in val_dataloader:
+                    inputs = data[0]
+                    '''
+                    for key, val in inp.items():
+                        if torch.is_tensor(val):
+                            inp[key] = val.to(device)
+                    '''
+
+                    targets = data[1].to(device)
+                    if inputs is None or targets is None:
+                        continue
+
+                    pred = net(inputs)
+
+                    if loss_function == "cos_similarity":
+                        pred = pred.view(pred.size(0), -1)
+                        targets = targets.view(targets.size(0), -1)
+                        cos_loss = F.cosine_similarity(pred, targets)
+                        loss = (1 - cos_loss).mean()
+                    elif loss_function == "MSE":
+                        loss = nn.MSELoss(pred, targets)
+                    elif loss_function == "MAE":
+                        lossfunc = nn.L1Loss()
+                        loss = lossfunc(pred, targets)
+
+                    total_loss += loss.item()
+                    pbar.update()
+            except TypeError:
+                print("Error: TypeError")
+                pass
 
     return total_loss / len(val_dataloader)
 

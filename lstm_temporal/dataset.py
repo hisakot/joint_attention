@@ -200,6 +200,7 @@ class Dataset(Dataset):
                 one_seq = np.concatenate([img, kptmap, gazecone_map], axis=0)
                 inputs.append(one_seq)
             except IndexError:
+                print("Error: IndexError")
                 pass
         inputs = np.array(inputs)
         inputs = torch.tensor(inputs, dtype=torch.float32)
