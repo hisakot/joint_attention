@@ -180,7 +180,7 @@ class ModelSpatial(nn.Module):
         return nn.Sequential(*layers)
 
     def forward(self, inputs):
-        batch_size, inp_ch, inp_height, inp_width = inputs.shape
+        batch_size, seq_len, inp_ch, inp_height, inp_width = inputs.shape
         resousion_height, resousion_width = 224, 448 
         frame_num = 1
         people_num = 1

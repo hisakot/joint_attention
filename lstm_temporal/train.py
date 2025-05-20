@@ -34,8 +34,7 @@ def train(train_dataloader, net, loss_function, optimizer, device):
 
     with tqdm(total=len(train_dataloader)) as pbar:
         for data in train_dataloader:
-            inp = data[0]
-            print(inp.shape)
+            inputs = data[0]
             '''
             for key, val in inp.items():
                 if torch.is_tensor(val):
@@ -43,7 +42,7 @@ def train(train_dataloader, net, loss_function, optimizer, device):
             '''
 
             targets = data[1].to(device)
-            if target is None:
+            if targets is None:
                 continue
 
             pred = net(inputs)
