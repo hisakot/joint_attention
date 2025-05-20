@@ -198,7 +198,7 @@ class Dataset(Dataset):
                 one_seq = np.concatenate([img, kptmap, gazecone_map], axis=0)
                 inputs.append(torch.tensor(one_seq, dtype=torch.float32))
                 print("-------------------------")
-                targets.append(target, dtype=torch.float32)
+                targets.append(target)
             except IndexError:
                 pass
 
