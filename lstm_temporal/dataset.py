@@ -63,9 +63,9 @@ class Dataset(Dataset):
         target = None
         video_name = os.path.basename(os.path.dirname(self.img_paths[idx]))
         for i in range(self.seq_len):
-            if not video_name in self.img_paths[idx+i]:
-                continue
             try:
+                if not video_name in self.img_paths[idx+i]:
+                    continue
                 mmpose = self.mmpose[idx+i]
                 frame_id = mmpose["frame_id"]
                 instances = mmpose["instances"]
