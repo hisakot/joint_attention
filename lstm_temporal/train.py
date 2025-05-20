@@ -172,10 +172,10 @@ def main():
     val_data_dir = "data/val"
     train_data = dataset.Dataset(train_data_dir,
                                  img_height=img_height, img_width=img_width,
-                                 seq_len=10, transform=None, is_train=True)
+                                 seq_len=5, transform=None, is_train=True)
     val_data = dataset.Dataset(val_data_dir,
                                img_height=img_height, img_width=img_width,
-                               seq_len=10, transform=None, is_train=False)
+                               seq_len=5, transform=None, is_train=False)
 
     train_dataloader = DataLoader(train_data, batch_size=batch_size,
                                   shuffle=False, num_workers=1) # FIXME shuffle

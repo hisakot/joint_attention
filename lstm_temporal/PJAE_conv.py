@@ -105,8 +105,9 @@ class ModelSpatial(nn.Module):
         self.fixed_in_ch = in_ch
         self.input_convs = nn.ModuleDict()
         self.sigmoid = nn.Sigmoid()
-        self.lstm = nn.LSTM(input_size=512, hidden_size=512, batch_first=True)
-        self.lstm_linear = nn.Linear(512, 512)
+        self.lstm = nn.LSTM(input_size=7497, hidden_size=1024, batch_first=True)
+        self.lstm_linear1 = nn.Linear(1024, 8192)
+        self.lstm_linear2 = nn.Linear(8192, 20000)
 
         # common
         self.relu = nn.ReLU(inplace=True)
@@ -182,12 +183,11 @@ class ModelSpatial(nn.Module):
     def forward(self, inputs):
         batch_size, seq_len, inp_ch, inp_height, inp_width = inputs.shape
         resousion_height, resousion_width = 224, 448 
+        lstm_input = []
 
         for seq in range(seq_len):
             inp = inputs[:, seq, :, :, :]
-            print(inp.shape)
             inp = inp.view(batch_size, inp_ch, inp_height, inp_width)
-            print(inp.shape)
             inp = F.interpolate(inp, (resousion_height, resousion_width), mode='bilinear')
 
             im = self.conv1_scene(inp)
@@ -199,7 +199,6 @@ class ModelSpatial(nn.Module):
             im = self.layer3_scene(im)
             im = self.layer4_scene(im)
             scene_feat = self.layer5_scene(im)
-            print(scene_feat.shape)
 
             encoding = self.compress_conv1(scene_feat)
             encoding = self.compress_bn1(encoding)
@@ -207,7 +206,6 @@ class ModelSpatial(nn.Module):
             encoding = self.compress_conv2(encoding)
             encoding = self.compress_bn2(encoding)
             encoding = self.relu(encoding)
-            print(encoding.shape)
 
             x = self.deconv1(encoding)
             x = self.deconv_bn1(x)
@@ -219,24 +217,19 @@ class ModelSpatial(nn.Module):
             x = self.deconv_bn3(x)
             x = self.relu(x)
             x = self.conv4(x)
-            print(x.shape)
             x = self.sigmoid(x)
-            print(x.shape)
-            print("-----------------------")
 
-            x = x.view(batch_size, -1)
+            x = x.view(batch_size, 1, -1) # batch, seq, input_dim
             lstm_input.append(x)
-        lstm_input = torch.tensor(lstm_input, dtype=torch.float32)
-        print(lstm_input.shape)
-        lstm_input = torch.permute(lstm_input, (1, 0, 2))
-        print(lstm_input.shape)
-        exit()
+        lstm_input = torch.cat(lstm_input, dim=1)
 
+        lstm_out, (hidden, cell) = self.lstm(lstm_input)
+        lstm_out = self.lstm_linear1(lstm_out[:, -1, :])
+        lstm_out = self.lstm_linear2(lstm_out)
+        lstm_out = torch.reshape(lstm_out, (batch_size, 1, 100, 200))
+        lstm_out = self.sigmoid(lstm_out)
 
-        lstm_out = self.lstm(encoding)
-        lstm_out = self.lstm_linear(lstm_out)
-
-        output = F.interpolate(x, (320, 640), mode='bilinear')
+        output = F.interpolate(lstm_out, (320, 640), mode='bilinear')
 
         return output
 
