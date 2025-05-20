@@ -33,7 +33,8 @@ class VariableLengthVectorToImage(nn.Module):
         self.pos_encoding = nn.Parameter(torch.randn(1024, embed_dim))
         encoder_layer = nn.TransformerEncoderLayer(d_model=embed_dim, nhead=num_heads)
         self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
-        self.image_height = image_height self.image_width = image_width
+        self.image_height = image_height
+        self.image_width = image_width
         self.patch_size = patch_size
         self.num_patches = (image_height // patch_size) * (image_width // patch_size)
         self.project = nn.Linear(embed_dim, 1 * patch_size * patch_size) # TODO changed 3 -> 1
