@@ -223,7 +223,15 @@ class ModelSpatial(nn.Module):
             x = self.sigmoid(x)
             print(x.shape)
             print("-----------------------")
-            exit()
+
+            x = x.view(batch_size, -1)
+            lstm_input.append(x)
+        lstm_input = torch.tensor(lstm_input, dtype=torch.float32)
+        print(lstm_input.shape)
+        lstm_input = torch.permute(lstm_input, (1, 0, 2))
+        print(lstm_input.shape)
+        exit()
+
 
         lstm_out = self.lstm(encoding)
         lstm_out = self.lstm_linear(lstm_out)
