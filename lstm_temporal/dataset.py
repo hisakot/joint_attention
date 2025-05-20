@@ -91,7 +91,7 @@ class Dataset(Dataset):
                 # lined keypoints
                 kptmap = cv2.imread(self.kpt_paths[idx+i], 0) # H, W
                 kptmap = cv2.resize(kptmap, (self.W, self.H))
-                # kptmap = cv2.remap(kptmap, map_x.astype(np.float32), map_y.astype(np.float32), interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
+                kptmap = cv2.remap(kptmap, map_x.astype(np.float32), map_y.astype(np.float32), interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
                 kptmap = kptmap.astype(np.float32)
                 kptmap /= 255.
                 kptmap = kptmap[np.newaxis, :, :] # 1, H, W
@@ -136,7 +136,7 @@ class Dataset(Dataset):
                 # gaze cone
                 gazecone_map = cv2.imread(self.gazecone_paths[idx+i], 0) # H, W
                 gazecone_map = cv2.resize(gazecone_map, (self.W, self.H))
-                # gazecone_map = cv2.remap(gazecone_map, map_x.astype(np.float32), map_y.astype(np.float32), interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
+                gazecone_map = cv2.remap(gazecone_map, map_x.astype(np.float32), map_y.astype(np.float32), interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
                 gazecone_map = gazecone_map.astype(np.float32)
                 gazecone_map /= 255.
                 gazecone_map = gazecone_map[np.newaxis, :, :] # 1, H, W
@@ -176,7 +176,7 @@ class Dataset(Dataset):
                 # frame image
                 img = cv2.imread(self.img_paths[idx+i], 1) # H, W, C (gray scale-> 0)
                 img = cv2.resize(img, (self.W, self.H))
-                # img = cv2.remap(img, map_x.astype(np.float32), map_y.astype(np.float32), interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
+                img = cv2.remap(img, map_x.astype(np.float32), map_y.astype(np.float32), interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
                 # img = img[:, :, np.newaxis] # H, W, 1 if Gray scale
                 img = img.astype(np.float32)
                 img /= 255.
@@ -185,7 +185,7 @@ class Dataset(Dataset):
                 # labels
                 target = cv2.imread(self.gt_paths[idx+self.seq_len-1], 0) # Gray scale
                 target = cv2.resize(target, (self.W, self.H))
-                # target = cv2.remap(target, map_x.astype(np.float32), map_y.astype(np.float32), interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
+                target = cv2.remap(target, map_x.astype(np.float32), map_y.astype(np.float32), interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
                 target = target[:, :, np.newaxis]
                 target = target.astype(np.float32)
                 target /= 255.
