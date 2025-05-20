@@ -35,15 +35,16 @@ def train(train_dataloader, net, loss_function, optimizer, device):
     with tqdm(total=len(train_dataloader)) as pbar:
         for data in train_dataloader:
             inp = data[0]
-            print(type(inp[0]))
-            print(inp[0].shape)
-            exit()
-
+            print(inp.shape)
+            '''
             for key, val in inp.items():
                 if torch.is_tensor(val):
                     inp[key] = val.to(device)
+            '''
 
             targets = data[1].to(device)
+            if target is None:
+                continue
 
             pred = net(inputs)
 
@@ -90,15 +91,15 @@ def evaluate(val_dataloader, net, loss_function, device):
         with tqdm(total=len(val_dataloader)) as pbar:
             for data in val_dataloader:
                 inp = data[0]
+                '''
                 for key, val in inp.items():
                     if torch.is_tensor(val):
                         inp[key] = val.to(device)
-                kptmap = inp["kptmap"]
-                gazecone = inp["gazecone_map"]
-                img = inp["img"]
-                inputs = torch.cat([img, gazecone, kptmap], dim=1)
+                '''
 
                 targets = data[1].to(device)
+                if targets is None:
+                    continue
 
                 pred = net(inputs)
 

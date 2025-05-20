@@ -60,8 +60,11 @@ class Dataset(Dataset):
 
         # inputs
         inputs = []
-        targets = []
+        target = None
+        video_name = os.path.basename(os.path.dirname(self.img_paths[idx]))
         for i in range(self.seq_len):
+            if not video_name in self.img_paths[idx+i]:
+                continue
             try:
                 mmpose = self.mmpose[idx+i]
                 frame_id = mmpose["frame_id"]
@@ -171,8 +174,6 @@ class Dataset(Dataset):
 
                 # frame image
                 img = cv2.imread(self.img_paths[idx+i], 1) # H, W, C (gray scale-> 0)
-                print(i)
-                print(self.img_paths[idx+i])
                 img = cv2.resize(img, (self.W, self.H))
                 # img = cv2.remap(img, map_x.astype(np.float32), map_y.astype(np.float32), interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
                 # img = img[:, :, np.newaxis] # H, W, 1 if Gray scale
@@ -181,7 +182,7 @@ class Dataset(Dataset):
                 img = np.transpose(img, (2, 0, 1)) # C, H, W
 
                 # labels
-                target = cv2.imread(self.gt_paths[idx+i], 0) # Gray scale
+                target = cv2.imread(self.gt_paths[idx+self.seq_len-1], 0) # Gray scale
                 target = cv2.resize(target, (self.W, self.H))
                 # target = cv2.remap(target, map_x.astype(np.float32), map_y.astype(np.float32), interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
                 target = target[:, :, np.newaxis]
@@ -196,13 +197,12 @@ class Dataset(Dataset):
                 '''
 
                 one_seq = np.concatenate([img, kptmap, gazecone_map], axis=0)
-                inputs.append(torch.tensor(one_seq, dtype=torch.float32))
-                print("-------------------------")
-                targets.append(target, dtype=torch.float32)
+                inputs.append(one_seq)
             except IndexError:
                 pass
+        inputs = torch.tensor(inputs, dtype=torch.float32)
 
-        return inputs, targets
+        return inputs, target
 
 def load_mmpose_json(json_path):
     with open(json_path) as f:
