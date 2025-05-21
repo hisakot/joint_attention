@@ -8,7 +8,7 @@ img_paths = glob.glob("data/test/frames/*/*.png")
 img_paths.sort()
 kpt_paths = glob.glob("data/test/kptmap/*/*.png")
 kpt_paths.sort()
-gazecone_paths = glob.glob("data/test/gazecone_body/*/*.png")
+gazecone_paths = glob.glob("data/test/gazecone_arrow/*/*.png")
 gazecone_paths.sort()
 
 H = 480
@@ -31,8 +31,8 @@ for i, img_path in enumerate(img_paths):
     gazecone_map = gazecone_map[:, :, np.newaxis]
     gazecone_map = np.concatenate([zeros, gazecone_map, gazecone_map], axis=2)
 
-    result = cv2.addWeighted(img, 0.8, kpt_map, 1, 0)
-    result = cv2.addWeighted(result, 1, gazecone_map, 1, 0)
+    # result = cv2.addWeighted(img, 0.8, kpt_map, 1, 0)
+    result = cv2.addWeighted(img, 1, gazecone_map, 1, 0)
 
     cv2.imwrite("data/test/pred/kpt_gaze/" + str(i).zfill(6) + ".png", result)
 
