@@ -28,7 +28,7 @@ def test(test_dataloader, model, loss_function, device):
 
     with torch.no_grad():
         for i, data in enumerate(test_dataloader):
-            inputs = data[0]
+            inputs = data[0].to(device)
             '''
             for key, val in inp.items():
                 if torch.is_tensor(val):
