@@ -98,6 +98,7 @@ def main():
             state_dict[name] = v
         model.load_state_dict(state_dict)
     model.eval()
+    print(model)
 
     test_data_dir = "data/test"
     test_data = dataset.Dataset(test_data_dir,
