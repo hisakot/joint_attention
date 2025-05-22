@@ -19,13 +19,6 @@ from torch.utils.tensorboard import SummaryWriter
 import config
 import dataset
 import train
-import transformer
-import swin_transformer
-import swin_transformer_v2
-import vision_transformer
-import resnet
-import PJAE_spatiotemporal
-import PJAE_spatial
 import PJAE_conv
 
 
@@ -81,13 +74,6 @@ def main():
     img_height = cfg.img_height
     img_width = cfg.img_width
 
-    '''
-    model = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width, in_chans=4)
-    model = resnet.ResNet50(pretrained=False, in_ch=4)
-    model = swin_transformer_v2.SwinTransformerV2(img_height=img_height, img_width=img_width,
-                                                  in_chans=4, output_H=img_height, output_W=img_width)
-    model = PJAE_spatiotemporal.ModelSpatioTemporal(in_ch=4)
-    '''
     model = PJAE_conv.ModelSpatial(in_ch=5)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -95,7 +81,6 @@ def main():
         print("---------- Use GPU ----------")
     else:
         print("---------- Use CPU ----------")
-    # model.half().to(device)
     model.to(device)
 
     # loss_function = "MSE"
@@ -104,11 +89,11 @@ def main():
 
     checkpoint = torch.load(args.model)
     if torch.cuda.device_count() >= 1:
-        model.load_state_dict(checkpoint["pjae_spatial_state_dict"], strict=False)
+        model.load_state_dict(checkpoint["net_state_dict"], strict=False)
     else:
         from collections import OrderedDict
         state_dict = OrderedDict()
-        for k, v in checkpoint["pjae_spatial_state_dict"].items():
+        for k, v in checkpoint["net_state_dict"].items():
             name = k[7:] # remove "module."
             state_dict[name] = v
         model.load_state_dict(state_dict)
@@ -117,7 +102,7 @@ def main():
     test_data_dir = "data/test"
     test_data = dataset.Dataset(test_data_dir,
                                 img_height=img_height, img_width=img_width,
-                                seq_len=10, transform=None, is_train=False)
+                                seq_len=3, transform=None, is_train=False)
     test_dataloader = DataLoader(test_data, batch_size=1,
                                  shuffle=False, num_workers=1)
     test(test_dataloader, model, loss_function, device)
