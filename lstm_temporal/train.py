@@ -169,7 +169,7 @@ def main():
     # loss_function = "MAE"
     loss_function = "cos_similarity"
     optimizer = optim.SGD(net.parameters(), lr=lr)
-    scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda epoch: 0.95**epoch)
+    scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda epoch: 1**epoch)
 
     writer = SummaryWriter(log_dir="logs")
 
