@@ -4,6 +4,7 @@ import json
 import glob
 import math
 import os
+from collections import deque
 import statistics
 
 import cv2
@@ -131,7 +132,7 @@ def get_body_forward(kpts):
         return spine_vec
 
 
-def generate_gazecone(hs_kpts, H, W, before_pt, fov_deg=30, cone_length=800, sigma_angle=0.2, sigma_distance=400, max_intensity=1.0):
+def generate_gazecone(hs_kpts, H, W, gazeque, fov_deg=30, cone_length=800, sigma_angle=0.2, sigma_distance=400, max_intensity=1.0):
     gazecone_map = np.ones((H, W), dtype=np.float32)
     after_pt = []
     for i, kpt in enumerate(hs_kpts):
@@ -139,7 +140,8 @@ def generate_gazecone(hs_kpts, H, W, before_pt, fov_deg=30, cone_length=800, sig
         face_kpt = kpt[23:91]
         p1, p2, yaw, pitch, roll = head_direction(face_kpt, H, W)
 
-        if len(before_pt) != 0:
+        # TODO!!!!! how to compare before pts
+        for before_pt in gazeque:
             min_distance = float('inf')
             for b_pt in before_pt:
                 b_p1 = b_pt[0]
@@ -200,6 +202,8 @@ def generate_gazecone(hs_kpts, H, W, before_pt, fov_deg=30, cone_length=800, sig
     gazecone_map = (gazecone_map * 255).astype(np.uint8)
     gazecone_map = gazecone_map[:, :, np.newaxis]
 
+    gazeque.appnd(after_pt)
+
     return gazecone_map, after_pt
 
 def generate_pose(hs_kpts, H, W, links, sigma=3):
@@ -250,7 +254,7 @@ if __name__ == '__main__':
         H, W, C = 1920, 3840, 3
         links, instance_info = load_mmpose_json(json_path)
         data_len = len(instance_info)
-        before_pt = []
+        gazeque = deque(maxlen=5)
         for i, instance_info in tqdm(enumerate(instance_info), total=data_len):
             frame_id = instance_info["frame_id"]
             instances = instance_info["instances"]
@@ -269,17 +273,17 @@ if __name__ == '__main__':
                 if not os.path.exists(save_gazecone_dir):
                     os.mkdir(save_gazecone_dir)
                 gazecone_map, after_pt = generate_gazecone(hs_kpts, H, W, 
-                                                          before_pt,
+                                                          gazeque,
                                                           sigma_angle=0.2,
                                                           sigma_distance=500)
-
+                '''
                 for pt in after_pt:
                     cv2.arrowedLine(gazecone_map, pt[0], pt[1], color=256, thickness=10)
                 if len(before_pt) != 0:
                     for pt in before_pt:
                         cv2.arrowedLine(gazecone_map, pt[0], pt[1], color=256, thickness=3)
+                '''
                 cv2.imwrite(os.path.join(save_gazecone_dir, str(frame_id).zfill(6)) + ".png", gazecone_map)
-                before_pt = after_pt
             if args.save_posemap:
                 save_dir = os.path.join(args.root, args.save_posemap)
                 if not os.path.exists(save_dir):
