@@ -29,7 +29,7 @@ class Dataset(Dataset):
         mmpose_paths.sort()
         img_paths = glob.glob(data_dir + "/frames/*/*.png")
         img_paths.sort()
-        gazecone_paths = glob.glob(data_dir + "/gazecone_close/*/*.png")
+        gazecone_paths = glob.glob(data_dir + "/gazecone_mult/*/*.png")
         gazecone_paths.sort()
         # gazecone_nch_paths = glob.glob(data_dir + "/gazecone_nch/*/*.npz")
         # gazecone_nch_paths.sort()
