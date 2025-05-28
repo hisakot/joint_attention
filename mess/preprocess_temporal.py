@@ -141,22 +141,29 @@ def generate_gazecone(hs_kpts, H, W, gazeque, fov_deg=30, cone_length=800, sigma
         p1, p2, yaw, pitch, roll = head_direction(face_kpt, H, W)
 
         # TODO!!!!! how to compare before pts
+        closes = list()
         for before_pt in gazeque:
-            min_distance = float('inf')
+            min_dist = float('inf')
             for b_pt in before_pt:
                 b_p1 = b_pt[0]
                 b_p2 = b_pt[1]
                 distance = (p1[0] - b_p1[0])**2 + (p1[1] - b_p1[1])**2
-                if min_distance > distance:
-                    min_distance = distance
+                if min_dist > distance:
+                    min_dist = distance
                     close = b_pt
-            a_vec = np.array([p2[0]-p1[0], p2[1]-p1[1]])
-            b_vec = np.array([close[1][0]-close[0][0], close[1][1]-close[0][1]])
-            dot = a_vec@b_vec
-            if dot < 0:
-                x = 2 * p1[0] - p2[0]
-                y = 2 * p1[1] - p2[1]
-                p2 = (x, y)
+            closes.append(close)
+        for que in closes:
+            x_vec += que[0]
+            y_vec += que[1]
+        b_x /= len(closes)
+        b_y /= len(closes)
+        a_vec = np.array([p2[0]-p1[0], p2[1]-p1[1]])
+        b_vec = np.array([b_x, b_y])
+        dot = a_vec@b_vec
+        if dot < 0:
+            x = 2 * p1[0] - p2[0]
+            y = 2 * p1[1] - p2[1]
+            p2 = (x, y)
         after_pt.append([p1, p2])
         '''
         body_forward = get_body_forward(kpt)
