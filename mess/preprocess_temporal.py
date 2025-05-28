@@ -154,11 +154,14 @@ def generate_gazecone(hs_kpts, H, W, gazeque, fov_deg=30, cone_length=800, sigma
             closes.append(close)
         b_x, b_y = 0, 0
         for que in closes:
-            print(que)
-            b_x += que[0]
-            b_y += que[1]
-        b_x /= len(closes)
-        b_y /= len(closes)
+            b_x += que[1][0] - que[0][0]
+            b_y += que[1][1] - que[0][1]
+        try:
+            print(len(closes))
+            b_x /= len(closes)
+            b_y /= len(closes)
+        except ZeroDivisionError:
+            pass
         a_vec = np.array([p2[0]-p1[0], p2[1]-p1[1]])
         b_vec = np.array([b_x, b_y])
         dot = a_vec@b_vec
@@ -211,7 +214,7 @@ def generate_gazecone(hs_kpts, H, W, gazeque, fov_deg=30, cone_length=800, sigma
     gazecone_map = (gazecone_map * 255).astype(np.uint8)
     gazecone_map = gazecone_map[:, :, np.newaxis]
 
-    gazeque.appnd(after_pt)
+    gazeque.append(after_pt)
 
     return gazecone_map, after_pt
 
