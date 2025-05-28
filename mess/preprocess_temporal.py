@@ -154,6 +154,7 @@ def generate_gazecone(hs_kpts, H, W, gazeque, fov_deg=30, cone_length=800, sigma
             closes.append(close)
         b_x, b_y = 0, 0
         for que in closes:
+            print(que)
             b_x += que[0]
             b_y += que[1]
         b_x /= len(closes)
