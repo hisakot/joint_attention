@@ -152,9 +152,10 @@ def generate_gazecone(hs_kpts, H, W, gazeque, fov_deg=30, cone_length=800, sigma
                     min_dist = distance
                     close = b_pt
             closes.append(close)
+        b_x, b_y = 0, 0
         for que in closes:
-            x_vec += que[0]
-            y_vec += que[1]
+            b_x += que[0]
+            b_y += que[1]
         b_x /= len(closes)
         b_y /= len(closes)
         a_vec = np.array([p2[0]-p1[0], p2[1]-p1[1]])
