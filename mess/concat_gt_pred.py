@@ -6,11 +6,11 @@ import os
 
 gt_paths = glob.glob("data/test/gt_heatmap_1ch/*/*.png")
 gt_paths.sort()
-pred_paths = glob.glob("data/test/pred/no_data_augmentation/*.png")
+pred_paths = glob.glob("data/test/pred/gaze_mult_selected_augmentation/*.png")
 pred_paths.sort()
 img_paths = glob.glob("data/test/frames/*/*.png")
 img_paths.sort()
-gazecone_paths = glob.glob("data/test/gazecone_close/*/*.png")
+gazecone_paths = glob.glob("data/test/gazecone_mult/*/*.png")
 gazecone_paths.sort()
 
 H = 480

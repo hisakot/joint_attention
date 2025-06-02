@@ -42,7 +42,8 @@ def test(test_dataloader, model, loss_function, device):
             kptmap = inp["kptmap"]
             gazecone = inp["gazecone_map"]
             img = inp["img"]
-            inputs = torch.cat([img, gazecone, kptmap], dim=1)
+            # inputs = torch.cat([img, gazecone, kptmap], dim=1)
+            inputs = torch.cat([gazecone, kptmap], dim=1)
 
             targets = data[1].to(device)
 
@@ -87,7 +88,7 @@ def main():
                                                   in_chans=4, output_H=img_height, output_W=img_width)
     model = PJAE_spatiotemporal.ModelSpatioTemporal(in_ch=4)
     '''
-    model = PJAE_conv.ModelSpatial(in_ch=5)
+    model = PJAE_conv.ModelSpatial(in_ch=2)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:
