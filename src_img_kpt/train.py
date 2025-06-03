@@ -58,8 +58,7 @@ def train(train_dataloader, spatial, loss_function, optimizer, device):
             img = inp["img"]
             gazecone = inp["gazecone_map"]
             kptmap = inp["kptmap"]
-            # inputs = torch.cat([img, gazecone, kptmap], dim=1)
-            inputs = torch.cat([gazecone, kptmap], dim=1)
+            inputs = torch.cat([img, gazecone, kptmap], dim=1)
 
             targets = data[1].to(device)
 
@@ -114,8 +113,7 @@ def evaluate(val_dataloader, spatial, loss_function, device):
                 kptmap = inp["kptmap"]
                 gazecone = inp["gazecone_map"]
                 img = inp["img"]
-                # inputs = torch.cat([img, gazecone, kptmap], dim=1)
-                inputs = torch.cat([gazecone, kptmap], dim=1)
+                inputs = torch.cat([img, gazecone, kptmap], dim=1)
 
                 targets = data[1].to(device)
 
@@ -173,7 +171,7 @@ def main():
     unet = kptnet.UNet(in_channels=3, out_channels=3)
     fuse = fusion.Fusion(in_channels=6, out_channels=3)
     spatiotemporal = PJAE_spatiotemporal.ModelSpatioTemporal(in_ch=2)
-    spatial = PJAE_conv.ModelSpatial(in_ch=2)
+    spatial = PJAE_conv.ModelSpatial(in_ch=5)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:
