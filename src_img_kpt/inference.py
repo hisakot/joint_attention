@@ -73,6 +73,7 @@ def test(test_dataloader, model, loss_function, device):
             np_img = tensor_to_numpy(img)
             np_target = tensor_to_numpy(targets)
             zero = np.zeros((480, 960, 1), dtype=np.uint8)
+            print(np_pred.shape, np_img.shape, np_target.shape, zero.shape)
             result = np.concatenate([np_pred, zero, np_target], axis=2)
             result_img = cv2.addWeighted(img, 0.7, result, 1, 0)
             cv2.imwrite("data/test/pred/" + str(i).zfill(6) + ".png", np_pred)
