@@ -29,7 +29,7 @@ import PJAE_spatial
 import PJAE_conv
 
 def tensor_to_numpy(tensor2d):
-    npy2d = tensor2d.to("cpu"),detach().numpy().copy()
+    npy2d = tensor2d.to("cpu").detach().numpy().copy()
     npy2d = np.squeeze(npy2d, 0)
     npy2d = np.transpose(npy2d, (1, 2, 0))
     npy2d *= 255
