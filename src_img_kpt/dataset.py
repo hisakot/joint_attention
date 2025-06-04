@@ -13,7 +13,7 @@ from torch.utils.data import Dataset
 import config
 
 class Dataset(Dataset):
-    def __init__(self, data_dir, img_height, img_width, transform=None, is_train=True, inf_rotate=0):
+    def __init__(self, data_dir, img_height, img_width, transform=None, is_train=True, inf_rotate=None):
         self.data_dir = data_dir
         self.transform = transform
         self.is_train = is_train
@@ -59,7 +59,7 @@ class Dataset(Dataset):
             # yaw = random.uniform(0, 360)
             yaw = random.choice([0, 90, 180, 270])
             map_x, map_y = rotate_omni_img(self.H, self.W, roll, pitch, yaw)
-        if self.inf_rotate not None:
+        if self.inf_rotate is not None:
             roll = random.uniform(0, 0) # FIXME if need, change angular range
             pitch = random.uniform(0, 0) # FIXME if need, change angular range
             yaw = self.inf_rotate
@@ -95,7 +95,7 @@ class Dataset(Dataset):
         if self.is_train:
             kptmap = cv2.remap(kptmap, map_x.astype(np.float32), map_y.astype(np.float32),
                                interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
-        if self.inf_rotate not None:
+        if self.inf_rotate is not None:
             kptmap = cv2.remap(kptmap, map_x.astype(np.float32), map_y.astype(np.float32),
                                interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
         kptmap = kptmap.astype(np.float32)
@@ -145,7 +145,7 @@ class Dataset(Dataset):
         if self.is_train:
             gazecone_map = cv2.remap(gazecone_map, map_x.astype(np.float32), map_y.astype(np.float32),
                                      interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
-        if self.inf_rotate not None:
+        if self.inf_rotate is not None:
             gazecone_map = cv2.remap(gazecone_map, map_x.astype(np.float32), map_y.astype(np.float32),
                                      interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
         gazecone_map = gazecone_map.astype(np.float32)
@@ -190,7 +190,7 @@ class Dataset(Dataset):
         if self.is_train:
             img = cv2.remap(img, map_x.astype(np.float32), map_y.astype(np.float32),
                             interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
-        if self.inf_rotate:
+        if self.inf_rotate is not None:
             img = cv2.remap(img, map_x.astype(np.float32), map_y.astype(np.float32),
                             interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
         # img = img[:, :, np.newaxis] # H, W, 1 if Gray scale
@@ -204,7 +204,7 @@ class Dataset(Dataset):
         if self.is_train:
             targets = cv2.remap(targets, map_x.astype(np.float32), map_y.astype(np.float32),
                                 interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
-        if self.inf_rotate:
+        if self.inf_rotate is not None:
             targets = cv2.remap(targets, map_x.astype(np.float32), map_y.astype(np.float32),
                                 interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
         targets = targets[:, :, np.newaxis]
