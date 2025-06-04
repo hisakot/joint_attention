@@ -30,17 +30,11 @@ import PJAE_conv
 
 def tensor_to_numpy(tensor2d):
     npy2d = tensor2d.to("cpu").detach().numpy().copy()
-    print(npy2d.shape)
     npy2d = np.squeeze(npy2d, 0)
-    print(npy2d.shape)
     npy2d = np.transpose(npy2d, (1, 2, 0))
     npy2d *= 255
-    print(npy2d.shape)
     npy2d = npy2d.astype(np.uint8)
-    print(npy2d.shape)
-    npy2d = cv2.resize(npy2d, (960, 480))
-    print(npy2d.shape)
-    exit()
+    npy2d = cv2.resize(npy2d, (960, 480, 1))
     # npy2d = cv2.applyColorMap(npy2d, cv2.COLORMAP_JET)
     return npy2d
 
@@ -79,7 +73,6 @@ def test(test_dataloader, model, loss_function, device):
             np_img = tensor_to_numpy(img)
             np_target = tensor_to_numpy(targets)
             zero = np.zeros((480, 960, 1), dtype=np.uint8)
-            print(np_pred.shape, np_img.shape, np_target.shape, zero.shape)
             result = np.concatenate([np_pred, zero, np_target], axis=2)
             result_img = cv2.addWeighted(img, 0.7, result, 1, 0)
             cv2.imwrite("data/test/pred/" + str(i).zfill(6) + ".png", np_pred)
