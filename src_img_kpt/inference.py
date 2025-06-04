@@ -28,6 +28,15 @@ import PJAE_spatiotemporal
 import PJAE_spatial
 import PJAE_conv
 
+def tensor_to_numpy(tensor2d):
+    npy2d = tensor2d.to("cpu"),detach().numpy().copy()
+    npy2d = np.squeeze(npy2d, 0)
+    npy2d = np.transpose(npy2d, (1, 2, 0))
+    npy2d *= 255
+    npy2d = npy2d.astype(np.uint8)
+    npy2d = cv2.resize(npy2d, (960, 480))
+    # npy2d = cv2.applyColorMap(npy2d, cv2.COLORMAP_JET)
+    return npy2d
 
 def test(test_dataloader, model, loss_function, device):
     model.eval()
@@ -60,14 +69,14 @@ def test(test_dataloader, model, loss_function, device):
                 loss = lossfunc(pred, targets)
             print(loss)
 
-            pred = pred.to("cpu").detach().numpy().copy()
-            pred = np.squeeze(pred, 0)
-            pred = np.transpose(pred, (1, 2, 0))
-            pred *= 255.
-            pred = pred.astype(np.uint8)
-            # pred = cv2.applyColorMap(pred, cv2.COLORMAP_JET)
-            pred = cv2.resize(pred, (960, 480))
-            cv2.imwrite("data/test/pred/" + str(i).zfill(6) + ".png", pred)
+            np_pred = tensor_to_numpy(pred)
+            np_img = tensor_to_numpy(img)
+            np_target = tensor_to_numpy(targets)
+            zero = np.zeros((480, 960, 1), dtype=np.uint8)
+            result = np.concatenate([np_pred, zero, np_target], axis=2)
+            result_img = cv2.addWeighted(img, 0.7, result, 1, 0)
+            cv2.imwrite("data/test/pred/" + str(i).zfill(6) + ".png", np_pred)
+            cv2.imwrite("data/test/pred/gaze_mult_selected_augmentation" + str(i).zfill(6) + ".png", result_img)
             print("------------")
 
 def main():
@@ -115,7 +124,7 @@ def main():
 
     test_data_dir = "data/test"
     test_data = dataset.Dataset(test_data_dir, img_height=img_height, img_width=img_width,
-                                transform=None, is_train=False)
+                                transform=None, is_train=False, inf_rotate=45)
     test_dataloader = DataLoader(test_data, batch_size=1,
                                  shuffle=False, num_workers=1)
     test(test_dataloader, model, loss_function, device)

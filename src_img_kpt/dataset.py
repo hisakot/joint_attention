@@ -13,10 +13,11 @@ from torch.utils.data import Dataset
 import config
 
 class Dataset(Dataset):
-    def __init__(self, data_dir, img_height, img_width, transform=None, is_train=True):
+    def __init__(self, data_dir, img_height, img_width, transform=None, is_train=True, inf_rotate=0):
         self.data_dir = data_dir
         self.transform = transform
         self.is_train = is_train
+        self.inf_rotate = inf_rotate
         self.mmpose = []
         self.targets = []
         self.img_paths = []
@@ -52,11 +53,18 @@ class Dataset(Dataset):
 
     def __getitem__(self, idx):
         # rotation anguler
-        roll = random.uniform(0, 0) # FIXME if need, change angular range
-        pitch = random.uniform(0, 0) # FIXME if need, change angular range
-        # yaw = random.uniform(0, 360)
-        yaw = random.choice([0, 90, 180, 270])
-        map_x, map_y = rotate_omni_img(self.H, self.W, roll, pitch, yaw)
+        if self.is_train:
+            roll = random.uniform(0, 0) # FIXME if need, change angular range
+            pitch = random.uniform(0, 0) # FIXME if need, change angular range
+            # yaw = random.uniform(0, 360)
+            yaw = random.choice([0, 90, 180, 270])
+            map_x, map_y = rotate_omni_img(self.H, self.W, roll, pitch, yaw)
+        if self.inf_rotate not None:
+            roll = random.uniform(0, 0) # FIXME if need, change angular range
+            pitch = random.uniform(0, 0) # FIXME if need, change angular range
+            yaw = self.inf_rotate
+            map_x, map_y = rotate_omni_img(self.H, self.W, roll, pitch, yaw)
+
 
         # inputs
         inputs = []
@@ -85,6 +93,9 @@ class Dataset(Dataset):
         kptmap = cv2.imread(self.kpt_paths[idx], 0) # H, W
         kptmap = cv2.resize(kptmap, (self.W, self.H))
         if self.is_train:
+            kptmap = cv2.remap(kptmap, map_x.astype(np.float32), map_y.astype(np.float32),
+                               interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
+        if self.inf_rotate not None:
             kptmap = cv2.remap(kptmap, map_x.astype(np.float32), map_y.astype(np.float32),
                                interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
         kptmap = kptmap.astype(np.float32)
@@ -134,6 +145,9 @@ class Dataset(Dataset):
         if self.is_train:
             gazecone_map = cv2.remap(gazecone_map, map_x.astype(np.float32), map_y.astype(np.float32),
                                      interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
+        if self.inf_rotate not None:
+            gazecone_map = cv2.remap(gazecone_map, map_x.astype(np.float32), map_y.astype(np.float32),
+                                     interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
         gazecone_map = gazecone_map.astype(np.float32)
         gazecone_map /= 255.
         gazecone_map = gazecone_map[np.newaxis, :, :] # 1, H, W
@@ -176,6 +190,9 @@ class Dataset(Dataset):
         if self.is_train:
             img = cv2.remap(img, map_x.astype(np.float32), map_y.astype(np.float32),
                             interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
+        if self.inf_rotate:
+            img = cv2.remap(img, map_x.astype(np.float32), map_y.astype(np.float32),
+                            interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
         # img = img[:, :, np.newaxis] # H, W, 1 if Gray scale
         img = img.astype(np.float32)
         img /= 255.
@@ -185,6 +202,9 @@ class Dataset(Dataset):
         targets = cv2.imread(self.gt_paths[idx], 0) # Gray scale
         targets = cv2.resize(targets, (self.W, self.H))
         if self.is_train:
+            targets = cv2.remap(targets, map_x.astype(np.float32), map_y.astype(np.float32),
+                                interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
+        if self.inf_rotate:
             targets = cv2.remap(targets, map_x.astype(np.float32), map_y.astype(np.float32),
                                 interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
         targets = targets[:, :, np.newaxis]
