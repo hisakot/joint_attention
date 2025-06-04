@@ -34,7 +34,8 @@ def tensor_to_numpy(tensor2d):
     npy2d = np.transpose(npy2d, (1, 2, 0))
     npy2d *= 255
     npy2d = npy2d.astype(np.uint8)
-    npy2d = cv2.resize(npy2d, (960, 480, 1))
+    npy2d = cv2.resize(npy2d, (960, 480))
+    npy2d = npy2d[:, :, np.newaxis]
     # npy2d = cv2.applyColorMap(npy2d, cv2.COLORMAP_JET)
     return npy2d
 
