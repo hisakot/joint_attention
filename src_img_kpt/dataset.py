@@ -56,8 +56,8 @@ class Dataset(Dataset):
         if self.is_train:
             roll = random.uniform(0, 0) # FIXME if need, change angular range
             pitch = random.uniform(0, 0) # FIXME if need, change angular range
-            # yaw = random.uniform(0, 360)
-            yaw = random.choice([0, 90, 180, 270])
+            yaw = random.uniform(0, 360)
+            # yaw = random.choice([0, 90, 180, 270])
             map_x, map_y = rotate_omni_img(self.H, self.W, roll, pitch, yaw)
         if self.inf_rotate is not None:
             roll = random.uniform(0, 0) # FIXME if need, change angular range

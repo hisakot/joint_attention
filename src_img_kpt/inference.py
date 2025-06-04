@@ -126,7 +126,7 @@ def main():
 
     test_data_dir = "data/test"
     test_data = dataset.Dataset(test_data_dir, img_height=img_height, img_width=img_width,
-                                transform=None, is_train=False, inf_rotate=45)
+                                transform=None, is_train=False, inf_rotate=135)
     test_dataloader = DataLoader(test_data, batch_size=1,
                                  shuffle=False, num_workers=1)
     test(test_dataloader, model, loss_function, device)
