@@ -141,18 +141,29 @@ def generate_gazecone(hs_kpts, H, W, gazeque, fov_deg=30, cone_length=800, sigma
         p1, p2, yaw, pitch, roll = head_direction(face_kpt, H, W)
 
         # TODO!!!!! how to compare before pts
-        closes = list()
-        for before_pt in gazeque:
+        closes = np.zeros((1, 2))
+        print(closes)
+        for before_pts in gazeque:
             min_dist = float('inf')
-            for b_pt in before_pt:
+            for b_pt in before_pts:
                 b_p1 = b_pt[0]
                 b_p2 = b_pt[1]
                 distance = (p1[0] - b_p1[0])**2 + (p1[1] - b_p1[1])**2
                 if min_dist > distance:
                     min_dist = distance
                     close = b_pt
-            closes.append(close)
-        b_x, b_y = 0, 0
+            close_x = close[1][0] - close[0][0]
+            close_y = close[1][1] - close[0][1]
+            print("x, y: ", close_x, close_y)
+            closes = np.append(closes, [[close_x, close_y]], axis=0)
+            print(closes)
+        try:
+            close_med = np.median(closes, axis=0)
+        except:
+            close_med = np.array([0, 0])
+        print("closes, close_med: ", closes, close_med)
+        print("--------------------")
+        '''
         for que in closes:
             b_x += que[1][0] - que[0][0]
             b_y += que[1][1] - que[0][1]
@@ -162,8 +173,11 @@ def generate_gazecone(hs_kpts, H, W, gazeque, fov_deg=30, cone_length=800, sigma
             b_y /= len(closes)
         except ZeroDivisionError:
             pass
+        '''
         a_vec = np.array([p2[0]-p1[0], p2[1]-p1[1]])
-        b_vec = np.array([b_x, b_y])
+        # b_vec = np.array([b_x, b_y])
+        b_vec = close_med
+        print("a, b: ", a_vec, b_vec)
         dot = a_vec@b_vec
         if dot < 0:
             x = 2 * p1[0] - p2[0]
@@ -291,8 +305,8 @@ if __name__ == '__main__':
                 '''
                 for pt in after_pt:
                     cv2.arrowedLine(gazecone_map, pt[0], pt[1], color=256, thickness=10)
-                if len(before_pt) != 0:
-                    for pt in before_pt:
+                if len(before_pts) != 0:
+                    for pt in before_pts:
                         cv2.arrowedLine(gazecone_map, pt[0], pt[1], color=256, thickness=3)
                 '''
                 cv2.imwrite(os.path.join(save_gazecone_dir, str(frame_id).zfill(6)) + ".png", gazecone_map)
