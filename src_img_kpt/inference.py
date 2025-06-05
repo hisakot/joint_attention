@@ -78,7 +78,7 @@ def test(test_dataloader, model, loss_function, device):
             result = np.concatenate([np_pred, zero, np_target], axis=2)
             result_img = cv2.addWeighted(np_img, 0.7, result, 1, 0)
             cv2.imwrite("data/test/pred/" + str(i).zfill(6) + ".png", np_pred)
-            cv2.imwrite("data/test/pred/gaze_mult_allaround_augmentation_45/" + str(i).zfill(6) + ".png", result_img)
+            cv2.imwrite("data/test/pred/gaze_mult_allaround_augmentation_0/" + str(i).zfill(6) + ".png", result_img)
             print("------------")
 
 def main():
@@ -126,7 +126,7 @@ def main():
 
     test_data_dir = "data/test"
     test_data = dataset.Dataset(test_data_dir, img_height=img_height, img_width=img_width,
-                                transform=None, is_train=False, inf_rotate=45)
+                                transform=None, is_train=False, inf_rotate=0)
     test_dataloader = DataLoader(test_data, batch_size=1,
                                  shuffle=False, num_workers=1)
     test(test_dataloader, model, loss_function, device)
