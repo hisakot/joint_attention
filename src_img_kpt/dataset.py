@@ -63,7 +63,7 @@ class Dataset(Dataset):
             roll = random.uniform(0, 0) # FIXME if need, change angular range
             pitch = random.uniform(0, 0) # FIXME if need, change angular range
             yaw = self.inf_rotate
-            map_x, map_y = rotate_omni_img(self.H, self.W, roll, pitch, yaw)
+            map_x, map_y = rotate_omni_img(self.H, self.W, 0, -30, 0)
 
 
         # inputs
