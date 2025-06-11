@@ -278,6 +278,27 @@ if __name__ == '__main__':
         else:
             continue
 
+        # video images
+        org_frame_paths = glob.glob(os.path.join(args.root, "frames", video_name, "*.png"))
+        org_frame_paths.sort()
+        count = 0
+        file_num = 0
+        for org_frame_path in org_frame_paths:
+            img = cv2.imread(org_frame_path)
+            save_dir = os.path.join(args.root, "videos")
+            if not os.path.exists(save_dir):
+                os.mkdir(save_dir)
+            save_dir = os.path.join(save_dir, str(file_num))
+            if not os.path.exists(save_dir):
+                os.mkdir(save_dir)
+            img_name = os.path.basename(org_frame_path)
+            cv2.imwrite(os.path.join(save_dir, img_name), img)
+            count += 1
+            if count > 20:
+                file_num += 20
+                count = 0
+        exit()
+
         # JointAttention GT
         csv_num = 0
         count = 0
