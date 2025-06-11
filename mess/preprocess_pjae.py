@@ -282,22 +282,24 @@ if __name__ == '__main__':
         org_frame_paths = glob.glob(os.path.join(args.root, "frames", video_name, "*.png"))
         org_frame_paths.sort()
         count = 0
-        file_num = 0
+        file_num = 1
         for org_frame_path in org_frame_paths:
             img = cv2.imread(org_frame_path)
-            save_dir = os.path.join(args.root, "videos")
-            if not os.path.exists(save_dir):
-                os.mkdir(save_dir)
-            save_dir = os.path.join(save_dir, str(file_num))
-            if not os.path.exists(save_dir):
-                os.mkdir(save_dir)
+            save_dir1 = os.path.join(args.root, "videos")
+            if not os.path.exists(save_dir1):
+                os.mkdir(save_dir1)
+            save_dir2 = os.path.join(save_dir1, str(file_num).zfill(6))
+            if not os.path.exists(save_dir2):
+                os.mkdir(save_dir2)
             img_name = os.path.basename(org_frame_path)
-            cv2.imwrite(os.path.join(save_dir, img_name), img)
+            cv2.imwrite(os.path.join(save_dir2, img_name), img)
+            if count == 0:
+                with open(os.path.join(save_dir1, "annotations.txt"), 'a') as f:
+                    f.write(str(file_num).zfill(6) + ".png 1\n")
             count += 1
-            if count > 20:
+            if count >= 20:
                 file_num += 20
                 count = 0
-        exit()
 
         # JointAttention GT
         csv_num = 0
