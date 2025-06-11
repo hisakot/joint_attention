@@ -6,7 +6,7 @@ import os
 
 gt_paths = glob.glob("data/test/gt_heatmap_1ch/*/*.png")
 gt_paths.sort()
-pred_paths = glob.glob("data/test/pred/gaze_mult_selected_augmentation_no_rotate/*.png")
+pred_paths = glob.glob("data/test/pred/result1/*.png")
 pred_paths.sort()
 img_paths = glob.glob("data/test/frames/*/*.png")
 img_paths.sort()
@@ -66,6 +66,8 @@ for i, img_path in enumerate(img_paths):
             cy = int(M['m01'] / M['m00'])
             pred_centers.append((cx, cy))
 
+    # result2 : img + gt + pred
+    # result3 : img + gt + pred + gazecone
     result2 = cv2.addWeighted(img, 0.7, result, 1, 0)
     gazecone = np.concatenate([zeros, gazecone, gazecone], axis=2)
     for gt_center in gt_centers:

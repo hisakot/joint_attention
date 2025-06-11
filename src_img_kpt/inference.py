@@ -71,14 +71,15 @@ def test(test_dataloader, model, loss_function, device):
 
             np_pred = tensor_to_numpy(pred)
             np_pred = np_pred[:, :, np.newaxis]
+            cv2.imwrite("data/test/pred/result1/" + str(i).zfill(6) + ".png", np_pred)
+
             np_img = tensor_to_numpy(img)
             np_target = tensor_to_numpy(targets)
             np_target = np_target[:, :, np.newaxis]
             zero = np.zeros((480, 960, 1), dtype=np.uint8)
             result = np.concatenate([np_pred, zero, np_target], axis=2)
             result_img = cv2.addWeighted(np_img, 0.7, result, 1, 0)
-            cv2.imwrite("data/test/pred/" + str(i).zfill(6) + ".png", np_pred)
-            cv2.imwrite("data/test/pred/gaze_mult_allaround_augmentation_90/" + str(i).zfill(6) + ".png", result_img)
+            cv2.imwrite("data/test/pred/gaze_mult_allaround_augmentation_0/" + str(i).zfill(6) + ".png", result_img)
             print("------------")
 
 def main():
