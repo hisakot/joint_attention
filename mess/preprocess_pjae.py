@@ -339,7 +339,7 @@ if __name__ == '__main__':
             with open(save_path, 'w') as f:
                 json.dump(frame_data, f)
 
-            # human bbox
+            # human bbox 1
             if i % 20 == 0:
                 csv_num = frame_id
             save_dir = os.path.join(args.root, "tracking_annotation")
@@ -352,7 +352,44 @@ if __name__ == '__main__':
             if not os.path.exists(save_dir):
                 os.mkdir(save_dir)
             frame_data = make_human_bbox(hs_kpts, H, W, frame_id)
-            save_path = os.path.join(save_dir, str(frame_id).zfill(6) + ".txt")
+            save_path = os.path.join(save_dir, str(frame_id).zfill(3) + ".txt")
             with open(save_path, 'w') as f:
                 f.writelines(frame_data)
+
+    # human bbox 2
+    frames_dir = glob.glob(os.path.join(args.root, "tracking_annotation", video_name, "*"))
+    first_txt = 1
+    for frame_dir in frames_dir:
+        data = list()
+        human_num = 0
+        max_num = 0
+        txt_paths = glob.glob(os.path.join(frame_dir, "*"))
+        txt_paths.sort()
+        for txt_path in txt_paths:
+            with open(txt_path, 'r') as t:
+                lines = t.readlines()
+                num = len(lines)
+                if max_num < num:
+                    max_num = num
+        while human_num <= max_num:
+            for txt_path in txt_paths:
+                with open(txt_path, 'r') as t:
+                    lines = t.readlines()
+                    try:
+                        line = lines[human_num]
+                        data.append(line)
+                    except IndexError:
+                        continue
+            human_num += 1
+        save_path = os.path.join(frame_dir, str(first_txt).zfill(6) + ".txt")
+        with open(save_path, 'w') as f:
+            f.writelines(data)
+        first_txt += 20
+
+        each_txts = glob.glob(os.path.join(frame_dir, "*.txt"))
+        for each_txt in each_txts:
+            file_name = os.path.basename(each_txt)
+            if len(file_name) < 10:
+                os.remove(each_txt)
+
 
