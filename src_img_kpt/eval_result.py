@@ -10,7 +10,8 @@ from tqdm import tqdm
 
 gt_paths = glob.glob("data/test/gt_heatmap_1ch/*/*.png")
 gt_paths.sort()
-pred_paths = glob.glob("data/test/pred/result1/*.png")
+# pred_paths = glob.glob("data/test/pred/result1/*.png")
+pred_paths = glob.glob("data/test/pred/final_jo_att/*.png")
 pred_paths.sort()
 size = len(gt_paths)
 H = 640
@@ -45,7 +46,6 @@ for i, gt_path in tqdm(enumerate(gt_paths), total=len(gt_paths)):
     pred_flat = pred.reshape(-1)
 
     # if using pred moment
-    '''
     pred = cv2.imread(pred_path, 0)
     pred = cv2.resize(pred, (W, H))
     pred = pred[:, :, np.newaxis]
@@ -81,9 +81,9 @@ for i, gt_path in tqdm(enumerate(gt_paths), total=len(gt_paths)):
         thr60 += 1
     if dist_min[2] <= 90:
         thr90 += 1
-    '''
 
     # if using pred argmax
+    '''
     result = cv2.imread(pred_path, 1)
     result = cv2.resize(result, (W, H))
     result = cv2.circle(result, (pred_argmax[1], pred_argmax[0]), 10, (255, 0, 0), 3)
@@ -106,6 +106,7 @@ for i, gt_path in tqdm(enumerate(gt_paths), total=len(gt_paths)):
         thr60 += 1
     if dist_xy <= 90:
         thr90 += 1
+    '''
 
     # AUC
     fpr, tpr, thresholds = roc_curve(gt_flat, pred_flat)
