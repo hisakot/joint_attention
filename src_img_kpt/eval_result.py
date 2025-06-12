@@ -50,7 +50,7 @@ for i, gt_path in tqdm(enumerate(gt_paths), total=len(gt_paths)):
     pred = pred[:, :, np.newaxis]
     _, pred_binary = cv2.threshold(pred, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     pred_contours, _ = cv2.findContours(pred_binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    pred_centers = []
+    dist_min = [0, 0, math.sqrt(W**2 + H**2)]
     for cnt in pred_contours:
         area = cv2.contourArea(cnt)
         if area < 100:
@@ -59,26 +59,27 @@ for i, gt_path in tqdm(enumerate(gt_paths), total=len(gt_paths)):
         if M['m00'] != 0:
             cx = int(M['m10'] / M['m00'])
             cy = int(M['m01'] / M['m00'])
-            pred_centers.append((cx, cy))
             dist_x = abs(cx - gt_argmax[1])
             if dist_x > W / 2:
                 dist_x = W - dist_x
             dist_y = abs(cy - gt_argmax[0])
             dist_xy = math.sqrt(dist_x^2 + dist_y^2)
-            x += dist_x
-            y += dist_y
-            xy += dist_xy
-            list_x.append(dist_x)
-            list_y.append(dist_y)
-            list_xy.append(dist_xy)
-            if dist_xy <= 30:
-                thr30 += 1
-            if dist_xy <= 60:
-                thr60 += 1
-            if dist_xy <= 90:
-                thr90 += 1
-    if len(pred_centers) >= 2:
-        size += len(pred_centers)
+            if dist_min[2] > dist_xy:
+                dist[0] = dist_x
+                dist[1] = dist_y
+                dist_min[2] = dist_xy
+    x += dist_min[0]
+    y += dist_min[1]
+    xy += dist_min[2]
+    list_x.append(dist_min[0])
+    list_y.append(dist_min[1])
+    list_xy.append(dist_min[2])
+    if dist_min[2] <= 30:
+        thr30 += 1
+    if dist_min[2] <= 60:
+        thr60 += 1
+    if dist_min[2] <= 90:
+        thr90 += 1
 
     # if using pred argmax
     '''
