@@ -45,6 +45,7 @@ for i, gt_path in tqdm(enumerate(gt_paths), total=len(gt_paths)):
     pred_flat = pred.reshape(-1)
 
     # if using pred moment
+    '''
     pred = cv2.imread(pred_path, 0)
     pred = cv2.resize(pred, (W, H))
     pred = pred[:, :, np.newaxis]
@@ -63,10 +64,10 @@ for i, gt_path in tqdm(enumerate(gt_paths), total=len(gt_paths)):
             if dist_x > W / 2:
                 dist_x = W - dist_x
             dist_y = abs(cy - gt_argmax[0])
-            dist_xy = math.sqrt(dist_x^2 + dist_y^2)
+            dist_xy = math.sqrt(dist_x**2 + dist_y**2)
             if dist_min[2] > dist_xy:
-                dist[0] = dist_x
-                dist[1] = dist_y
+                dist_min[0] = dist_x
+                dist_min[1] = dist_y
                 dist_min[2] = dist_xy
     x += dist_min[0]
     y += dist_min[1]
@@ -80,9 +81,9 @@ for i, gt_path in tqdm(enumerate(gt_paths), total=len(gt_paths)):
         thr60 += 1
     if dist_min[2] <= 90:
         thr90 += 1
+    '''
 
     # if using pred argmax
-    '''
     result = cv2.imread(pred_path, 1)
     result = cv2.resize(result, (W, H))
     result = cv2.circle(result, (pred_argmax[1], pred_argmax[0]), 10, (255, 0, 0), 3)
@@ -92,7 +93,7 @@ for i, gt_path in tqdm(enumerate(gt_paths), total=len(gt_paths)):
     if dist_x > W / 2:
        dist_x = W - dist_x
     dist_y = abs(pred_argmax[0] - gt_argmax[0])
-    dist_xy = math.sqrt(dist_x^2 + dist_y^2)
+    dist_xy = math.sqrt(dist_x**2 + dist_y**2)
     x += dist_x
     y += dist_y
     xy += dist_xy
@@ -105,7 +106,6 @@ for i, gt_path in tqdm(enumerate(gt_paths), total=len(gt_paths)):
         thr60 += 1
     if dist_xy <= 90:
         thr90 += 1
-    '''
 
     # AUC
     fpr, tpr, thresholds = roc_curve(gt_flat, pred_flat)
