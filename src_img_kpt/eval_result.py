@@ -13,8 +13,8 @@ gt_paths.sort()
 pred_paths = glob.glob("data/test/pred/result1/*.png")
 pred_paths.sort()
 size = len(gt_paths)
-H = 960
-W = 1920
+H = 640
+W = 1280
 
 x, y, xy, auc_sum = 0, 0, 0, 0
 list_x = []
@@ -89,7 +89,7 @@ for i, gt_path in tqdm(enumerate(gt_paths), total=len(gt_paths)):
     cv2.imwrite("data/test/pred/result/" + str(i).zfill(6) + ".png", result)
     dist_x = abs(pred_argmax[1] - gt_argmax[1])
     if dist_x > W / 2:
-        dist_x = W - dist_x
+       dist_x = W - dist_x
     dist_y = abs(pred_argmax[0] - gt_argmax[0])
     dist_xy = math.sqrt(dist_x^2 + dist_y^2)
     x += dist_x
