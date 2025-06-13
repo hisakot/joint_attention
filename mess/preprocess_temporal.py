@@ -253,6 +253,29 @@ def generate_pose(hs_kpts, H, W, links, sigma=3):
 
     return pose_map
 
+def save_gaze_csv(hs_kpts, H, W):
+    data = list()
+    for i, kpt in enumerate(hs_kpts):
+        face_kpt = kpt[23:91]
+        p1, p2, yaw, pitch, roll = head_direction(face_kpt, H, W)
+        data.append([p1, p2])
+    return data
+
+def identify_kpts(row, b_row, data_dict):
+    if b_row is None:
+        for i, kpts in enumerate(row):
+            data_dict{str(i): [kpts]}
+        return data_dict
+    else:
+        ids = [0] * len(row)
+        for i, kpts in enumerate(row):
+            min_dist = float(np.inf)
+            for j, b_kpts in enumerate(b_row):
+                dist = math.sqrt((kpts[0][0] - b_kpts[0][0])**2 + (kpts[0][1] - b_kpts[0][1])**2)
+                if min_dist > dist:
+                    min_dist = dist
+                    ids[i] = j
+
 def load_mmpose_json(json_path):
     with open(json_path) as f:
         data = json.load(f)
@@ -268,6 +291,7 @@ if __name__ == '__main__':
     parser.add_argument("--root", required=True, type=str) # data/train/
     parser.add_argument("--save_gazecone", required=False, type=str, help="save file name")
     parser.add_argument("--save_posemap", required=False, type=str, help="save file name")
+    parser.add_argument("--save_gaze_csv", required=False, type=str, help="save file name")
     args = parser.parse_args()
 
     json_paths = glob.glob(os.path.join(args.root, "mmpose/*"))
@@ -280,7 +304,7 @@ if __name__ == '__main__':
         H, W, C = 1920, 3840, 3
         links, instance_info = load_mmpose_json(json_path)
         data_len = len(instance_info)
-        gazeque = deque(maxlen=5)
+        gazeque = deque(maxlen=10)
         for i, instance_info in tqdm(enumerate(instance_info), total=data_len):
             frame_id = instance_info["frame_id"]
             instances = instance_info["instances"]
@@ -291,6 +315,20 @@ if __name__ == '__main__':
                 scores = instance["keypoint_scores"]
                 if sum(score >= 0.5 for score in scores) > 133 / 5:
                     hs_kpts.append(keypoints)
+
+            if args.save_gaze_csv:
+                save_dir = os.path.join(args.root, args.save_gaze_csv)
+                if not os.path.exists(save_dir):
+                    os.mkdir(save_dir)
+                save_gaze_csv_dir = os.path.join(save_dir, file_name)
+                if not os.path.exists(save_gaze_csv_dir):
+                    os.mkdir(save_gaze_csv_dir)
+                data = save_gaze_csv(hs_kpts, H, W)
+                csv_path = os.path.join(save_gaze_csv_dir, "gaze.csv")
+                with open(csv_path, 'a', newline="", encoding="utf-8") as f:
+                    writer = csv.writer(f)
+                    writer.writerow(data)
+
             if args.save_gazecone:
                 save_dir = os.path.join(args.root, args.save_gazecone)
                 if not os.path.exists(save_dir):
@@ -320,3 +358,13 @@ if __name__ == '__main__':
                 pose_map = generate_pose(hs_kpts, H, W, links, sigma=3)
                 cv2.imwrite(os.path.join(save_posemap_dir, str(frame_id).zfill(6)) + ".png", pose_map)
 
+        '''
+        if args.save_gaze_csv:
+            with open(csv_path, 'r') as f:
+                reader = csv.reader(f)
+                b_row = None
+                data_dict = dict()
+                for row in reader:
+                    data_dict = identify_kpts(row, b_row, data_dict)
+                    b_row = row
+        '''

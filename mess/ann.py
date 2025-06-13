@@ -10,8 +10,8 @@ import PIL.ImageTk as ImageTk
 
 data_dir = "data/train/"
 video_name = "020"
-mmpose_path = data_dir + "mmpose/results_ds_" + video_name + ".json"
-img_dir = data_dir + "frames/ds" + video_name
+mmpose_path = data_dir + "mmpose/ds_" + video_name + ".json"
+img_dir = data_dir + "frames/frames" + video_name
 
 save_jaon_path = "data/train/roll_ann/ds" + video_name + ".json"
 
