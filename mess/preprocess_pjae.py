@@ -279,8 +279,8 @@ if __name__ == '__main__':
             continue
 
         # video images
-        # org_frame_paths = glob.glob(os.path.join(args.root, "frames", video_name, "*.png"))
-        org_frame_paths = glob.glob(os.path.join(args.root, "frames", "ds005", "*.png"))
+        org_frame_paths = glob.glob(os.path.join(args.root, "frames", video_name, "*.png"))
+# org_frame_paths = glob.glob(os.path.join(args.root, "frames", "ds005", "*.png"))
         org_frame_paths.sort()
         count = 0
         file_num = 1
@@ -289,18 +289,20 @@ if __name__ == '__main__':
             save_dir1 = os.path.join(args.root, "videos")
             if not os.path.exists(save_dir1):
                 os.mkdir(save_dir1)
-            save_dir2 = os.path.join(save_dir1, str(file_num).zfill(6))
+            save_dir2 = os.path.join(save_dir1, video_name)
             if not os.path.exists(save_dir2):
                 os.mkdir(save_dir2)
-            cv2.imwrite(os.path.join(save_dir2, str(count+file_num).zfill(6) + ".png"), img)
+            save_dir3 = os.path.join(save_dir2, str(file_num).zfill(6))
+            if not os.path.exists(save_dir3):
+                os.mkdir(save_dir3)
+            cv2.imwrite(os.path.join(save_dir3, str(count+file_num).zfill(6) + ".png"), img)
             if count == 0:
-                with open(os.path.join(save_dir1, "annotations.txt"), 'a') as f:
+                with open(os.path.join(save_dir2, "annotations.txt"), 'a') as f:
                     f.write(str(file_num).zfill(6) + ".png 1\n")
             count += 1
             if count >= 20:
                 file_num += 20
                 count = 0
-        exit()
 
         # JointAttention GT
         csv_num = 0
@@ -314,6 +316,7 @@ if __name__ == '__main__':
             items = data["items"]
             for i, one_frame_ann in enumerate(items):
                 annotations = one_frame_ann["annotations"]
+                print(annotations)
                 ann = annotations[0] # TODO even if there are some GTs in a frame, using the first GT
                 bbox = ann["bbox"]
                 x1 = int(bbox[0])
