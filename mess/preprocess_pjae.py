@@ -266,8 +266,8 @@ def load_mmpose_json(json_path):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Process some integers")
     parser.add_argument("--root", required=True, type=str) # data/train/
-    parser.add_argument("--save_video", required=False, type=store_true, help="save file name")
-    parser.add_argument("--save_gt", required=False, type=store_true, help="save file name")
+    parser.add_argument("--save_video", required=False, type="store_true", help="save file name")
+    parser.add_argument("--save_gt", required=False, type="store_true", help="save file name")
     args = parser.parse_args()
 
     json_paths = glob.glob(os.path.join(args.root, "mmpose/*"))
