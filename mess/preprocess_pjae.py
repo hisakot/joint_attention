@@ -266,8 +266,8 @@ def load_mmpose_json(json_path):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Process some integers")
     parser.add_argument("--root", required=True, type=str) # data/train/
-    # parser.add_argument("--save_gazecone", required=False, type=str, help="save file name")
-    # parser.add_argument("--save_posemap", required=False, type=str, help="save file name")
+    parser.add_argument("--save_video", required=False, type=store_true, help="save file name")
+    parser.add_argument("--save_gt", required=False, type=store_true, help="save file name")
     args = parser.parse_args()
 
     json_paths = glob.glob(os.path.join(args.root, "mmpose/*"))
@@ -279,61 +279,65 @@ if __name__ == '__main__':
             continue
 
         # video images
-        org_frame_paths = glob.glob(os.path.join(args.root, "frames", video_name, "*.png"))
+        if args.save_video:
+            org_frame_paths = glob.glob(os.path.join(args.root, "frames", video_name, "*.png"))
 # org_frame_paths = glob.glob(os.path.join(args.root, "frames", "ds005", "*.png"))
-        org_frame_paths.sort()
-        count = 0
-        file_num = 1
-        for org_frame_path in org_frame_paths:
-            img = cv2.imread(org_frame_path)
-            save_dir1 = os.path.join(args.root, "videos")
-            if not os.path.exists(save_dir1):
-                os.mkdir(save_dir1)
-            save_dir2 = os.path.join(save_dir1, video_name)
-            if not os.path.exists(save_dir2):
-                os.mkdir(save_dir2)
-            save_dir3 = os.path.join(save_dir2, str(file_num).zfill(6))
-            if not os.path.exists(save_dir3):
-                os.mkdir(save_dir3)
-            cv2.imwrite(os.path.join(save_dir3, str(count+file_num).zfill(6) + ".png"), img)
-            if count == 0:
-                with open(os.path.join(save_dir2, "annotations.txt"), 'a') as f:
-                    f.write(str(file_num).zfill(6) + ".png 1\n")
-            count += 1
-            if count >= 20:
-                file_num += 20
-                count = 0
+            org_frame_paths.sort()
+            count = 0
+            file_num = 1
+            for org_frame_path in org_frame_paths:
+                img = cv2.imread(org_frame_path)
+                save_dir1 = os.path.join(args.root, "videos")
+                if not os.path.exists(save_dir1):
+                    os.mkdir(save_dir1)
+                save_dir2 = os.path.join(save_dir1, video_name)
+                if not os.path.exists(save_dir2):
+                    os.mkdir(save_dir2)
+                save_dir3 = os.path.join(save_dir2, str(file_num).zfill(6))
+                if not os.path.exists(save_dir3):
+                    os.mkdir(save_dir3)
+                cv2.imwrite(os.path.join(save_dir3, str(count+file_num).zfill(6) + ".png"), img)
+                if count == 0:
+                    with open(os.path.join(save_dir2, "annotations.txt"), 'a') as f:
+                        f.write(str(file_num).zfill(6) + ".png 1\n")
+                count += 1
+                if count >= 20:
+                    file_num += 20
+                    count = 0
 
         # JointAttention GT
-        csv_num = 0
-        count = 0
-        frame_num = 0
-        save_dir = os.path.join(args.root, "annotation_data")
-        if not os.path.exists(save_dir):
-            os.mkdir(save_dir)
-        with open(gt_json_path) as f:
-            data = json.load(f)
-            items = data["items"]
-            for i, one_frame_ann in enumerate(items):
-                annotations = one_frame_ann["annotations"]
-                print(annotations)
-                ann = annotations[0] # TODO even if there are some GTs in a frame, using the first GT
-                bbox = ann["bbox"]
-                x1 = int(bbox[0])
-                y1 = int(bbox[1])
-                x2 = int(x1 + bbox[2])
-                y2 = int(y1 + bbox[3])
-                if count % 20 == 0:
-                    csv_num += 20
-                    count = 0
-                else:
-                    frame_num += 1
-                gt_data = [0, x1, y1, x2, y2, count, 0, 0, 0, "Center"]
-                save_path = os.path.join(save_dir, video_name + "_" + str(csv_num-19).zfill(6) + ".csv")
-                with open(save_path, 'a', newline="") as s:
-                    writer = csv.writer(s, delimiter=' ')
-                    writer.writerow(gt_data)
-                count += 1
+        if args.save_gt:
+            csv_num = 0
+            count = 0
+            frame_num = 0
+            save_dir = os.path.join(args.root, "annotation_data")
+            if not os.path.exists(save_dir):
+                os.mkdir(save_dir)
+            with open(gt_json_path) as f:
+                data = json.load(f)
+                items = data["items"]
+                for i, one_frame_ann in enumerate(items):
+                    annotations = one_frame_ann["annotations"]
+                    if len(annotations) == 0:
+                        x1, y1, x2, y2 = 0, 0, 0, 0
+                    else:
+                        ann = annotations[0] # TODO even if there are some GTs in a frame, using the first GT
+                        bbox = ann["bbox"]
+                        x1 = int(bbox[0])
+                        y1 = int(bbox[1])
+                        x2 = int(x1 + bbox[2])
+                        y2 = int(y1 + bbox[3])
+                    if count % 20 == 0:
+                        csv_num += 20
+                        count = 0
+                    else:
+                        frame_num += 1
+                    gt_data = [0, x1, y1, x2, y2, count, 0, 0, 0, "Center"]
+                    save_path = os.path.join(save_dir, video_name + "_" + str(csv_num-19).zfill(6) + ".csv")
+                    with open(save_path, 'a', newline="") as s:
+                        writer = csv.writer(s, delimiter=' ')
+                        writer.writerow(gt_data)
+                    count += 1
 
 
         H, W, C = 1920, 3840, 3
