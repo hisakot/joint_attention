@@ -92,14 +92,14 @@ def main():
     img_height = cfg.img_height
     img_width = cfg.img_width
 
-    '''
-    model = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width, in_chans=4)
-    model = resnet.ResNet50(pretrained=False, in_ch=4)
+    # model = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width, in_chans=4)
+    # model = resnet.ResNet50(pretrained=False, in_ch=4)
+    # model = swin_transformer_v2.SwinTransformerV2(img_height=img_height, img_width=img_width,
+    #                                               in_chans=4, output_H=img_height, output_W=img_width)
+    # model = PJAE_spatiotemporal.ModelSpatioTemporal(in_ch=4)
     model = swin_transformer_v2.SwinTransformerV2(img_height=img_height, img_width=img_width,
-                                                  in_chans=4, output_H=img_height, output_W=img_width)
-    model = PJAE_spatiotemporal.ModelSpatioTemporal(in_ch=4)
-    '''
-    model = PJAE_conv.ModelSpatial(in_ch=5)
+                                                  in_chans=5, output_H=img_height, output_W=img_width)
+    # model = PJAE_conv.ModelSpatial(in_ch=5)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:
@@ -115,11 +115,11 @@ def main():
 
     checkpoint = torch.load(args.model)
     if torch.cuda.device_count() >= 1:
-        model.load_state_dict(checkpoint["pjae_spatial_state_dict"], strict=False)
+        model.load_state_dict(checkpoint["swin_t_state_dict"], strict=False)
     else:
         from collections import OrderedDict
         state_dict = OrderedDict()
-        for k, v in checkpoint["pjae_spatial_state_dict"].items():
+        for k, v in checkpoint["swin_t__state_dict"].items():
             name = k[7:] # remove "module."
             state_dict[name] = v
         model.load_state_dict(state_dict)
