@@ -596,6 +596,7 @@ class SwinTransformerV2(nn.Module):
             bly._init_respostnorm()
 
         self.fc = nn.Linear(num_classes, 1*output_H*output_W) # FIXME added self
+        self.sigmoid = nn.Sigmoid()
 
     def _init_weights(self, m):
         if isinstance(m, nn.Linear):
@@ -633,6 +634,7 @@ class SwinTransformerV2(nn.Module):
         x = self.head(x)
         x = self.fc(x) # FIXME added self
         x = x.reshape(-1, 1, self.output_H, self.output_W) # FIXME added self
+        x = self.sigmoid(x)
         return x
 
     def flops(self):
