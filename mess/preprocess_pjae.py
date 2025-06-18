@@ -209,7 +209,30 @@ def make_face_bbox(hs_kpts, H, W):
     data = dict()
     for id, hs_kpt in enumerate(hs_kpts):
         face_kpt = hs_kpt[23:91]
+        min_x, min_y, max_x, max_y = W, H, 0, 0
+        for kpt in face_kpt:
+            if min_x > kpt[0]:
+                min_x = kpt[0]
+            if min_y > kpt[1]:
+                min_y = kpt[1]
+            if max_x < kpt[0]:
+                max_x = kpt[0]
+            if max_y < kpt[1]:
+                max_y = kpt[1]
+        radius = max(int(max_x - min_x), int(max_y - min_y))
         p1, p2, yaw, pitch, roll = head_direction(face_kpt, H, W)
+        if p1[0] < 0:
+            x_center = 0
+        elif p1[0] > W:
+            x_center = W
+        else:
+            x_center = p1[0]
+        if p1[1] < 0:
+            y_center = 0
+        elif p1[1] > H:
+            y_center = H
+        else:
+            y_center = p1[1]
         x1 = p1[0]
         y1 = p1[1]
         x2 = p2[0]
@@ -220,9 +243,9 @@ def make_face_bbox(hs_kpts, H, W):
         x /= xy
         y /= xy
         person_data = {"person_idx" : str(id),
-                       "head_x_center" : str(p1[0]),
-                       "head_y_center" : str(p1[1]),
-                       "head_radius" : "0",
+                       "head_x_center" : str(x_center),
+                       "head_y_center" : str(y_center),
+                       "head_radius" : str(radius),
                        "gaze_x" : str(x),
                        "gaze_y" : str(y),
                        "action_num" : "0",
@@ -319,7 +342,7 @@ if __name__ == '__main__':
                 for i, one_frame_ann in enumerate(items):
                     annotations = one_frame_ann["annotations"]
                     if len(annotations) == 0:
-                        x1, y1, x2, y2 = 0, 0, 0, 0
+                        x1, y1, x2, y2 = 0, 0, 1, 1
                     else:
                         ann = annotations[0] # TODO even if there are some GTs in a frame, using the first GT
                         bbox = ann["bbox"]
@@ -365,7 +388,7 @@ if __name__ == '__main__':
             save_dir = os.path.join(save_dir, str(csv_num).zfill(6))
             if not os.path.exists(save_dir):
                 os.mkdir(save_dir)
-            save_path = os.path.join(save_dir, str(frame_id) + ".json")
+            save_path = os.path.join(save_dir, str(frame_id).zfill(6) + ".json")
             frame_data = make_face_bbox(hs_kpts, H, W)
             with open(save_path, 'w') as f:
                 json.dump(frame_data, f)
@@ -383,7 +406,7 @@ if __name__ == '__main__':
             if not os.path.exists(save_dir):
                 os.mkdir(save_dir)
             frame_data = make_human_bbox(hs_kpts, H, W, frame_id)
-            save_path = os.path.join(save_dir, str(frame_id).zfill(3) + ".txt")
+            save_path = os.path.join(save_dir, str(frame_id).zfill(6) + ".txt")
             with open(save_path, 'w') as f:
                 f.writelines(frame_data)
 
