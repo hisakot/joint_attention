@@ -64,6 +64,9 @@ def train(train_dataloader, model, loss_function, optimizer, device):
 
             pred = model(inputs)
 
+            print(torch.unique(targets), targets.shape)
+            print(torch.unique(pred), pred.shape)
+            exit()
             if loss_function == "cos_similarity":
                 pred = pred.view(pred.size(0), -1)
                 targets = targets.view(targets.size(0), -1)
