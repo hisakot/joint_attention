@@ -595,7 +595,7 @@ class SwinTransformerV2(nn.Module):
         for bly in self.layers:
             bly._init_respostnorm()
 
-        self.fc = nn.Linear(num_classes, 3*output_H*output_W) # FIXME added self
+        self.fc = nn.Linear(num_classes, 1*output_H*output_W) # FIXME added self
 
     def _init_weights(self, m):
         if isinstance(m, nn.Linear):
@@ -632,7 +632,7 @@ class SwinTransformerV2(nn.Module):
         x = self.forward_features(x)
         x = self.head(x)
         x = self.fc(x) # FIXME added self
-        x = x.reshape(-1, 3, self.output_H, self.output_W) # FIXME added self
+        x = x.reshape(-1, 1, self.output_H, self.output_W) # FIXME added self
         return x
 
     def flops(self):
