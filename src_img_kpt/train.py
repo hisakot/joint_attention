@@ -229,13 +229,11 @@ def main():
     if args.checkpoint:
         checkpoint = torch.load(args.checkpoint)
         start_epoch = checkpoint["epoch"]
-        '''
-        resnet50.load_state_dict(checkpoint["resnet_state_dict"])
-        swin_unet.load_state_dict(checkpoint["swin_unet_state_dict"])
-        unet.load_state_dict(checkpoint["unet_state_dict"])
-        fuse.load_state_dict(checkpoint["fuse_state_dict"])
-        spatiotemporal.load_state_dict(checkpoint["pjae_spatiotemporal_state_dict"])
-        '''
+        # resnet50.load_state_dict(checkpoint["resnet_state_dict"])
+        # swin_unet.load_state_dict(checkpoint["swin_unet_state_dict"])
+        # unet.load_state_dict(checkpoint["unet_state_dict"])
+        # fuse.load_state_dict(checkpoint["fuse_state_dict"])
+        # spatiotemporal.load_state_dict(checkpoint["pjae_spatiotemporal_state_dict"])
         swin_t.load_state_dict(checkpoint["swin_t_state_dict"])
         spatial.load_state_dict(checkpoint["pjae_spatial_state_dict"])
         optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
@@ -279,13 +277,11 @@ def main():
                 early_stopping[0] = val_loss
                 early_stopping[2] = 0
                 torch.save({"epoch" : epoch + 1,
-                            '''
-                            "resnet_state_dict" : resnet50.state_dict(),
-                            "swin_unet_state_dict" : swin_unet.state_dict(),
-                            "unet_state_dict" : unet.state_dict(),
-                            "fuse_state_dict" : fuse.state_dict(),
-                            "pjae_spatiotemporal_state_dict" : spatiotemporal.state_dict(),
-                            '''
+                            # "resnet_state_dict" : resnet50.state_dict(),
+                            # "swin_unet_state_dict" : swin_unet.state_dict(),
+                            # "unet_state_dict" : unet.state_dict(),
+                            # "fuse_state_dict" : fuse.state_dict(),
+                            # "pjae_spatiotemporal_state_dict" : spatiotemporal.state_dict(),
                             "swin_t_state_dict" : swin_t.state_dict(),
                             "pjae_spatial_state_dict" : spatial.state_dict(),
                             "optimizer_state_dict" : optimizer.state_dict(),
