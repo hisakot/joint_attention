@@ -228,6 +228,7 @@ def main():
 
     if args.checkpoint:
         checkpoint = torch.load(args.checkpoint)
+        print(checkpoint.keys())
         start_epoch = checkpoint["epoch"]
         # resnet50.load_state_dict(checkpoint["resnet_state_dict"])
         # swin_unet.load_state_dict(checkpoint["swin_unet_state_dict"])
@@ -290,8 +291,6 @@ def main():
                             "val_loss_list" : val_loss_list,
                             }, "save_models/newest_model.pth")
                 checkpoint = torch.load("save_models/newest_model.pth")
-                print(checkpoint.keys())
-                exit()
             else:
                 early_stopping[2] += 1
                 if early_stopping[2] == early_stopping[1]:
