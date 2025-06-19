@@ -228,7 +228,6 @@ def main():
 
     if args.checkpoint:
         checkpoint = torch.load(args.checkpoint)
-        print(checkpoint.keys())
         start_epoch = checkpoint["epoch"]
         # resnet50.load_state_dict(checkpoint["resnet_state_dict"])
         # swin_unet.load_state_dict(checkpoint["swin_unet_state_dict"])
