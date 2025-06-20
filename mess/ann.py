@@ -9,18 +9,23 @@ import PIL.Image as Image
 import PIL.ImageTk as ImageTk
 
 data_dir = "data/train/"
-video_name = "020"
-mmpose_path = data_dir + "mmpose/ds_" + video_name + ".json"
-img_dir = data_dir + "frames/frames" + video_name
+video_name = "ds_020"
+mmpose_path = os.path.join(data_dir, "mmpose", video_name + ".json")
+img_dir = os.path.join(data_dir, "frames", video_name)
 
-save_jaon_path = "data/train/roll_ann/ds" + video_name + ".json"
+if not os.path.exists(os.path.join(data_dir, "roll_ann")):
+    os.mkdir(os.path.join(data_dir, "roll_ann"))
+save_jaon_path = os.path.join(data_dir, "roll_ann", video_name + ".json")
 
-ROLL = ["Surgeon", "Assistant", "Anesthesiology", "ScrubNurse", "CirculationNurse", "Visitor", "NotHuman"]
+ROLL = ["NotHuman", "Surgeon", "Assistant", "Anesthesiology", "ScrubNurse", "CirculationNurse", "Visitor"]
 JA_RATE = ["0.0:own_work", "0.5:ja_sub", "1.0:ja_core"]
 
 with open(mmpose_path) as f:
     data = json.load(f)
+    meta_info = data["meta_info"]
     instance_info = data["instance_info"]
+
+new_instence_info = list()
 
 class ImageLabelingApp:
     def __init__(self, root):
@@ -29,7 +34,7 @@ class ImageLabelingApp:
         self.root.geometry("1920x1080")
 
         # Image
-        self.canvas = tk.Canvas(self.root, width=1000, height=500, bg="white")
+        self.canvas = tk.Canvas(self.root, width=1000, height=500, bg="gray21")
         self.canvas.place(x=0, y=0)
         self.label_img = tk.Label(self.root)
         self.label_img.place(relx=0.0, rely=0.5)
@@ -38,11 +43,11 @@ class ImageLabelingApp:
 
         # RadioButton
         self.frame_roll = tk.LabelFrame(self.root, text="ROLL", width=300, height=300, 
-                                        font=("Arial", 15), foreground="skyblue")
+                                        font=("Arial", 15), foreground="RoyalBlue4")
         self.frame_roll.place(relx=0.1, rely=0.55)
 
         self.frame_ja_rate = tk.LabelFrame(self.root, text="JA_RATE", width=300, height=300,
-                                           font=("Arial", 15), foreground="skyblue")
+                                           font=("Arial", 15), foreground="IndianRed4")
         self.frame_ja_rate.place(relx=0.3, rely=0.55)
 
         self.frame_button = tk.Frame(self.root, width=600, height=300)
@@ -57,9 +62,9 @@ class ImageLabelingApp:
                            variable=self.selected_roll,
                            value=roll_text,
                            font=("Arial", 15),
-                           selectcolor="black",
-                           fg="white",
-                           activebackground="white",
+                           selectcolor="white",
+                           fg="RoyalBlue2",
+                           activebackground="skyblue",
                            activeforeground="black").place(relx=0.1, y=30+i*30, anchor=tk.NW)
         for i, ja_value in enumerate(JA_RATE):
             tk.Radiobutton(self.frame_ja_rate, 
@@ -67,9 +72,9 @@ class ImageLabelingApp:
                            variable=self.selected_ja_rate,
                            value=ja_value,
                            font=("Arial", 15),
-                           selectcolor="black", 
-                           fg="white",
-                           activebackground="white",
+                           selectcolor="white", 
+                           fg="IndianRed1",
+                           activebackground="LightPink1",
                            activeforeground="black").place(relx=0.1, y=30+i*30, anchor=tk.NW)
 
         # Next Button
