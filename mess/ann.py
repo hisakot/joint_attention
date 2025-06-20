@@ -8,7 +8,7 @@ from tkinter import ttk as ttk
 import PIL.Image as Image
 import PIL.ImageTk as ImageTk
 
-data_dir = "data/train/"
+data_dir = "data/test_ann/"
 video_name = "ds_020"
 mmpose_path = os.path.join(data_dir, "mmpose", video_name + ".json")
 img_dir = os.path.join(data_dir, "frames", video_name)
@@ -96,7 +96,9 @@ class ImageLabelingApp:
 
         self.frame_idx = 0
         self.kpt_idx = 0
-        self.annotations = []
+        self.annotations = list()
+        self.added_instances = list()
+        self.frame_info = list()
 
         self.load_instance_data()
         self.show_image()
@@ -117,7 +119,6 @@ class ImageLabelingApp:
     def show_image(self):
         print(self.image_path)
         print(self.kpt_idx, len(instance_info), self.frame_idx)
-        print(self.annotations)
         img = cv2.imread(self.image_path)
         keypoints = self.instances[self.kpt_idx]["keypoints"]
         img = self.draw_keypoints(img.copy(), keypoints)
@@ -158,24 +159,43 @@ class ImageLabelingApp:
         if self.selected_roll.get() == "None":
             return
 
+        keypoints = self.instances[self.kpt_idx]["keypoints"]
+        keypoint_scores = self.instances[self.kpt_idx]["keypoint_scores"]
+        bbox = self.instances[self.kpt_idx]["bbox"]
+        bbox_score = self.instances[self.kpt_idx]["bbox_score"]
+        self.added_instances.append({"keypoints" : keypoints,
+                                 "keypoint_scores" : keypoint_scores,
+                                 "bbox" : bbox,
+                                 "bbox_score" : bbox_score,
+                                 "roll": self.selected_roll.get(),
+                                 "ja_rate": self.selected_ja_rate.get(),
+                                 })
+        '''
         self.annotations.append({
             "frame_id" : self.frame_id,
             "instance_idx" : self.kpt_idx,
             "roll": self.selected_roll.get(),
             "ja_rate": self.selected_ja_rate.get(),
             })
+        '''
 
         self.kpt_idx += 1
         if self.kpt_idx >= self.num_people:
+            self.frame_info.append({"frame_id" : self.frame_id,
+                                    "instances" : self.added_instances,
+                                    })
+            self.added_instances = []
             self.frame_idx += 1
             self.kpt_idx = 0
             if self.frame_idx < len(instance_info):
                 self.load_instance_data()
             else:
                 self.canvas.delete("all")
-                self.canvas.create_text(500, 250, text="Finished", font=("Arial", 16))
-                print(self.annotations)
-                save_data = {"ann_info": self.annotations}
+                self.canvas.create_text(500, 250, text="Finished",
+                                        font=("Arial", 16), fill="white")
+                save_data = {"meta_info": meta_info,
+                             "instance_info" : self.frame_info}
+                # save_data = {"ann_info": self.annotations}
                 with open(save_jaon_path, mode="wt", encoding="utf-8") as f:
                     json.dump(save_data, f, ensure_ascii=False, indent=4)
                 self.next_btn.config(state="disabled")
