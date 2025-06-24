@@ -167,14 +167,14 @@ def main():
 
     '''
     resnet50 = resnet.ResNet50(pretrained=False, in_ch=4)
-    swin_unet = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width,
-                                            in_chans=4, num_classes=3)
     unet = kptnet.UNet(in_channels=3, out_channels=3)
     fuse = fusion.Fusion(in_channels=6, out_channels=3)
     spatiotemporal = PJAE_spatiotemporal.ModelSpatioTemporal(in_ch=2)
     '''
     swin_t = swin_transformer_v2.SwinTransformerV2(img_height=img_height, img_width=img_width,
                                                    in_chans=5, output_H=img_height, output_W=img_width)
+    swin_unet = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width,
+                                            in_chans=5, num_classes=3)
     spatial = PJAE_conv.ModelSpatial(in_ch=5)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -195,12 +195,12 @@ def main():
     spatial.half().to(device)
 
     resnet50.to(device)
-    swin_unet.to(device)
     unet.to(device)
     fuse.to(device)
     spatiotemporal.to(device)
     '''
     swin_t.to(device)
+    swin_unet.to(device)
     spatial.to(device)
 
     # loss_function = nn.CrossEntropyLoss()
@@ -208,7 +208,7 @@ def main():
     # loss_function = "MAE"
     # loss_function = "cos_similarity"
     # optimizer = optim.SGD(spatial.parameters(), lr=lr)
-    optimizer = optim.SGD(swin_t.parameters(), lr=lr)
+    optimizer = optim.SGD(swin_unet.parameters(), lr=lr)
     scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda epoch: 1**epoch)
 
     writer = SummaryWriter(log_dir="logs")
@@ -232,11 +232,11 @@ def main():
         checkpoint = torch.load(args.checkpoint)
         start_epoch = checkpoint["epoch"]
         # resnet50.load_state_dict(checkpoint["resnet_state_dict"])
-        # swin_unet.load_state_dict(checkpoint["swin_unet_state_dict"])
         # unet.load_state_dict(checkpoint["unet_state_dict"])
         # fuse.load_state_dict(checkpoint["fuse_state_dict"])
         # spatiotemporal.load_state_dict(checkpoint["pjae_spatiotemporal_state_dict"])
         swin_t.load_state_dict(checkpoint["swin_t_state_dict"])
+        swin_unet.load_state_dict(checkpoint["swin_unet_state_dict"])
         spatial.load_state_dict(checkpoint["pjae_spatial_state_dict"])
         optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
         train_loss_list = checkpoint["train_loss_list"]
@@ -258,13 +258,13 @@ def main():
         print(f"lr: {scheduler.get_last_lr()[0]}")
         try:
             # train
-            train_loss = train(train_dataloader, swin_t,
+            train_loss = train(train_dataloader, swin_unet,
                                loss_function, optimizer, device)
             train_loss_list.append(train_loss)
 
             # test
             with torch.no_grad():
-                val_loss = evaluate(val_dataloader, swin_t,
+                val_loss = evaluate(val_dataloader, swin_unet,
                                     loss_function, device)
                 val_loss_list.append(val_loss)
 
@@ -280,11 +280,11 @@ def main():
                 early_stopping[2] = 0
                 torch.save({"epoch" : epoch + 1,
                             # "resnet_state_dict" : resnet50.state_dict(),
-                            # "swin_unet_state_dict" : swin_unet.state_dict(),
                             # "unet_state_dict" : unet.state_dict(),
                             # "fuse_state_dict" : fuse.state_dict(),
                             # "pjae_spatiotemporal_state_dict" : spatiotemporal.state_dict(),
                             "swin_t_state_dict" : swin_t.state_dict(),
+                            "swin_unet_state_dict" : swin_unet.state_dict(),
                             "pjae_spatial_state_dict" : spatial.state_dict(),
                             "optimizer_state_dict" : optimizer.state_dict(),
                             "train_loss_list" : train_loss_list,
