@@ -704,6 +704,7 @@ class SwinTransformerSys(nn.Module):
             self.up = FinalPatchExpand_X4(input_resolution=(img_height // patch_size, img_width // patch_size),
                                           dim_scale=4, dim=embed_dim)
             self.output = nn.Conv2d(in_channels=embed_dim, out_channels=self.num_classes, kernel_size=1, bias=False)
+            self.fc = nn.Linear(self.num_classes, 1)
 
         self.apply(self._init_weights)
 
@@ -771,6 +772,7 @@ class SwinTransformerSys(nn.Module):
         x, x_downsample = self.forward_features(x)
         x = self.forward_up_features(x, x_downsample)
         x = self.up_x4(x)
+        x = self.fc(x)
         print(x.shape)
         exit()
 

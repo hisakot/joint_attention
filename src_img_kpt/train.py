@@ -204,9 +204,9 @@ def main():
     spatial.to(device)
 
     # loss_function = nn.CrossEntropyLoss()
-    loss_function = "MSE"
+    # loss_function = "MSE"
     # loss_function = "MAE"
-    # loss_function = "cos_similarity"
+    loss_function = "cos_similarity"
     # optimizer = optim.SGD(spatial.parameters(), lr=lr)
     optimizer = optim.SGD(swin_unet.parameters(), lr=lr)
     scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda epoch: 1**epoch)
