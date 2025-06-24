@@ -70,7 +70,8 @@ def train(train_dataloader, model, loss_function, optimizer, device):
                 cos_loss = F.cosine_similarity(pred, targets)
                 loss = (1 - cos_loss).mean()
             elif loss_function == "MSE":
-                loss = nn.MSELoss(pred, targets)
+                lossfunc = nn.MSELoss()
+                loss = lossfunc(pred, targets)
             elif loss_function == "MAE":
                 lossfunc = nn.L1Loss()
                 loss = lossfunc(pred, targets)
@@ -125,7 +126,8 @@ def evaluate(val_dataloader, model, loss_function, device):
                     cos_loss = F.cosine_similarity(pred, targets)
                     loss = (1 - cos_loss).mean()
                 elif loss_function == "MSE":
-                    loss = nn.MSELoss(pred, targets)
+                    lossfunc = nn.MSELoss()
+                    loss = lossfunc(pred, targets)
                 elif loss_function == "MAE":
                     lossfunc = nn.L1Loss()
                     loss = lossfunc(pred, targets)
@@ -202,9 +204,9 @@ def main():
     spatial.to(device)
 
     # loss_function = nn.CrossEntropyLoss()
-    # loss_function = "MSE"
+    loss_function = "MSE"
     # loss_function = "MAE"
-    loss_function = "cos_similarity"
+    # loss_function = "cos_similarity"
     # optimizer = optim.SGD(spatial.parameters(), lr=lr)
     optimizer = optim.SGD(swin_t.parameters(), lr=lr)
     scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda epoch: 1**epoch)
