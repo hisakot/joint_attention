@@ -26,6 +26,7 @@ import resnet
 import PJAE_spatiotemporal
 import PJAE_spatial
 import PJAE_conv
+import vis_transformer
 
 def print_memory_usage():
     allocated = torch.cuda.memory_allocated() / 1024**2
@@ -176,11 +177,15 @@ def main():
     swin_unet = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width,
                                             in_chans=5, num_classes=1)
     spatial = PJAE_conv.ModelSpatial(in_ch=5)
+    vis_t = vis_transformer.VisionTransformer(in_channels=5, patch_size=4, emb_size=128,
+                                              img_H=img_height, img_W=img_width, num_layers=3,
+                                              num_heads=4, forward_expansion=4, num_classes=256)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:
         print("---------- Use GPU ----------")
         # swin_t = nn.DataParallel(swin_t)
+        vis_t = nn.DataParallel(vis_t)
         # unet = nn.DataParallel(unet)
         # fuse = nn.DataParallel(fusion)
     else:
@@ -202,13 +207,14 @@ def main():
     swin_t.to(device)
     swin_unet.to(device)
     spatial.to(device)
+    vis_t.to(device)
 
     # loss_function = nn.CrossEntropyLoss()
     # loss_function = "MSE"
     # loss_function = "MAE"
     loss_function = "cos_similarity"
     # optimizer = optim.SGD(spatial.parameters(), lr=lr)
-    optimizer = optim.SGD(swin_unet.parameters(), lr=lr)
+    optimizer = optim.Adam(vis_t.parameters(), lr=lr)
     scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda epoch: 1**epoch)
 
     writer = SummaryWriter(log_dir="logs")
@@ -238,6 +244,7 @@ def main():
         swin_t.load_state_dict(checkpoint["swin_t_state_dict"])
         swin_unet.load_state_dict(checkpoint["swin_unet_state_dict"])
         spatial.load_state_dict(checkpoint["pjae_spatial_state_dict"])
+        vis_t.load_state_dict(checkpoint["vis_t_state_dict"])
         optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
         train_loss_list = checkpoint["train_loss_list"]
         val_loss_list = checkpoint["val_loss_list"]
@@ -258,13 +265,13 @@ def main():
         print(f"lr: {scheduler.get_last_lr()[0]}")
         try:
             # train
-            train_loss = train(train_dataloader, swin_unet,
+            train_loss = train(train_dataloader, vis_t,
                                loss_function, optimizer, device)
             train_loss_list.append(train_loss)
 
             # test
             with torch.no_grad():
-                val_loss = evaluate(val_dataloader, swin_unet,
+                val_loss = evaluate(val_dataloader, vis_t,
                                     loss_function, device)
                 val_loss_list.append(val_loss)
 
@@ -286,6 +293,7 @@ def main():
                             "swin_t_state_dict" : swin_t.state_dict(),
                             "swin_unet_state_dict" : swin_unet.state_dict(),
                             "pjae_spatial_state_dict" : spatial.state_dict(),
+                            "vis_t_state_dict" : vis_t.state_dict(),
                             "optimizer_state_dict" : optimizer.state_dict(),
                             "train_loss_list" : train_loss_list,
                             "train_loss_list" : train_loss_list,
