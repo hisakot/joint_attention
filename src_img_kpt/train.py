@@ -177,9 +177,9 @@ def main():
     swin_unet = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width,
                                             in_chans=5, num_classes=1)
     spatial = PJAE_conv.ModelSpatial(in_ch=5)
-    vis_t = vis_transformer.VisionTransformer(in_channels=5, patch_size=4, emb_size=128,
-                                              img_H=img_height, img_W=img_width, num_layers=3,
-                                              num_heads=4, forward_expansion=4, num_classes=256)
+    vis_t = vis_transformer.VisionTransformer(in_channels=5, patch_size=4, emb_size=64,
+                                              img_H=img_height, img_W=img_width, num_layers=2,
+                                              num_heads=2, forward_expansion=4, num_classes=128)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:
