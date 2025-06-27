@@ -213,8 +213,8 @@ def main():
     # loss_function = "MSE"
     # loss_function = "MAE"
     loss_function = "cos_similarity"
-    # optimizer = optim.SGD(spatial.parameters(), lr=lr)
-    optimizer = optim.Adam(vis_t.parameters(), lr=lr)
+    optimizer = optim.SGD(vis_t.parameters(), lr=lr)
+    # optimizer = optim.Adam(vis_t.parameters(), lr=lr)
     scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda epoch: 1**epoch)
 
     writer = SummaryWriter(log_dir="logs")

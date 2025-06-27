@@ -27,6 +27,7 @@ import resnet
 import PJAE_spatiotemporal
 import PJAE_spatial
 import PJAE_conv
+import vis_transformer
 
 def tensor_to_numpy(tensor2d):
     npy2d = tensor2d.to("cpu").detach().numpy().copy()
@@ -99,6 +100,9 @@ def main():
     # model = PJAE_spatiotemporal.ModelSpatioTemporal(in_ch=4)
     model = swin_transformer_v2.SwinTransformerV2(img_height=img_height, img_width=img_width,
                                                   in_chans=5, output_H=img_height, output_W=img_width)
+    model = vis_transformer.VisionTransformer(in_channels=5, patch_size=4, emb_size=64,
+                                              img_H=img_height, img_W=img_width, num_layers=2,
+                                              num_heads=2, forward_expansion=4, num_classes=128)
     # model = PJAE_conv.ModelSpatial(in_ch=5)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
