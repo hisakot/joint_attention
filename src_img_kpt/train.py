@@ -60,17 +60,24 @@ def train(train_dataloader, model, loss_function, optimizer, device):
 
             pred = model(inputs)
 
-            if loss_function == "cos_similarity":
+            if loss_function[0] == "cos_similarity":
                 pred = pred.view(pred.size(0), -1)
                 targets = targets.view(targets.size(0), -1)
                 cos_loss = F.cosine_similarity(pred, targets)
                 loss = (1 - cos_loss).mean()
-            elif loss_function == "MSE":
+            elif loss_function[0] == "MSE":
                 lossfunc = nn.MSELoss()
                 loss = lossfunc(pred, targets)
-            elif loss_function == "MAE":
+            elif loss_function[0] == "MAE":
                 lossfunc = nn.L1Loss()
                 loss = lossfunc(pred, targets)
+            elif loss_function[0] == "cos_MSE":
+                alpha = loss_function[1]
+                pred = pred.view(pred.size(0), -1)
+                targets = targets.view(targets.size(0), -1)
+                cos_loss = 1 - F.cosine_similarity(pred, targets).mean()
+                mse_loss = F.mse_loss(pred, targets)
+                loss = alpha * cos_loss + (1 - alpha) * mse_loss
 
             optimizer.zero_grad()
             loss.backward()
@@ -108,17 +115,24 @@ def evaluate(val_dataloader, model, loss_function, device):
 
                 pred = model(inputs)
 
-                if loss_function == "cos_similarity":
+                if loss_function[0] == "cos_similarity":
                     pred = pred.view(pred.size(0), -1)
                     targets = targets.view(targets.size(0), -1)
                     cos_loss = F.cosine_similarity(pred, targets)
                     loss = (1 - cos_loss).mean()
-                elif loss_function == "MSE":
+                elif loss_function[0] == "MSE":
                     lossfunc = nn.MSELoss()
                     loss = lossfunc(pred, targets)
-                elif loss_function == "MAE":
+                elif loss_function[0] == "MAE":
                     lossfunc = nn.L1Loss()
                     loss = lossfunc(pred, targets)
+                elif loss_function[0] == "cos_MSE":
+                    alpha = loss_function[1]
+                    pred = pred.view(pred.size(0), -1)
+                    targets = targets.view(targets.size(0), -1)
+                    cos_loss = 1 - F.cosine_similarity(pred, targets).mean()
+                    mse_loss = F.mse_loss(pred, targets)
+                    loss = alpha * cos_loss + (1 - alpha) * mse_loss
 
                 total_loss += loss.item()
                 pbar.update()
@@ -181,11 +195,12 @@ def main():
     model.to(device)
 
     # loss_function = nn.CrossEntropyLoss()
-    # loss_function = "MSE"
-    # loss_function = "MAE"
-    loss_function = "cos_similarity"
+    # loss_function = ["MSE"]
+    # loss_function = ["MAE"]
+    loss_function = ["cos_similarity"]
+    # loss_function = ["cos_MSE", 0.5]
     optimizer = optim.SGD(model.parameters(), lr=lr)
-    # optimizer = optim.Adam(vis_t.parameters(), lr=lr)
+    # optimizer = optim.Adam(model.parameters(), lr=lr)
     scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda epoch: 1**epoch)
 
     writer = SummaryWriter(log_dir="logs")

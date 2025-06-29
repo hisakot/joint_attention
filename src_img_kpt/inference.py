@@ -61,16 +61,23 @@ def test(test_dataloader, model, loss_function, device):
 
             pred = model(inputs)
 
-            if loss_function == "cos_similarity":
+            if loss_function[0] == "cos_similarity":
                 pred_1vec = pred.view(pred.size(0), -1)
                 targets_1vec = targets.view(targets.size(0), -1)
                 cos_loss = F.cosine_similarity(pred_1vec, targets_1vec)
                 loss = (1 - cos_loss).mean()
-            elif loss_function == "MSE":
+            elif loss_function[0] == "MSE":
                 loss = nn.MSELoss(pred, targets)
-            elif loss_function == "MAE":
+            elif loss_function[0] == "MAE":
                 lossfunc = nn.L1Loss()
                 loss = lossfunc(pred, targets)
+            elif loss_function[0] == "cos_MSE":
+                alpha = loss_function[1]
+                pred = pred.view(pred.size(0), -1)
+                targets = targets.view(targets.size(0), -1)
+                cos_loss = 1 - F.cosine_similarity(pred, targets).mean()
+                mse_loss = F.mse_loss(pred, targets)
+                loss = alpha * cos_loss + (1 - alpha) * mse_loss
             print(loss)
 
             np_pred = tensor_to_numpy(pred)
@@ -111,7 +118,7 @@ def main():
     # model = PJAE_conv.ModelSpatial(in_ch=5)
     model = cnn_transformer.CNNTransformer2Heatmap(in_channels=5,
                                                    img_size=(img_height, img_width),
-                                                   output_size=(480, 960))
+                                                   output_size=(img_height, img_width))
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:
@@ -121,9 +128,10 @@ def main():
     # model.half().to(device)
     model.to(device)
 
-    # loss_function = "MSE"
-    # loss_function = "MAE"
-    loss_function = "cos_similarity"
+    # loss_function = ["MSE"]
+    # loss_function = ["MAE"]
+    loss_function = ["cos_similarity"]
+    # loss_function = ["cos_MSE", 0.5]
 
     checkpoint = torch.load(args.model)
     if torch.cuda.device_count() >= 1:
