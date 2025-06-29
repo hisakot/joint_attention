@@ -36,7 +36,7 @@ class CNN2TransformerAdapter(nn.Module):
             self.pos_embed = nn.Parameter(torch.zeros(1, H * W, C).to(x.device))
 
         x = x + self.pos_embed # adding positional information
-        return x
+        return x, (H, W)
 
 class TransformerDecoder(nn.Module):
     def __init__(self, embed_dim=1024, num_layers=4, num_head=8):
@@ -47,11 +47,11 @@ class TransformerDecoder(nn.Module):
                 )
         self.head = nn.Linear(embed_dim, 1) # for heatmap
 
-    def forward(self, x):
+    def forward(self, x, hw):
         x = self.transformer(x) # (B, HW, C)
         x = self.head(x) # (B, HW, 1)
         B, HW, _ = x.shape
-        H, W = HW
+        H, W = hw
         x = x.permute(0, 2, 1).reshape(B, 1, H, W) # (B, 1, H, W)
         return x
 
@@ -67,8 +67,8 @@ class CNNTransformer2Heatmap(nn.Module):
 
     def forward(self, x):
         x = self.backbone(x) # (B, 1024, H/16, W, 16)
-        x = self.adapter(x) # (B, HW, 1024)
-        x = self.decoder(x) # (B, 1, H/16, W/16)
+        x, hw = self.adapter(x) # (B, HW, 1024)
+        x = self.decoder(x, hw) # (B, 1, H/16, W/16)
         x = self.upsample(x) # (B, 1, 320, 640)
 
         # x = F.interpolate(output, size=(1920, 3840), mode='bilinear', align_corners=False)
