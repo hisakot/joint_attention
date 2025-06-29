@@ -169,7 +169,7 @@ def main():
     # spatial = PJAE_conv.ModelSpatial(in_ch=5)
     cnn_trans = cnn_transformer.CNNTransformer2Heatmap(in_channels=5, 
                                                        img_size=(img_height, img_width),
-                                                       output_size=(480, 960))
+                                                       output_size=(img_height, img_width))
     model = cnn_trans # TODO have to change
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
