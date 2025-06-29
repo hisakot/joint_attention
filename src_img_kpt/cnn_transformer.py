@@ -7,7 +7,7 @@ class CNNBackbone(nn.Module):
         resnet = resnet50(pretrained=True)
         self.feature_extractor = nn.Sequential(
                 # resnet.conv1, # (B, 64, H/2, W/2)
-                conv1 = nn.Conv2d(in_ch, 64, kernel_size=7, stride=2, padding=3, bias=False)
+                nn.Conv2d(in_ch, 64, kernel_size=7, stride=2, padding=3, bias=False),
                 resnet.bn1,
                 resnet.relu,
                 # resnet.maxpool, # (B, 64, H/4, W/4) # TODO if output (224, 224)
