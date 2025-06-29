@@ -33,7 +33,7 @@ class CNN2TransformerAdapter(nn.Module):
 
         # init Positional Encoding (only fist time)
         if self.pos_embed is None or self.pos_embed.shape[1] != H*W:
-            self.pos_embed = nn.Parameter(torch.zeroes(1, H * W, C).to(x.device))
+            self.pos_embed = nn.Parameter(torch.zeros(1, H * W, C).to(x.device))
 
         x = x + self.pos_embed # adding positional information
         return x
