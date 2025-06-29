@@ -16,6 +16,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 import config
 import dataset
+'''
 import fusion
 import kptnet
 import transformer
@@ -25,8 +26,9 @@ import vision_transformer
 import resnet
 import PJAE_spatiotemporal
 import PJAE_spatial
-import PJAE_conv
 import vis_transformer # only vision transformer BAD
+'''
+import PJAE_conv
 import cnn_transformer
 
 def print_memory_usage():
@@ -176,7 +178,7 @@ def main():
         model = nn.DataParallel(model)
     else:
         print("---------- Use CPU ----------")
-    model.to(divice)
+    model.to(device)
 
     # loss_function = nn.CrossEntropyLoss()
     # loss_function = "MSE"

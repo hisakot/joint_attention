@@ -19,6 +19,7 @@ from torch.utils.tensorboard import SummaryWriter
 import config
 import dataset
 import train
+'''
 import transformer
 import swin_transformer
 import swin_transformer_v2
@@ -26,8 +27,10 @@ import vision_transformer
 import resnet
 import PJAE_spatiotemporal
 import PJAE_spatial
-import PJAE_conv
 import vis_transformer
+'''
+import PJAE_conv
+import cnn_transformer
 
 def tensor_to_numpy(tensor2d):
     npy2d = tensor2d.to("cpu").detach().numpy().copy()
