@@ -284,7 +284,7 @@ def main():
                 if param.grad is not None:
                     writer.add_histogram(f"{name}.grad", param.grad, epoch)
                     writer.add_scalar(f"{name}.grad_norm", param.grad.norm(), epoch)
-                    writer.add_scalar(f"{name}.weight", param.data, epoch)
+                    writer.add_histogram(f"{name}.weight", param.data, epoch)
             print("log updated")
 
         except ValueError:
