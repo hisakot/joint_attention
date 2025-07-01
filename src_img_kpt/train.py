@@ -59,9 +59,6 @@ def train(train_dataloader, model, loss_function, optimizer, device):
             targets = data[1].to(device)
 
             pred = model(inputs)
-            print(torch.max(pred), torch.min(pred))
-            print(torch.max(targets), torch.min(targets))
-            exit()
 
             if loss_function[0] == "cos_similarity":
                 pred = pred.view(pred.size(0), -1)
@@ -81,6 +78,11 @@ def train(train_dataloader, model, loss_function, optimizer, device):
                 cos_loss = 1 - F.cosine_similarity(pred, targets).mean()
                 mse_loss = F.mse_loss(pred, targets)
                 loss = alpha * cos_loss + (1 - alpha) * mse_loss
+
+            print(loss)
+            print(torch.max(pred), torch.min(pred))
+            print(torch.max(targets), torch.min(targets))
+            exit()
 
             optimizer.zero_grad()
             loss.backward()

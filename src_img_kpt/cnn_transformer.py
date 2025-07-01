@@ -64,11 +64,13 @@ class CNNTransformer2Heatmap(nn.Module):
         self.adapter = CNN2TransformerAdapter(embed_dim=1024)
         self.decoder = TransformerDecoder(embed_dim=1024)
         self.upsample = nn.Upsample(size=output_size, mode='bilinear', align_corners=False)
+        self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
         x = self.backbone(x) # (B, 1024, H/16, W, 16)
         x, hw = self.adapter(x) # (B, HW, 1024)
         x = self.decoder(x, hw) # (B, 1, H/16, W/16)
+        x = self.sigmoid(x)
         x = self.upsample(x) # (B, 1, 320, 640)
 
         # x = F.interpolate(output, size=(1920, 3840), mode='bilinear', align_corners=False)
