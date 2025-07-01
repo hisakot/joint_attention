@@ -79,11 +79,6 @@ def train(train_dataloader, model, loss_function, optimizer, device):
                 mse_loss = F.mse_loss(pred, targets)
                 loss = alpha * cos_loss + (1 - alpha) * mse_loss
 
-            print(loss)
-            print(torch.max(pred), torch.min(pred))
-            print(torch.max(targets), torch.min(targets))
-            exit()
-
             optimizer.zero_grad()
             loss.backward()
             '''
@@ -285,6 +280,11 @@ def main():
             # tensorboard
             writer.add_scalar("Train Loss", train_loss, epoch + 1)
             writer.add_scalar("Valid Loss", val_loss, epoch + 1)
+            for name, param in model.named_parameters():
+                if param.grad is not None:
+                    writer.add_histogram(f"{name}.grad", param.grad, epoch)
+                    writer.add_scalar(f"{name}.grad_norm", param.grad.norm(), epoch)
+                    writer.add_scalar(f"{name}.weight", param.data, epoch)
             print("log updated")
 
         except ValueError:
