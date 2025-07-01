@@ -59,6 +59,9 @@ def train(train_dataloader, model, loss_function, optimizer, device):
             targets = data[1].to(device)
 
             pred = model(inputs)
+            print(torch.max(pred), torch.min(pred))
+            print(torch.max(targets), torch.min(targets))
+            exit()
 
             if loss_function[0] == "cos_similarity":
                 pred = pred.view(pred.size(0), -1)
@@ -195,9 +198,9 @@ def main():
     model.to(device)
 
     # loss_function = nn.CrossEntropyLoss()
-    # loss_function = ["MSE"]
+    loss_function = ["MSE"]
     # loss_function = ["MAE"]
-    loss_function = ["cos_similarity"]
+    # loss_function = ["cos_similarity"]
     # loss_function = ["cos_MSE", 0.5]
     optimizer = optim.SGD(model.parameters(), lr=lr)
     # optimizer = optim.Adam(model.parameters(), lr=lr)
