@@ -4,4 +4,4 @@ class Config:
         self.img_height = 320
         self.img_width = 640
 
-        self.lr = 1e-3
+        self.lr = 1e-2
