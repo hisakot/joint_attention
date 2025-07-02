@@ -195,9 +195,9 @@ def main():
     model.to(device)
 
     # loss_function = nn.CrossEntropyLoss()
-    loss_function = ["MSE"]
+    # loss_function = ["MSE"]
     # loss_function = ["MAE"]
-    # loss_function = ["cos_similarity"]
+    loss_function = ["cos_similarity"]
     # loss_function = ["cos_MSE", 0.5]
     optimizer = optim.SGD(model.parameters(), lr=lr)
     # optimizer = optim.Adam(model.parameters(), lr=lr)
