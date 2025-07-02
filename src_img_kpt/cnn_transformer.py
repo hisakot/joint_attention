@@ -85,8 +85,6 @@ class TransformerHead(nn.Module):
 class CNNTransformer2Heatmap(nn.Module):
     def __init__(self, in_channels=3, img_size=(320, 640), output_size=(480, 960)):
         super().__init__()
-        self.img_size = img_size
-        self.output_size = output_size
         self.backbone = CNNBackbone(in_ch=in_channels)
         self.adapter = CNN2TransformerAdapter(embed_dim=256)
         self.decoder = TransformerDecoder(embed_dim=256)
@@ -95,7 +93,9 @@ class CNNTransformer2Heatmap(nn.Module):
 
     def forward(self, x):
         x = self.backbone(x) # (B, 512, H/8, W/8)
-        x, hw = self.adapter(x) # (B, HW, 256)
+        print(x.shape)
+        x = self.adapter(x) # (B, HW, 256)
+        print(x.shape)
         x = self.decoder(x) # (B, 1, H/16, W/16)
         print(x.shape)
         x = self.head(x)
