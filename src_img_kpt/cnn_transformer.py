@@ -4,6 +4,23 @@ import torch.nn.functional as F
 from torchvision.models import resnet50
 from torchvision.models import resnet18
 
+class SEBlock(nn.Module):
+    def __init__(self, in_channels, reduction=16):
+        super().__init__()
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.fc = nn.Sequential(
+                nn.Linear(in_channels, in_channels // reduction),
+                nn.ReLU(inplace=True),
+                nn.Linear(in_channels // reduction, in_channels),
+                nn.Sigmoid()
+                )
+
+    def forward(self, x):
+        b, c, _, _ = x.size()
+        y = self.avg_pool(x).view(b, c)
+        y = self.fc(y).view(b, c, 1, 1)
+        return x * y
+
 class CNNBackbone(nn.Module):
     def __init__(self, in_ch=3, out_channels=256):
         super().__init__()
@@ -19,41 +36,49 @@ class CNNBackbone(nn.Module):
                 resnet.layer2, # (B, 128, H/8, W/8)
                 resnet.layer3, # (B, 256, H/16, W/16)
                 )
+        self.se = SEBlock(256)
 
     def forward(self, x):
-        return self.feature_extractor(x)
+        features = self.feature_extractor(x)
+        features = self.se(features)
+        return features
 
 class CNN2TransformerAdapter(nn.Module):
-    def __init__(self, embed_dim=256, max_hw=80*160):
+    def __init__(self, embed_dim=256):
         super().__init__()
-        self.pos_embed = nn.Parameter(torch.zeros(1, max_hw, embed_dim))
-        nn.init.trunc_normal_(self.pos_embed, std=0.02)
+        self.conv1x1 = nn.Conv2d(256, embed_dim, kernel_size=1)
 
     def forward(self, x):
+        x = self.conv1x1(x)
         B, C, H, W = x.shape
         x = x.flatten(2).transpose(1, 2) # (B, HW, C)
-
-        if H*W > self.pos_embed.shape[1]:
-            raise ValueError(f"Input too large: HW={H}*{W}, but pos_embed size={self.pos_embed.shape[1]}")
-
-        x = x + self.pos_embed[:, :H*W, :]
-        return x, (H, W)
+        return x
 
 class TransformerDecoder(nn.Module):
     def __init__(self, embed_dim=256, num_layers=4, num_head=4):
         super().__init__()
-        self.transformer = nn.TransformerEncoder(
-                nn.TransformerEncoderLayer(d_model=embed_dim, nhead=num_head, batch_first=True, dropout=0.3),
-                num_layers=num_layers
-                )
-        self.head = nn.Linear(embed_dim, 1) # for heatmap
+        encoder_layer = nn.TransformerEncoderLayer(
+                    d_model=embed_dim, nhead=num_head, batch_first=True, dropout=0.3)
+        self.encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
 
-    def forward(self, x, hw):
-        x = self.transformer(x) # (B, HW, C)
-        x = self.head(x) # (B, HW, 1)
-        B, HW, _ = x.shape
-        H, W = hw
-        x = x.permute(0, 2, 1).reshape(B, 1, H, W) # (B, 1, H, W)
+    def forward(self, x):
+        return self.encoder(x)
+
+class TransformerHead(nn.Module):
+    def __init__(self, embed_dim=256, out_size=(20, 40)):
+        super().__init__()
+        self.output_size = out_size
+        self.mlp = nn.Sequential(
+                nn.Linear(embed_dim, embed_dim),
+                nn.ReLU(),
+                nn.Dropout(0.1),
+                nn.Linear(embed_dim, 1)
+                )
+    
+    def forward(self, x):
+        x = self.mlp(x).squeeze(-1) # (B, HW)
+        B = x.size(0)
+        x = x.view(B, 1, *self.output_size)
         return x
 
 class CNNTransformer2Heatmap(nn.Module):
@@ -64,12 +89,14 @@ class CNNTransformer2Heatmap(nn.Module):
         self.backbone = CNNBackbone(in_ch=in_channels)
         self.adapter = CNN2TransformerAdapter(embed_dim=256)
         self.decoder = TransformerDecoder(embed_dim=256)
+        self.head =TransformerHead(embed_dim=256, out_size=output_size)
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
         x = self.backbone(x) # (B, 512, H/8, W/8)
         x, hw = self.adapter(x) # (B, HW, 256)
-        x = self.decoder(x, hw) # (B, 1, H/16, W/16)
+        x = self.decoder(x) # (B, 1, H/16, W/16)
+        x = self.head(x)
         x = self.sigmoid(x)
         x = F.interpolate(x, size=self.output_size, mode='bilinear', align_corners=False) # (B, 1, 320, 640)
 
