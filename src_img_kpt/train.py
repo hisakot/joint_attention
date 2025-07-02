@@ -216,9 +216,9 @@ def main():
                                transform=None, is_train=False, inf_rotate=None)
 
     train_dataloader = DataLoader(train_data, batch_size=batch_size,
-                                  shuffle=True, num_workers=1)
+                                  shuffle=True, num_workers=16, pin_memory=True)
     val_dataloader = DataLoader(val_data, batch_size=batch_size,
-                                shuffle=False, num_workers=1)
+                                shuffle=False, num_workers=16, pin_memory=True)
 
     if args.checkpoint:
         checkpoint = torch.load(args.checkpoint)

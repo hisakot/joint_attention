@@ -2,11 +2,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torchvision.models import resnet50
+from torchvision.models import resnet18
 
 class CNNBackbone(nn.Module):
     def __init__(self, in_ch=3, out_channels=256):
         super().__init__()
-        resnet = resnet50(pretrained=True)
+        resnet = resnet18(pretrained=True)
         self.feature_extractor = nn.Sequential(
                 # resnet.conv1, # (B, 64, H/2, W/2)
                 nn.Conv2d(in_ch, 64, kernel_size=7, stride=2, padding=3, bias=False),
@@ -14,16 +15,16 @@ class CNNBackbone(nn.Module):
                 resnet.relu,
                 # resnet.maxpool, # (B, 64, H/4, W/4) # TODO if output (224, 224)
                 nn.Conv2d(64, 64, kernel_size=3, stride=1, padding=1), # TODO id output(224, 448)
-                resnet.layer1, # (B, 256, H/4, W/4)
-                resnet.layer2, # (B, 512, H/8, W/8)
-                # resnet.layer3, # (B, 1024, H/16, W/16)
+                resnet.layer1, # (B, 64, H/4, W/4)
+                resnet.layer2, # (B, 128, H/8, W/8)
+                resnet.layer3, # (B, 256, H/16, W/16)
                 )
 
     def forward(self, x):
         return self.feature_extractor(x)
 
 class CNN2TransformerAdapter(nn.Module):
-    def __init__(self, embed_dim=512, max_hw=80*160):
+    def __init__(self, embed_dim=256, max_hw=80*160):
         super().__init__()
         self.pos_embed = nn.Parameter(torch.zeros(1, max_hw, embed_dim))
         nn.init.trunc_normal_(self.pos_embed, std=0.02)
@@ -39,7 +40,7 @@ class CNN2TransformerAdapter(nn.Module):
         return x, (H, W)
 
 class TransformerDecoder(nn.Module):
-    def __init__(self, embed_dim=512, num_layers=4, num_head=8):
+    def __init__(self, embed_dim=256, num_layers=4, num_head=8):
         super().__init__()
         self.transformer = nn.TransformerEncoder(
                 nn.TransformerEncoderLayer(d_model=embed_dim, nhead=num_head, batch_first=True, dropout=0.1),
@@ -61,8 +62,8 @@ class CNNTransformer2Heatmap(nn.Module):
         self.img_size = img_size
         self.output_size = output_size
         self.backbone = CNNBackbone(in_ch=in_channels)
-        self.adapter = CNN2TransformerAdapter(embed_dim=512)
-        self.decoder = TransformerDecoder(embed_dim=512)
+        self.adapter = CNN2TransformerAdapter(embed_dim=256)
+        self.decoder = TransformerDecoder(embed_dim=256)
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
