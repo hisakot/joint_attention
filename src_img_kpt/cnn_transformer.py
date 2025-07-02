@@ -16,33 +16,32 @@ class CNNBackbone(nn.Module):
                 nn.Conv2d(64, 64, kernel_size=3, stride=1, padding=1), # TODO id output(224, 448)
                 resnet.layer1, # (B, 256, H/4, W/4)
                 resnet.layer2, # (B, 512, H/8, W/8)
-                resnet.layer3, # (B, 1024, H/16, W/16)
+                # resnet.layer3, # (B, 1024, H/16, W/16)
                 )
 
     def forward(self, x):
         return self.feature_extractor(x)
 
 class CNN2TransformerAdapter(nn.Module):
-    def __init__(self, embed_dim=1024):
+    def __init__(self, embed_dim=512, max_hw=128*256):
         super().__init__()
-        self.pos_embed =  None
+        self.pos_embed = nn.Parameter(torch.zeros(1, max_hw, embed_dim))
+        nn.init.trunc_normal_(self.pos_embed, std=0.02)
+        self.max_hw = max_hw
 
     def forward(self, x):
         B, C, H, W = x.shape
         x = x.flatten(2).transpose(1, 2) # (B, HW, C)
 
-        # init Positional Encoding (only fist time)
-        if self.pos_embed is None or self.pos_embed.shape[1] != H*W:
-            self.pos_embed = nn.Parameter(torch.zeros(1, H * W, C).to(x.device))
-
-        x = x + self.pos_embed # adding positional information
+        self.pos_embed = self.pos_embed[:, :H*W, :]
+        x = x + pos_embed # adding positional information
         return x, (H, W)
 
 class TransformerDecoder(nn.Module):
-    def __init__(self, embed_dim=1024, num_layers=4, num_head=8):
+    def __init__(self, embed_dim=512, num_layers=4, num_head=8):
         super().__init__()
         self.transformer = nn.TransformerEncoder(
-                nn.TransformerEncoderLayer(d_model=embed_dim, nhead=num_head, batch_first=True),
+                nn.TransformerEncoderLayer(d_model=embed_dim, nhead=num_head, batch_first=True, dropout=0.1),
                 num_layers=num_layers
                 )
         self.head = nn.Linear(embed_dim, 1) # for heatmap
@@ -61,17 +60,16 @@ class CNNTransformer2Heatmap(nn.Module):
         self.img_size = img_size
         self.output_size = output_size
         self.backbone = CNNBackbone(in_ch=in_channels)
-        self.adapter = CNN2TransformerAdapter(embed_dim=1024)
-        self.decoder = TransformerDecoder(embed_dim=1024)
-        self.upsample = nn.Upsample(size=output_size, mode='bilinear', align_corners=False)
+        self.adapter = CNN2TransformerAdapter(embed_dim=512)
+        self.decoder = TransformerDecoder(embed_dim=512)
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
-        x = self.backbone(x) # (B, 1024, H/16, W, 16)
+        x = self.backbone(x) # (B, 512, H/8, W/8)
         x, hw = self.adapter(x) # (B, HW, 1024)
         x = self.decoder(x, hw) # (B, 1, H/16, W/16)
         x = self.sigmoid(x)
-        x = self.upsample(x) # (B, 1, 320, 640)
+        x = F.interpolate(x, size=self.output_size, mode='bilinear', align_corners=False) # (B, 1, 320, 640)
 
         # x = F.interpolate(output, size=(1920, 3840), mode='bilinear', align_corners=False)
         return x
