@@ -7,7 +7,7 @@ from torchvision.models import resnet18
 class CNNBackbone(nn.Module):
     def __init__(self, in_ch=3, out_channels=256):
         super().__init__()
-        resnet = resnet18(pretrained=True)
+        resnet = resnet18(pretrained=False)
         self.feature_extractor = nn.Sequential(
                 # resnet.conv1, # (B, 64, H/2, W/2)
                 nn.Conv2d(in_ch, 64, kernel_size=7, stride=2, padding=3, bias=False),
