@@ -77,6 +77,7 @@ class TransformerHead(nn.Module):
     
     def forward(self, x):
         x = self.mlp(x).squeeze(-1) # (B, HW)
+        print(x.shape)
         B = x.size(0)
         x = x.view(B, 1, *self.output_size)
         return x
@@ -96,6 +97,7 @@ class CNNTransformer2Heatmap(nn.Module):
         x = self.backbone(x) # (B, 512, H/8, W/8)
         x, hw = self.adapter(x) # (B, HW, 256)
         x = self.decoder(x) # (B, 1, H/16, W/16)
+        print(x.shape)
         x = self.head(x)
         x = self.sigmoid(x)
         x = F.interpolate(x, size=self.output_size, mode='bilinear', align_corners=False) # (B, 1, 320, 640)
