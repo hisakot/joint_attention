@@ -14,7 +14,7 @@ class CNNBackbone(nn.Module):
                 resnet.bn1,
                 resnet.relu,
                 # resnet.maxpool, # (B, 64, H/4, W/4) # TODO if output (224, 224)
-                nn.Conv2d(64, 64, kernel_size=3, stride=1, padding=1), # TODO id output(224, 448)
+                nn.Conv2d(64, 64, kernel_size=3, stride=1, padding=1), # TODO if output(224, 448)
                 resnet.layer1, # (B, 64, H/4, W/4)
                 resnet.layer2, # (B, 128, H/8, W/8)
                 resnet.layer3, # (B, 256, H/16, W/16)
@@ -40,7 +40,7 @@ class CNN2TransformerAdapter(nn.Module):
         return x, (H, W)
 
 class TransformerDecoder(nn.Module):
-    def __init__(self, embed_dim=256, num_layers=4, num_head=8):
+    def __init__(self, embed_dim=256, num_layers=4, num_head=4):
         super().__init__()
         self.transformer = nn.TransformerEncoder(
                 nn.TransformerEncoderLayer(d_model=embed_dim, nhead=num_head, batch_first=True, dropout=0.1),

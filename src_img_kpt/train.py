@@ -1,5 +1,6 @@
 import argparse
 import glob
+import os
 import time
 from tqdm import tqdm
 
@@ -205,6 +206,10 @@ def main():
 
     writer = SummaryWriter(log_dir="logs")
 
+    num_cpu = os.cpu_count()
+    num_cpu /= 2
+    num_cpu = int(num_cpu)
+
     train_loss_list = list()
     val_loss_list = list()
 
@@ -216,9 +221,9 @@ def main():
                                transform=None, is_train=False, inf_rotate=None)
 
     train_dataloader = DataLoader(train_data, batch_size=batch_size,
-                                  shuffle=True, num_workers=16, pin_memory=True)
+                                  shuffle=True, num_workers=num_cpu, pin_memory=True)
     val_dataloader = DataLoader(val_data, batch_size=batch_size,
-                                shuffle=False, num_workers=16, pin_memory=True)
+                                shuffle=False, num_workers=num_cpu, pin_memory=True)
 
     if args.checkpoint:
         checkpoint = torch.load(args.checkpoint)
