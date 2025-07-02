@@ -74,10 +74,10 @@ def train(train_dataloader, model, loss_function, optimizer, device):
                 loss = lossfunc(pred, targets)
             elif loss_function[0] == "cos_MSE":
                 alpha = loss_function[1]
+                mse_loss = F.mse_loss(pred, targets)
                 pred = pred.view(pred.size(0), -1)
                 targets = targets.view(targets.size(0), -1)
                 cos_loss = 1 - F.cosine_similarity(pred, targets).mean()
-                mse_loss = F.mse_loss(pred, targets)
                 loss = alpha * cos_loss + (1 - alpha) * mse_loss
 
             optimizer.zero_grad()
@@ -129,10 +129,10 @@ def evaluate(val_dataloader, model, loss_function, device):
                     loss = lossfunc(pred, targets)
                 elif loss_function[0] == "cos_MSE":
                     alpha = loss_function[1]
+                    mse_loss = F.mse_loss(pred, targets)
                     pred = pred.view(pred.size(0), -1)
                     targets = targets.view(targets.size(0), -1)
                     cos_loss = 1 - F.cosine_similarity(pred, targets).mean()
-                    mse_loss = F.mse_loss(pred, targets)
                     loss = alpha * cos_loss + (1 - alpha) * mse_loss
 
                 total_loss += loss.item()
@@ -198,8 +198,8 @@ def main():
     # loss_function = nn.CrossEntropyLoss()
     # loss_function = ["MSE"]
     # loss_function = ["MAE"]
-    loss_function = ["cos_similarity"]
-    # loss_function = ["cos_MSE", 0.5]
+    # loss_function = ["cos_similarity"]
+    loss_function = ["cos_MSE", 0.8]
     # optimizer = optim.SGD(model.parameters(), lr=lr)
     optimizer = optim.Adam(model.parameters(), lr=lr)
     scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda epoch: 1**epoch)
