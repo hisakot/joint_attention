@@ -23,18 +23,19 @@ class CNNBackbone(nn.Module):
         return self.feature_extractor(x)
 
 class CNN2TransformerAdapter(nn.Module):
-    def __init__(self, embed_dim=512, max_hw=128*256):
+    def __init__(self, embed_dim=512, max_hw=80*160):
         super().__init__()
         self.pos_embed = nn.Parameter(torch.zeros(1, max_hw, embed_dim))
         nn.init.trunc_normal_(self.pos_embed, std=0.02)
-        self.max_hw = max_hw
 
     def forward(self, x):
         B, C, H, W = x.shape
         x = x.flatten(2).transpose(1, 2) # (B, HW, C)
 
-        self.pos_embed = self.pos_embed[:, :H*W, :]
-        x = x + pos_embed # adding positional information
+        if H*W > self.pos_embed.shape[1]:
+            raise ValueError(f"Input too large: HW={H}*{W}, but pos_embed size={self.pos_embed.shape[1]}")
+
+        x = x + self.pos_embed[:, :H*W, :]
         return x, (H, W)
 
 class TransformerDecoder(nn.Module):
