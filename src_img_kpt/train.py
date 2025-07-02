@@ -200,9 +200,9 @@ def main():
     # loss_function = ["MAE"]
     loss_function = ["cos_similarity"]
     # loss_function = ["cos_MSE", 0.5]
-    optimizer = optim.SGD(model.parameters(), lr=lr)
-    # optimizer = optim.Adam(model.parameters(), lr=lr)
-    scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda epoch: 0.97**epoch)
+    # optimizer = optim.SGD(model.parameters(), lr=lr)
+    optimizer = optim.Adam(model.parameters(), lr=lr)
+    scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda epoch: 1**epoch)
 
     writer = SummaryWriter(log_dir="logs")
 

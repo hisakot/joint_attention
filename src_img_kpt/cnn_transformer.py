@@ -43,7 +43,7 @@ class TransformerDecoder(nn.Module):
     def __init__(self, embed_dim=256, num_layers=4, num_head=4):
         super().__init__()
         self.transformer = nn.TransformerEncoder(
-                nn.TransformerEncoderLayer(d_model=embed_dim, nhead=num_head, batch_first=True, dropout=0.1),
+                nn.TransformerEncoderLayer(d_model=embed_dim, nhead=num_head, batch_first=True, dropout=0.3),
                 num_layers=num_layers
                 )
         self.head = nn.Linear(embed_dim, 1) # for heatmap
@@ -68,11 +68,10 @@ class CNNTransformer2Heatmap(nn.Module):
 
     def forward(self, x):
         x = self.backbone(x) # (B, 512, H/8, W/8)
-        x, hw = self.adapter(x) # (B, HW, 1024)
+        x, hw = self.adapter(x) # (B, HW, 256)
         x = self.decoder(x, hw) # (B, 1, H/16, W/16)
         x = self.sigmoid(x)
         x = F.interpolate(x, size=self.output_size, mode='bilinear', align_corners=False) # (B, 1, 320, 640)
 
-        # x = F.interpolate(output, size=(1920, 3840), mode='bilinear', align_corners=False)
         return x
 
