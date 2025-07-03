@@ -83,8 +83,9 @@ class TransformerHead(nn.Module):
                 )
     
     def forward(self, x):
-        x = self.mlp(x).squeeze(-1) # (B, HW)
-        B = x.size(0)
+        B, N, C = x.shape
+        x = x.view(B * N, C)
+        x = self.mlp(x)# .squeeze(-1) # (B, HW)
         x = x.view(B, 1, *self.output_size)
         return x
 
