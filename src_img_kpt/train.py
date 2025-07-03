@@ -31,6 +31,7 @@ import vis_transformer # only vision transformer BAD
 '''
 import PJAE_conv
 import cnn_transformer
+import swin_heatmap
 
 def print_memory_usage():
     allocated = torch.cuda.memory_allocated() / 1024**2
@@ -185,7 +186,8 @@ def main():
     cnn_trans = cnn_transformer.CNNTransformer2Heatmap(in_channels=5, 
                                                        img_size=(img_height, img_width),
                                                        output_size=(img_height, img_width))
-    model = cnn_trans # TODO have to change
+    swin_h = swin_heatmap.SwinHeatmapModel(in_ch=5)
+    model = swin_h # TODO have to change
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:
