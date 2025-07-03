@@ -186,7 +186,7 @@ def main():
     cnn_trans = cnn_transformer.CNNTransformer2Heatmap(in_channels=5, 
                                                        img_size=(img_height, img_width),
                                                        output_size=(img_height, img_width))
-    swin_h = swin_heatmap.SwinHeatmapModel(in_ch=5)
+    swin_h = swin_heatmap.SwinHeatmapModel(in_chans=5)
     model = swin_h # TODO have to change
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
