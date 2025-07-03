@@ -1,54 +1,97 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import timm
 
-class SwinHeatmapModel(nn.Module):
-    def __init__(self, backbone_name='swinv2_tiny_window8_256', in_chans=3, img_size=(320, 640)):
+# --- 簡易パッチ分割層 ---
+class PatchEmbed(nn.Module):
+    def __init__(self, in_chans=5, embed_dim=96, patch_size=4):
         super().__init__()
-        # Swin Transformer backbone
-        self.backbone = timm.create_model(
-            backbone_name,
-            pretrained=False,
-            features_only=False,   # ← ここがポイント
-            in_chans=in_chans,
-            img_size=img_size
-        )
-        self.norm = self.backbone.norm  # LayerNorm
-        self.patch_size = 4  # swin_tiny_patch4_window7_224 はパッチサイズ4
+        self.proj = nn.Conv2d(in_chans, embed_dim, kernel_size=patch_size, stride=patch_size)
+        self.norm = nn.LayerNorm(embed_dim)
 
-        # ヒートマップを生成するためのヘッド
-        # Swinの出力チャネル数（768）に合わせる
-        self.head = nn.Sequential(
-            nn.Conv2d(768, 256, kernel_size=3, padding=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(256, 1, kernel_size=1)
+    def forward(self, x):
+        x = self.proj(x)  # [B, embed_dim, H/patch, W/patch]
+        B, C, H, W = x.shape
+        x = x.flatten(2).transpose(1, 2)  # [B, H*W, C]
+        x = self.norm(x)
+        return x, H, W
+
+# --- 簡易Swinブロック（ウィンドウAttentionは実装しません）---
+class SimpleSwinBlock(nn.Module):
+    def __init__(self, dim, num_heads=3, mlp_ratio=4.0):
+        super().__init__()
+        self.norm1 = nn.LayerNorm(dim)
+        self.attn = nn.MultiheadAttention(dim, num_heads)
+        self.norm2 = nn.LayerNorm(dim)
+        self.mlp = nn.Sequential(
+            nn.Linear(dim, int(dim * mlp_ratio)),
+            nn.GELU(),
+            nn.Linear(int(dim * mlp_ratio), dim),
         )
+
+    def forward(self, x):
+        # x: [L, B, C] for nn.MultiheadAttention
+        shortcut = x
+        x = self.norm1(x)
+        x, _ = self.attn(x, x, x)
+        x = shortcut + x
+
+        shortcut2 = x
+        x = self.norm2(x)
+        x = self.mlp(x)
+        x = shortcut2 + x
+        return x
+
+# --- 全体モデル ---
+class SimpleSwinHeatmapModel(nn.Module):
+    def __init__(self, in_chans=5, embed_dim=96, patch_size=4):
+        super().__init__()
+        self.patch_embed = PatchEmbed(in_chans, embed_dim, patch_size)
+        self.swin_block = SimpleSwinBlock(embed_dim)
+
+        # ヒートマップ用のヘッド（conv層で空間形状に戻すのでembed_dimでOK）
+        self.head = nn.Sequential(
+            nn.Linear(embed_dim, embed_dim),
+            nn.ReLU(),
+            nn.Linear(embed_dim, 1)
+        )
+        self.patch_size = patch_size
 
         self.softmax = nn.Softmax()
 
     def forward(self, x):
-        B, C, H, W = x.shape
-        print(x.shape)
+        B = x.shape[0]
 
-        # 1. Swin の特徴抽出（features_only=False時はflatten出力）
-        x = self.backbone.forward_features(x)  # [B, L, C_feat]  (L=patch数)
+        # 1. パッチ分割 + 埋め込み
+        x, H, W = self.patch_embed(x)  # x: [B, L, C], L=H*W
 
-        # 2. LayerNorm（backboneの最後のNormを通す）
-        x = self.norm(x)  # [B, L, C_feat]
+        # 2. transposeして Attention用に変形 (L, B, C)
+        x = x.transpose(0, 1)
 
-        # 3. パッチ数から空間サイズに変換
-        L, C_feat = x.shape[1], x.shape[2]
-        h_feat, w_feat = H // self.patch_size, W // self.patch_size
-        x = x.transpose(1, 2).reshape(B, C_feat, h_feat, w_feat)  # [B, C, H_patch, W_patch]
+        # 3. Swin風ブロック（本家とは異なり単純MultiheadAttention）
+        x = self.swin_block(x)
 
-        # 4. ヒートマップヘッド
-        heatmap = self.head(x)  # [B, 1, H_patch, W_patch]
+        # 4. (L, B, C) → (B, L, C)
+        x = x.transpose(0, 1)
 
-        # 5. 元画像サイズにアップサンプリング
-        heatmap = F.interpolate(heatmap, size=(H, W), mode='bilinear', align_corners=False)
+        # 5. ヘッドでチャネルを1に変換
+        x = self.head(x)  # [B, L, 1]
 
-        heatmap = self.softmax(heatmap)
+        # 6. 空間マップに戻す
+        x = x.view(B, H, W)
 
-        return heatmap
+        # 7. パッチサイズを戻してアップサンプリング
+        x = x.unsqueeze(1)  # [B, 1, H, W]
+        x = F.interpolate(x, scale_factor=self.patch_size, mode='bilinear', align_corners=False)  # [B, 1, H*patch, W*patch]
+
+        x = self.softmax(x)
+
+        return x
+
+# --- 動作確認 ---
+if __name__ == "__main__":
+    model = SimpleSwinHeatmapModel(in_chans=5)
+    input_tensor = torch.randn(1, 5, 320, 640)
+    out = model(input_tensor)
+    print(out.shape)  # torch.Size([1, 1, 320, 640])
 
