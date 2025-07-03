@@ -29,17 +29,21 @@ class CNNBackbone(nn.Module):
                 # resnet.conv1, # (B, 64, H/2, W/2)
                 nn.Conv2d(in_ch, 64, kernel_size=7, stride=2, padding=3, bias=False),
                 resnet.bn1,
-                resnet.relu,
+                nn.ReLU(inplace=True)
                 # resnet.maxpool, # (B, 64, H/4, W/4) # TODO if output (224, 224)
                 nn.Conv2d(64, 64, kernel_size=3, stride=1, padding=1), # TODO if output(224, 448)
+                nn.BatchNorm2d(64)
+                nn.ReLU(inplace=True)
                 resnet.layer1, # (B, 64, H/4, W/4)
                 resnet.layer2, # (B, 128, H/8, W/8)
                 resnet.layer3, # (B, 256, H/16, W/16)
                 )
+        self.bn_out = nn.BatchNorm2d(256)
         self.se = SEBlock(256)
 
     def forward(self, x):
         features = self.feature_extractor(x)
+        features = self.bn_out(features)
         features = self.se(features)
         return features
 
@@ -47,9 +51,11 @@ class CNN2TransformerAdapter(nn.Module):
     def __init__(self, embed_dim=256):
         super().__init__()
         self.conv1x1 = nn.Conv2d(256, embed_dim, kernel_size=1)
+        self.bn = nn.BatchNorm2d(embed_dim)
 
     def forward(self, x):
         x = self.conv1x1(x)
+        x = self.bn(x)
         B, C, H, W = x.shape
         x = x.flatten(2).transpose(1, 2) # (B, HW, C)
         return x
@@ -70,8 +76,9 @@ class TransformerHead(nn.Module):
         self.output_size = out_size
         self.mlp = nn.Sequential(
                 nn.Linear(embed_dim, embed_dim),
+                nn.BatchNorm2d(embed_dim),
                 nn.ReLU(),
-                nn.Dropout(0.1),
+                nn.Dropout(0.3),
                 nn.Linear(embed_dim, 1)
                 )
     
