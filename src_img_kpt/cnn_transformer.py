@@ -29,11 +29,11 @@ class CNNBackbone(nn.Module):
                 # resnet.conv1, # (B, 64, H/2, W/2)
                 nn.Conv2d(in_ch, 64, kernel_size=7, stride=2, padding=3, bias=False),
                 resnet.bn1,
-                nn.ReLU(inplace=True)
+                nn.ReLU(inplace=True), 
                 # resnet.maxpool, # (B, 64, H/4, W/4) # TODO if output (224, 224)
                 nn.Conv2d(64, 64, kernel_size=3, stride=1, padding=1), # TODO if output(224, 448)
-                nn.BatchNorm2d(64)
-                nn.ReLU(inplace=True)
+                nn.BatchNorm2d(64),
+                nn.ReLU(inplace=True),
                 resnet.layer1, # (B, 64, H/4, W/4)
                 resnet.layer2, # (B, 128, H/8, W/8)
                 resnet.layer3, # (B, 256, H/16, W/16)
