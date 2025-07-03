@@ -76,7 +76,7 @@ class TransformerHead(nn.Module):
         self.output_size = out_size
         self.mlp = nn.Sequential(
                 nn.Linear(embed_dim, embed_dim),
-                nn.BatchNorm2d(embed_dim),
+                nn.BatchNorm1d(embed_dim),
                 nn.ReLU(),
                 nn.Dropout(0.3),
                 nn.Linear(embed_dim, 1)
@@ -84,10 +84,7 @@ class TransformerHead(nn.Module):
     
     def forward(self, x):
         x = self.mlp(x).squeeze(-1) # (B, HW)
-        print("MLP")
-        print(x.shape)
         B = x.size(0)
-        print(B)
         x = x.view(B, 1, *self.output_size)
         return x
 
@@ -106,11 +103,8 @@ class CNNTransformer2Heatmap(nn.Module):
         x = self.backbone(x) # (B, 256, H/8, W/8)
         x = self.adapter(x) # (B, HW, 256)
         x = self.decoder(x) # (B, HW, 256)
-        print(x.shape)
         x = self.head(x) # (B, 1, H/16, W/16)
-        print(x.shape)
         x = self.sigmoid(x)
-        print(x.shape)
         x = F.interpolate(x, size=self.output_size, mode='bilinear', align_corners=False) # (B, 1, 320, 640)
 
         return x
