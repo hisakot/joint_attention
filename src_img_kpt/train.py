@@ -209,8 +209,7 @@ def main():
     writer = SummaryWriter(log_dir="logs")
 
     num_cpu = os.cpu_count()
-    num_cpu /= 2
-    num_cpu = int(num_cpu)
+    num_cpu = num_cpu // 4
 
     train_loss_list = list()
     val_loss_list = list()

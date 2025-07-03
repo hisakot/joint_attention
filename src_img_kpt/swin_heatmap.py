@@ -9,7 +9,7 @@ class SwinHeatmapModel(nn.Module):
         
         # 1. Swin Transformer のバックボーン（特徴抽出）
         self.backbone = timm.create_model(
-            backbone_name, pretrained=False, features_only=True, in_chans=in_ch
+            backbone_name, pretrained=False, features_only=False, in_chans=in_ch
         )
         self.out_channels = self.backbone.feature_info.channels()  # [96, 192, 384, 768]
         
