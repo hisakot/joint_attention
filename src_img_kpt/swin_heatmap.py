@@ -4,14 +4,15 @@ import torch.nn.functional as F
 import timm
 
 class SwinHeatmapModel(nn.Module):
-    def __init__(self, backbone_name='swin_tiny_patch4_window7_224', in_chans=3):
+    def __init__(self, backbone_name='swinv2_tiny_window8_256', in_chans=3, img_size=(320, 640)):
         super().__init__()
         # Swin Transformer backbone
         self.backbone = timm.create_model(
             backbone_name,
             pretrained=False,
             features_only=False,   # ← ここがポイント
-            in_chans=in_chans
+            in_chans=in_chans,
+            img_size=img_size
         )
         self.norm = self.backbone.norm  # LayerNorm
         self.patch_size = 4  # swin_tiny_patch4_window7_224 はパッチサイズ4
@@ -28,6 +29,7 @@ class SwinHeatmapModel(nn.Module):
 
     def forward(self, x):
         B, C, H, W = x.shape
+        print(x.shape)
 
         # 1. Swin の特徴抽出（features_only=False時はflatten出力）
         x = self.backbone.forward_features(x)  # [B, L, C_feat]  (L=patch数)
