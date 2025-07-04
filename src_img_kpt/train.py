@@ -182,12 +182,12 @@ def main():
     swin_t = swin_transformer_v2.SwinTransformerV2(img_height=img_height, img_width=img_width,
                                                    in_chans=5, output_H=img_height, output_W=img_width)
     '''
-    # spatial = PJAE_conv.ModelSpatial(in_ch=5)
+    spatial = PJAE_conv.ModelSpatial(in_ch=5)
     cnn_trans = cnn_transformer.CNNTransformer2Heatmap(in_channels=5, 
                                                        img_size=(img_height, img_width),
                                                        output_size=(img_height, img_width))
-    swin_h = swin_heatmap.SimpleSwinHeatmapModel(in_chans=5)
-    model = swin_h # TODO have to change
+    # swin_h = swin_heatmap.SimpleSwinHeatmapModel(in_chans=5)
+    model = spatial # TODO have to change
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:
