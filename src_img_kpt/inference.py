@@ -115,10 +115,12 @@ def main():
                                               img_H=img_height, img_W=img_width, num_layers=2,
                                               num_heads=2, forward_expansion=4, num_classes=128)
     '''
-    # model = PJAE_conv.ModelSpatial(in_ch=5)
+    model = PJAE_conv.ModelSpatial(in_ch=5)
+    '''
     model = cnn_transformer.CNNTransformer2Heatmap(in_channels=5,
                                                    img_size=(img_height, img_width),
                                                    output_size=(img_height, img_width))
+    '''
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:
