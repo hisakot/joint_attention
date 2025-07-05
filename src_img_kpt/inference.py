@@ -67,7 +67,8 @@ def test(test_dataloader, model, loss_function, device):
                 cos_loss = F.cosine_similarity(pred_1vec, targets_1vec)
                 loss = (1 - cos_loss).mean()
             elif loss_function[0] == "MSE":
-                loss = nn.MSELoss(pred, targets)
+                lossfunc = nn.MSELoss()
+                loss = lossfunc(pred, targets)
             elif loss_function[0] == "MAE":
                 lossfunc = nn.L1Loss()
                 loss = lossfunc(pred, targets)
