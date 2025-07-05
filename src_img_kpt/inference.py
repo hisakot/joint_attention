@@ -78,6 +78,8 @@ def test(test_dataloader, model, loss_function, device):
                 cos_loss = 1 - F.cosine_similarity(pred, targets).mean()
                 mse_loss = F.mse_loss(pred, targets)
                 loss = alpha * cos_loss + (1 - alpha) * mse_loss
+            else:
+                print("Loss function is wrong")
             print(loss)
 
             np_pred = tensor_to_numpy(pred)
@@ -130,9 +132,9 @@ def main():
     # model.half().to(device)
     model.to(device)
 
-    # loss_function = ["MSE"]
+    loss_function = ["MSE"]
     # loss_function = ["MAE"]
-    loss_function = ["cos_similarity"]
+    # loss_function = ["cos_similarity"]
     # loss_function = ["cos_MSE", 0.5]
 
     checkpoint = torch.load(args.model)

@@ -80,6 +80,8 @@ def train(train_dataloader, model, loss_function, optimizer, device):
                 targets = targets.view(targets.size(0), -1)
                 cos_loss = 1 - F.cosine_similarity(pred, targets).mean()
                 loss = alpha * cos_loss + (1 - alpha) * mse_loss
+            else:
+                print("Loss function is wrong")
 
             optimizer.zero_grad()
             loss.backward()
@@ -135,6 +137,8 @@ def evaluate(val_dataloader, model, loss_function, device):
                     targets = targets.view(targets.size(0), -1)
                     cos_loss = 1 - F.cosine_similarity(pred, targets).mean()
                     loss = alpha * cos_loss + (1 - alpha) * mse_loss
+                else:
+                    print("Loss function is wrong")
 
                 total_loss += loss.item()
                 pbar.update()
@@ -198,9 +202,9 @@ def main():
     model.to(device)
 
     # loss_function = nn.CrossEntropyLoss()
-    # loss_function = ["MSE"]
+    loss_function = ["MSE"]
     # loss_function = ["MAE"]
-    loss_function = ["cos_similarity"]
+    # loss_function = ["cos_similarity"]
     # loss_function = ["cos_MSE", 0.8]
     optimizer = optim.SGD(model.parameters(), lr=lr)
     # optimizer = optim.Adam(model.parameters(), lr=lr)
