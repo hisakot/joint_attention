@@ -277,7 +277,6 @@ def main():
                             "train_loss_list" : train_loss_list,
                             "val_loss_list" : val_loss_list,
                             }, "save_models/newest_model.pth")
-                checkpoint = torch.load("save_models/newest_model.pth")
             else:
                 early_stopping[2] += 1
                 if early_stopping[2] == early_stopping[1]:
