@@ -4,6 +4,7 @@ import os
 import time
 from tqdm import tqdm
 
+import cv2
 import numpy as np
 
 import torch
@@ -61,6 +62,17 @@ def train(train_dataloader, model, loss_function, optimizer, device):
             targets = data[1].to(device)
 
             pred = model(inputs)
+            '''
+            np_pred = pred.to("cpu").detach().numpy().copy()
+            np_pred = np.squeeze(np_pred, 0)
+            np_pred = np.transpose(np_pred, (1, 2, 0))
+            np_pred *= 255
+            np_pred = np_pred.astype(np.uint8)
+            cv2.imshow("pred", np_pred)
+            cv2.waitKey(0)
+            cv2.desroyAllWindows()
+            exit()
+            '''
 
             if loss_function[0] == "cos_similarity":
                 pred = pred.view(pred.size(0), -1)
@@ -213,7 +225,8 @@ def main():
     writer = SummaryWriter(log_dir="logs")
 
     num_cpu = os.cpu_count()
-    num_cpu = num_cpu // 4
+    num_cpu = num_cpu // 8
+    print(" number of cpu: ", num_cpu)
 
     train_loss_list = list()
     val_loss_list = list()
