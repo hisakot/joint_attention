@@ -213,29 +213,29 @@ class ModelSpatial(nn.Module):
         im = self.layer2_scene(im)
         im = self.layer3_scene(im)
         im = self.layer4_scene(im)
-        scene_feat = self.layer5_scene(im)
+        scene_feat = self.layer5_scene(im) # (B, 1024, 7, 14)
 
         encoding = self.compress_conv1(scene_feat)
         encoding = self.compress_bn1(encoding)
         encoding = self.relu(encoding)
         encoding = self.compress_conv2(encoding)
         encoding = self.compress_bn2(encoding)
-        encoding = self.relu(encoding)
+        encoding = self.relu(encoding) # (B, 512, 7, 14)
 
         x = self.deconv1(encoding)
         x = self.deconv_bn1(x)
-        x = self.relu(x)
+        x = self.relu(x) # (B, 256, 15, 29)
         x = self.deconv2(x)
         x = self.deconv_bn2(x)
-        x = self.relu(x)
+        x = self.relu(x) # (B, 128, 31, 59)
         x = self.deconv3(x)
         x = self.deconv_bn3(x)
-        x = self.relu(x)
-        x = self.conv4(x)
-        x = self.sigmoid(x)
+        x = self.relu(x) # (B, 1, 63, 119)
+        x = self.conv4(x) # (B, 2, 1, 63, 119)
 
         # return deconv, inout_val, hx
         x = F.interpolate(x, (320, 640), mode='bilinear')
+        x = self.sigmoid(x) # (B, 1, 320, 640)
         output = x
 
         return output

@@ -200,10 +200,10 @@ def main():
     # loss_function = nn.CrossEntropyLoss()
     # loss_function = ["MSE"]
     # loss_function = ["MAE"]
-    # loss_function = ["cos_similarity"]
-    loss_function = ["cos_MSE", 0.8]
-    # optimizer = optim.SGD(model.parameters(), lr=lr)
-    optimizer = optim.Adam(model.parameters(), lr=lr)
+    loss_function = ["cos_similarity"]
+    # loss_function = ["cos_MSE", 0.8]
+    optimizer = optim.SGD(model.parameters(), lr=lr)
+    # optimizer = optim.Adam(model.parameters(), lr=lr)
     scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda epoch: 1**epoch)
 
     writer = SummaryWriter(log_dir="logs")

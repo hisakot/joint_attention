@@ -126,7 +126,7 @@ class VisionTransformer(nn.Module):
         x = self.deconv5(x)
         x = self.deconv_bn5(x)
         x = self.conv(x)
-        x = self.sigmoid(x)
 
         x = F.interpolate(x, (320, 640), mode='bilinear')
+        x = self.sigmoid(x)
         return x
