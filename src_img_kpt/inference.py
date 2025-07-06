@@ -133,9 +133,9 @@ def main():
     # model.half().to(device)
     model.to(device)
 
-    loss_function = ["MSE"]
+    # loss_function = ["MSE"]
     # loss_function = ["MAE"]
-    # loss_function = ["cos_similarity"]
+    loss_function = ["cos_similarity"]
     # loss_function = ["cos_MSE", 0.5]
 
     checkpoint = torch.load(args.model)
