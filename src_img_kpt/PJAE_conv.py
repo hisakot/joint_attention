@@ -232,10 +232,15 @@ class ModelSpatial(nn.Module):
         x = self.deconv_bn3(x)
         x = self.relu(x) # (B, 1, 63, 119)
         x = self.conv4(x) # (B, 2, 1, 63, 119)
+        print(x.shape)
         x = self.sigmoid(x) # (B, 1, 320, 640)
+        print(x.shape)
 
         # return deconv, inout_val, hx
         x = F.interpolate(x, (320, 640), mode='bilinear')
+        print(x.shape)
+        print(torch.max(x), torch.min(x))
+        exit()
         output = x
 
         return output
