@@ -146,13 +146,18 @@ class ModelSpatial(nn.Module):
         self.fc_inout = nn.Linear(300, 1) # TODO (49, 1) <- img size 224, 224
 
         # decoding
-        self.deconv1 = nn.ConvTranspose2d(512, 256, kernel_size=3, stride=2)
+        # self.deconv1 = nn.ConvTranspose2d(512, 256, kernel_size=3, stride=2)
+        self.deconv1 = nn.ConvTranspose2d(512, 256, kernel_size=4, stride=2, padding=1)
         self.deconv_bn1 = nn.BatchNorm2d(256)
-        self.deconv2 = nn.ConvTranspose2d(256, 128, kernel_size=3, stride=2)
+        # self.deconv2 = nn.ConvTranspose2d(256, 128, kernel_size=3, stride=2)
+        self.deconv2 = nn.ConvTranspose2d(256, 128, kernel_size=4, stride=2, padding=1)
         self.deconv_bn2 = nn.BatchNorm2d(128)
-        self.deconv3 = nn.ConvTranspose2d(128, 1, kernel_size=3, stride=2)
-        self.deconv_bn3 = nn.BatchNorm2d(1)
-        self.conv4 = nn.Conv2d(1, 1, kernel_size=1, stride=1)
+        # self.deconv3 = nn.ConvTranspose2d(128, 1, kernel_size=3, stride=2)
+        self.deconv3 = nn.ConvTranspose2d(128, 64, kernel_size=4, stride=2, padding=1)
+        # self.deconv_bn3 = nn.BatchNorm2d(1)
+        self.deconv_bn3 = nn.BatchNorm2d(64)
+        # self.conv4 = nn.Conv2d(1, 1, kernel_size=1, stride=1)
+        self.conv4 = nn.Conv2d(64, 1, kernel_size=1, stride=1)
 
         # Initialize weights
         for m in self.modules():
