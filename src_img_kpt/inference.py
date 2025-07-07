@@ -59,14 +59,15 @@ def test(test_dataloader, model, loss_function, device):
             inputs = torch.cat([img, gazecone, kptmap], dim=1)
 
             targets = data[1].to(device)
-
             pred = model(inputs)
+
+            '''
             pred_sigmoid = torch.sigmoid(pred)
             plt.imshow(pred_sigmoid[0, 0].cpu().numpy(), cmap='jet')
             plt.colorbar()
             plt.title("predicted heatmap")
             plt.show()
-            exit()
+            '''
 
             if loss_function[0] == "cos_similarity":
                 pred_1vec = pred.view(pred.size(0), -1)
@@ -86,6 +87,10 @@ def test(test_dataloader, model, loss_function, device):
                 cos_loss = 1 - F.cosine_similarity(pred, targets).mean()
                 mse_loss = F.mse_loss(pred, targets)
                 loss = alpha * cos_loss + (1 - alpha) * mse_loss
+            elif loss_function[0] == "BCE":
+                pos_weight = torch.tensor([10.0]).to(device)
+                lossfunc = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
+                loss = lossfunc(pred, targets)
             else:
                 print("Loss function is wrong")
             print(loss)
@@ -147,11 +152,11 @@ def main():
 
     checkpoint = torch.load(args.model)
     if torch.cuda.device_count() >= 1:
-        model.load_state_dict(checkpoint["cnn_transformer_state_dict"], strict=False)
+        model.load_state_dict(checkpoint["model_state_dict"], strict=False)
     else:
         from collections import OrderedDict
         state_dict = OrderedDict()
-        for k, v in checkpoint["cnn_transformer_state_dict"].items():
+        for k, v in checkpoint["model_state_dict"].items():
             name = k[7:] # remove "module."
             state_dict[name] = v
         model.load_state_dict(state_dict)

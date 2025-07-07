@@ -62,7 +62,6 @@ def train(train_dataloader, model, loss_function, optimizer, device):
 
             targets = data[1].to(device)
             pred = model(inputs)
-            targets = F.interpolate(targets, size=(56, 112), mode='bilinear', align_corners=False)
             '''
             np_pred = pred.to("cpu").detach().numpy().copy()
             np_pred = np.squeeze(np_pred, 0)
@@ -125,7 +124,6 @@ def evaluate(val_dataloader, model, loss_function, device):
                 inputs = torch.cat([img, gazecone, kptmap], dim=1)
 
                 targets = data[1].to(device)
-                targets = F.interpolate(targets, size=(56, 112), mode='bilinear', align_corners=False)
                 pred = model(inputs)
 
                 if loss_function[0] == "cos_similarity":
@@ -198,13 +196,12 @@ def main():
                                             in_chans=5, num_classes=1)
     swin_t = swin_transformer_v2.SwinTransformerV2(img_height=img_height, img_width=img_width,
                                                    in_chans=5, output_H=img_height, output_W=img_width)
-    '''
-    spatial = PJAE_conv.ModelSpatial(in_ch=5)
     cnn_trans = cnn_transformer.CNNTransformer2Heatmap(in_channels=5, 
                                                        img_size=(img_height, img_width),
                                                        output_size=(img_height, img_width))
-    # swin_h = swin_heatmap.SimpleSwinHeatmapModel(in_chans=5)
-    model = spatial # TODO have to change
+    swin_h = swin_heatmap.SimpleSwinHeatmapModel(in_chans=5)
+    '''
+    model = PJAE_conv.ModelSpatial(in_ch=5)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:
@@ -217,9 +214,9 @@ def main():
     # loss_function = nn.CrossEntropyLoss()
     # loss_function = ["MSE"]
     # loss_function = ["MAE"]
-    # loss_function = ["cos_similarity"]
+    loss_function = ["cos_similarity"]
     # loss_function = ["cos_MSE", 0.8]
-    loss_function = ["BCE"]
+    # loss_function = ["BCE"]
     optimizer = optim.SGD(model.parameters(), lr=lr)
     # optimizer = optim.Adam(model.parameters(), lr=lr)
     scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda epoch: 1**epoch)
@@ -249,7 +246,7 @@ def main():
         checkpoint = torch.load(args.checkpoint)
         start_epoch = checkpoint["epoch"]
         # spatial.load_state_dict(checkpoint["pjae_spatial_state_dict"])
-        model.load_state_dict(checkpoint["cnn_transformer_state_dict"])
+        model.load_state_dict(checkpoint["model_state_dict"])
         optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
         train_loss_list = checkpoint["train_loss_list"]
         val_loss_list = checkpoint["val_loss_list"]
@@ -289,13 +286,13 @@ def main():
                 early_stopping[0] = val_loss
                 early_stopping[2] = 0
                 torch.save({"epoch" : epoch + 1,
-                            # "pjae_spatial_state_dict" : spatial.state_dict(),
-                            "cnn_transformer_state_dict" : model.state_dict(),
+                            "model_state_dict" : model.state_dict(),
                             "optimizer_state_dict" : optimizer.state_dict(),
                             "train_loss_list" : train_loss_list,
                             "train_loss_list" : train_loss_list,
                             "val_loss_list" : val_loss_list,
                             }, "save_models/newest_model.pth")
+                            # "pjae_spatial_state_dict" : spatial.state_dict(),
             else:
                 early_stopping[2] += 1
                 if early_stopping[2] == early_stopping[1]:
