@@ -62,21 +62,17 @@ def train(train_dataloader, model, loss_function, optimizer, device):
             targets = data[1].to(device)
 
             pred = model(inputs)
-
+            print(pred.max(), pred.min())
+            '''
             np_pred = pred.to("cpu").detach().numpy().copy()
-            print(np_pred.shape)
             np_pred = np.squeeze(np_pred, 0)
-            print(np_pred.shape)
             np_pred = np.transpose(np_pred, (1, 2, 0))
-            print(np_pred.shape)
             np_pred *= 255
-            print(np_pred.shape)
             np_pred = np_pred.astype(np.uint8)
-            print(np_pred.shape)
             cv2.imshow("pred", np_pred)
             cv2.waitKey(0)
-            cv2.desroyAllWindows()
-
+            cv2.destroyAllWindows()
+            '''
 
             if loss_function[0] == "cos_similarity":
                 pred = pred.view(pred.size(0), -1)
