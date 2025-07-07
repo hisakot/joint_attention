@@ -64,10 +64,15 @@ def train(train_dataloader, model, loss_function, optimizer, device):
             pred = model(inputs)
 
             np_pred = pred.to("cpu").detach().numpy().copy()
+            print(np_pred.shape)
             np_pred = np.squeeze(np_pred, 0)
+            print(np_pred.shape)
             np_pred = np.transpose(np_pred, (1, 2, 0))
+            print(np_pred.shape)
             np_pred *= 255
+            print(np_pred.shape)
             np_pred = np_pred.astype(np.uint8)
+            print(np_pred.shape)
             cv2.imshow("pred", np_pred)
             cv2.waitKey(0)
             cv2.desroyAllWindows()
