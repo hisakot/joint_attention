@@ -62,11 +62,16 @@ def train(train_dataloader, model, loss_function, optimizer, device):
 
             targets = data[1].to(device)
             pred = model(inputs)
-            print("target status: ",targets.max().item(), targets.mean().item(), targets.min().item())
-            print(targets.requires_grad)
-            print(pred.requires_grad)
-            targets = F.interpolate(targets, (63, 119), mode='bilinear', align_corners=False)
-
+            try:
+                print("target status: ",targets.max().item(), targets.mean().item(), targets.min().item())
+                print(targets.requires_grad)
+                print(pred.requires_grad)
+                targets = F.interpolate(targets, (63, 119), mode='bilinear', align_corners=False)
+            except Exception as e:
+                print("Exception occured!")
+                import traceback
+                traceback.print_exc()
+                exit()
             '''
             np_pred = pred.to("cpu").detach().numpy().copy()
             np_pred = np.squeeze(np_pred, 0)
@@ -104,13 +109,6 @@ def train(train_dataloader, model, loss_function, optimizer, device):
 
             optimizer.zero_grad()
             loss.backward()
-            '''
-            torch.nn.utils.clip_grad_norm_(swin_unet.parameters(), 0.5)
-            torch.nn.utils.clip_grad_norm_(swin_t.parameters(), 0.5)
-            torch.nn.utils.clip_grad_norm_(unet.parameters(), 0.5)
-            torch.nn.utils.clip_grad_norm_(fuse.parameters(), 0.5)
-            # torch.nn.utils.clip_grad_norm_(resnet50.parameters(), 0.5)
-            '''
             optimizer.step()
 
             total_loss += loss.item()
