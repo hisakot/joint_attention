@@ -62,14 +62,7 @@ def train(train_dataloader, model, loss_function, optimizer, device):
 
             targets = data[1].to(device)
             pred = model(inputs)
-            try:
-                print("target status: ",targets.max().item(), targets.mean().item(), targets.min().item())
-                targets = F.interpolate(targets, size=(56, 112), mode='bilinear', align_corners=False)
-            except Exception as e:
-                print("Exception occured!")
-                import traceback
-                traceback.print_exc()
-                exit()
+            targets = F.interpolate(targets, size=(56, 112), mode='bilinear', align_corners=False)
             '''
             np_pred = pred.to("cpu").detach().numpy().copy()
             np_pred = np.squeeze(np_pred, 0)
@@ -100,7 +93,8 @@ def train(train_dataloader, model, loss_function, optimizer, device):
                 cos_loss = 1 - F.cosine_similarity(pred, targets).mean()
                 loss = alpha * cos_loss + (1 - alpha) * mse_loss
             elif loss_function[0] == "BCE":
-                lossfunc = nn.BCEWithLogitsLoss()
+                pos_weight = torch.tensor([10.0]).to(device)
+                lossfunc = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
                 loss = lossfunc(pred, targets)
             else:
                 print("Loss function is wrong")
