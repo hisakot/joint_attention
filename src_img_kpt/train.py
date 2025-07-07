@@ -64,9 +64,10 @@ def train(train_dataloader, model, loss_function, optimizer, device):
             pred = model(inputs)
             try:
                 print("target status: ",targets.max().item(), targets.mean().item(), targets.min().item())
-                print(targets.requires_grad)
-                print(pred.requires_grad)
-                targets = F.interpolate(targets, (63, 119), mode='bilinear', align_corners=False)
+                print(targets)
+                print(targets.shape)
+                targets = F.interpolate(targets, size=(63, 119), mode='bilinear', align_corners=False)
+                print(targets.shape)
             except Exception as e:
                 print("Exception occured!")
                 import traceback
