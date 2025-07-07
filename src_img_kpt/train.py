@@ -125,7 +125,7 @@ def evaluate(val_dataloader, model, loss_function, device):
                 inputs = torch.cat([img, gazecone, kptmap], dim=1)
 
                 targets = data[1].to(device)
-
+                targets = F.interpolate(targets, size=(56, 112), mode='bilinear', align_corners=False)
                 pred = model(inputs)
 
                 if loss_function[0] == "cos_similarity":
@@ -147,7 +147,8 @@ def evaluate(val_dataloader, model, loss_function, device):
                     cos_loss = 1 - F.cosine_similarity(pred, targets).mean()
                     loss = alpha * cos_loss + (1 - alpha) * mse_loss
                 elif loss_function[0] == "BCE":
-                    lossfunc = nn.BCEWithLogitsLoss()
+                    pos_weight = torch.tensor([10.0]).to(device)
+                    lossfunc = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
                     loss = lossfunc(pred, targets)
                 else:
                     print("Loss function is wrong")
