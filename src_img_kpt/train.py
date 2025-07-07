@@ -60,6 +60,7 @@ def train(train_dataloader, model, loss_function, optimizer, device):
             inputs = torch.cat([img, gazecone, kptmap], dim=1)
 
             targets = data[1].to(device)
+            print("target status: ",targets.max().item(), targets.mean().item(), targets.min().item())
 
             pred = model(inputs)
             '''

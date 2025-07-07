@@ -240,7 +240,7 @@ class ModelSpatial(nn.Module):
         # x = self.sigmoid(x) # (B, 1, 63, 119)
 
         # return deconv, inout_val, hx
-        x = F.interpolate(x, (320, 640), mode='bilinear', align_corners=False)
+        # x = F.interpolate(x, (320, 640), mode='bilinear', align_corners=False)
         output = x
 
         return output
