@@ -5,6 +5,7 @@ import os
 import time
 
 import cv2
+import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 
@@ -60,6 +61,12 @@ def test(test_dataloader, model, loss_function, device):
             targets = data[1].to(device)
 
             pred = model(inputs)
+            pred_sigmoid = torch.sigmoid(pred)
+            plt.imshow(pred_sigmoid[0, 0].cpu().numpy(), cmap='jet')
+            plt.clorbar()
+            plt.title("predicted heatmap")
+            plt.show()
+            exit()
 
             if loss_function[0] == "cos_similarity":
                 pred_1vec = pred.view(pred.size(0), -1)
