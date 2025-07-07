@@ -61,7 +61,7 @@ def train(train_dataloader, model, loss_function, optimizer, device):
 
             targets = data[1].to(device)
             print("target status: ",targets.max().item(), targets.mean().item(), targets.min().item())
-            targets = F.interpolate(x, (63, 119), mode='bilinear', align_corners=False)
+            targets = F.interpolate(targets, (63, 119), mode='bilinear', align_corners=False)
 
             pred = model(inputs)
             '''
