@@ -63,7 +63,7 @@ def test(test_dataloader, model, loss_function, device):
             pred = model(inputs)
             pred_sigmoid = torch.sigmoid(pred)
             plt.imshow(pred_sigmoid[0, 0].cpu().numpy(), cmap='jet')
-            plt.clorbar()
+            plt.colorbar()
             plt.title("predicted heatmap")
             plt.show()
             exit()
