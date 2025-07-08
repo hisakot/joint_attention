@@ -24,7 +24,6 @@ import fusion
 import kptnet
 import transformer
 import swin_transformer
-import vision_transformer
 import resnet
 import PJAE_spatiotemporal
 import PJAE_spatial
@@ -35,6 +34,7 @@ import swin_t_b_encode
 import PJAE_conv
 import cnn_transformer
 import swin_transformer_v2
+import vision_transformer
 
 def print_memory_usage():
     allocated = torch.cuda.memory_allocated() / 1024**2
@@ -206,7 +206,7 @@ def main():
                                                    in_chans=5, output_H=img_height, output_W=img_width)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    if torch.cuda.device_count() > 0:
+    if torch.cuda.device_count() >= 2:
         print("---------- Use GPU ----------")
         # model = nn.DataParallel(model)
     else:
