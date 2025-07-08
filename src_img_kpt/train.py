@@ -24,16 +24,17 @@ import fusion
 import kptnet
 import transformer
 import swin_transformer
-import swin_transformer_v2
 import vision_transformer
 import resnet
 import PJAE_spatiotemporal
 import PJAE_spatial
 import vis_transformer # only vision transformer BAD
+import swin_heatmap
+import swin_t_b_encode
 '''
 import PJAE_conv
 import cnn_transformer
-import swin_heatmap
+import swin_transformer_v2
 
 def print_memory_usage():
     allocated = torch.cuda.memory_allocated() / 1024**2
@@ -194,19 +195,20 @@ def main():
                                               num_heads=2, forward_expansion=4, num_classes=128)
     swin_unet = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width,
                                             in_chans=5, num_classes=1)
-    swin_t = swin_transformer_v2.SwinTransformerV2(img_height=img_height, img_width=img_width,
-                                                   in_chans=5, output_H=img_height, output_W=img_width)
-    cnn_trans = cnn_transformer.CNNTransformer2Heatmap(in_channels=5, 
-                                                       img_size=(img_height, img_width),
-                                                       output_size=(img_height, img_width))
     swin_h = swin_heatmap.SimpleSwinHeatmapModel(in_chans=5)
-    '''
     model = PJAE_conv.ModelSpatial(in_ch=5)
+    model = swin_t_b_encode.SwinTransformerV2B(in_ch=5)
+    model = cnn_transformer.CNNTransformer2Heatmap(in_channels=5, 
+                                                   img_size=(img_height, img_width),
+                                                   output_size=(img_height, img_width))
+    '''
+    model = swin_transformer_v2.SwinTransformerV2(img_height=img_height, img_width=img_width,
+                                                   in_chans=5, output_H=img_height, output_W=img_width)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:
         print("---------- Use GPU ----------")
-        model = nn.DataParallel(model)
+        # model = nn.DataParallel(model)
     else:
         print("---------- Use CPU ----------")
     model.to(device)
@@ -224,7 +226,7 @@ def main():
     writer = SummaryWriter(log_dir="logs")
 
     num_cpu = os.cpu_count()
-    num_cpu = num_cpu // 8
+    num_cpu = num_cpu // 4
     print(" number of cpu: ", num_cpu)
 
     train_loss_list = list()

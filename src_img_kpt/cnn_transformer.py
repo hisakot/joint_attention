@@ -90,7 +90,7 @@ class TransformerHead(nn.Module):
         return x
 
 class CNNTransformer2Heatmap(nn.Module):
-    def __init__(self, in_channels=3, img_size=(320, 640), output_size=(480, 960)):
+    def __init__(self, in_channels=3, img_size=(320, 640), output_size=(320, 640)):
         super().__init__()
         self.output_size = output_size
 

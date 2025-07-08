@@ -595,8 +595,25 @@ class SwinTransformerV2(nn.Module):
         for bly in self.layers:
             bly._init_respostnorm()
 
-        self.fc = nn.Linear(num_classes, 1*output_H*output_W) # FIXME added self
+        # FIXME added self
+        self.fc = nn.Linear(num_classes, 1*output_H*output_W)
         self.sigmoid = nn.Sigmoid()
+        self.upsample = nn.Sequential(nn.ConvTranspose2d(500, 256, kernel_size=4, stride=2),
+                                      nn.BatchNorm2d(256),
+                                      nn.ConvTranspose2d(256, 128, kernel_size=4, stride=2),
+                                      nn.BatchNorm2d(128),
+                                      nn.ConvTranspose2d(128, 64, kernel_size=4, stride=2),
+                                      nn.BatchNorm2d(64),
+                                      nn.ConvTranspose2d(64, 32, kernel_size=4, stride=2),
+                                      nn.BatchNorm2d(32),
+                                      nn.ConvTranspose2d(32, 16, kernel_size=4, stride=2),
+                                      nn.BatchNorm2d(16),
+                                      nn.ConvTranspose2d(16, 8, kernel_size=4, stride=2),
+                                      nn.BatchNorm2d(8),
+                                      nn.ConvTranspose2d(8, 1, kernel_size=4, stride=2),
+                                      nn.BatchNorm2d(1),
+                                      nn.Conv2d(1, 1, kernel_size=1, stride=1)
+                                      )
 
     def _init_weights(self, m):
         if isinstance(m, nn.Linear):
@@ -624,16 +641,19 @@ class SwinTransformerV2(nn.Module):
         for layer in self.layers:
             x = layer(x)
 
-        x = self.norm(x)  # B L C
-        x = self.avgpool(x.transpose(1, 2))  # B C 1
-        x = torch.flatten(x, 1)
+        x = self.norm(x)  # B L C (B, 200, 768)
+        x = self.avgpool(x.transpose(1, 2))  # B C 1 (B, 768, 1)
+        x = torch.flatten(x, 1) # (B, 768)
         return x
 
     def forward(self, x):
         x = self.forward_features(x)
-        x = self.head(x)
-        x = self.fc(x) # FIXME added self
-        x = x.reshape(-1, 1, self.output_H, self.output_W) # FIXME added self
+        x = self.head(x) # (B, 1000)
+        # x = self.fc(x) # FIXME added self (B, 204800)
+        x = x.reshape(-1, 500, 1, 2)
+        x = self.upsample(x) # (B, 1, 382, 510) # FIXME added self
+        # x = x.reshape(-1, 1, self.output_H, self.output_W) # FIXME added self
+        x = F.interpolate(x, (320, 640), mode='bilinear', align_corners=False) # FIXME added self
         x = self.sigmoid(x)
         return x
 

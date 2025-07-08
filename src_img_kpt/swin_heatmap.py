@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-# --- 簡易パッチ分割層 ---
 class PatchEmbed(nn.Module):
     def __init__(self, in_chans=5, embed_dim=96, patch_size=4):
         super().__init__()
@@ -16,7 +15,6 @@ class PatchEmbed(nn.Module):
         x = self.norm(x)
         return x, H, W
 
-# --- 簡易Swinブロック（ウィンドウAttentionは実装しません）---
 class SimpleSwinBlock(nn.Module):
     def __init__(self, dim, num_heads=3, mlp_ratio=4.0):
         super().__init__()
@@ -42,14 +40,12 @@ class SimpleSwinBlock(nn.Module):
         x = shortcut2 + x
         return x
 
-# --- 全体モデル ---
 class SimpleSwinHeatmapModel(nn.Module):
     def __init__(self, in_chans=5, embed_dim=96, patch_size=4):
         super().__init__()
         self.patch_embed = PatchEmbed(in_chans, embed_dim, patch_size)
         self.swin_block = SimpleSwinBlock(embed_dim)
 
-        # ヒートマップ用のヘッド（conv層で空間形状に戻すのでembed_dimでOK）
         self.head = nn.Sequential(
             nn.Linear(embed_dim, embed_dim),
             nn.ReLU(),
@@ -62,25 +58,18 @@ class SimpleSwinHeatmapModel(nn.Module):
     def forward(self, x):
         B = x.shape[0]
 
-        # 1. パッチ分割 + 埋め込み
         x, H, W = self.patch_embed(x)  # x: [B, L, C], L=H*W
 
-        # 2. transposeして Attention用に変形 (L, B, C)
         x = x.transpose(0, 1)
 
-        # 3. Swin風ブロック（本家とは異なり単純MultiheadAttention）
         x = self.swin_block(x)
 
-        # 4. (L, B, C) → (B, L, C)
         x = x.transpose(0, 1)
 
-        # 5. ヘッドでチャネルを1に変換
         x = self.head(x)  # [B, L, 1]
 
-        # 6. 空間マップに戻す
         x = x.view(B, H, W)
 
-        # 7. パッチサイズを戻してアップサンプリング
         x = x.unsqueeze(1)  # [B, 1, H, W]
         x = F.interpolate(x, scale_factor=self.patch_size, mode='bilinear', align_corners=False)  # [B, 1, H*patch, W*patch]
 
@@ -88,7 +77,6 @@ class SimpleSwinHeatmapModel(nn.Module):
 
         return x
 
-# --- 動作確認 ---
 if __name__ == "__main__":
     model = SimpleSwinHeatmapModel(in_chans=5)
     input_tensor = torch.randn(1, 5, 320, 640)
