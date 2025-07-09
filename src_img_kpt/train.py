@@ -193,17 +193,17 @@ def main():
     vis_t = vis_transformer.VisionTransformer(in_channels=5, patch_size=4, emb_size=64,
                                               img_H=img_height, img_W=img_width, num_layers=2,
                                               num_heads=2, forward_expansion=4, num_classes=128)
-    swin_unet = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width,
-                                            in_chans=5, num_classes=1)
     swin_h = swin_heatmap.SimpleSwinHeatmapModel(in_chans=5)
     model = PJAE_conv.ModelSpatial(in_ch=5)
     model = swin_t_b_encode.SwinTransformerV2B(in_ch=5)
     model = cnn_transformer.CNNTransformer2Heatmap(in_channels=5, 
                                                    img_size=(img_height, img_width),
                                                    output_size=(img_height, img_width))
-    '''
     model = swin_transformer_v2.SwinTransformerV2(img_height=img_height, img_width=img_width,
                                                    in_chans=5, output_H=img_height, output_W=img_width)
+    '''
+    model = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width,
+                                            in_chans=5, num_classes=1)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() >= 2:
@@ -214,14 +214,14 @@ def main():
     model.to(device)
 
     # loss_function = nn.CrossEntropyLoss()
-    # loss_function = ["MSE"]
+    loss_function = ["MSE"]
     # loss_function = ["MAE"]
-    loss_function = ["cos_similarity"]
+    # loss_function = ["cos_similarity"]
     # loss_function = ["cos_MSE", 0.8]
     # loss_function = ["BCE"]
-    optimizer = optim.SGD(model.parameters(), lr=lr)
+    optimizer = optim.SGD(model.parameters(), lr=lr, weight_decay=1e-4)
     # optimizer = optim.Adam(model.parameters(), lr=lr)
-    scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda epoch: 1**epoch)
+    scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda epoch: 0.95**epoch)
 
     writer = SummaryWriter(log_dir="logs")
 

@@ -24,7 +24,6 @@ import train
 import transformer
 import swin_transformer
 import swin_transformer_v2
-import vision_transformer
 import resnet
 import PJAE_spatiotemporal
 import PJAE_spatial
@@ -32,6 +31,7 @@ import vis_transformer
 '''
 import PJAE_conv
 import cnn_transformer
+import vision_transformer
 
 def tensor_to_numpy(tensor2d):
     npy2d = tensor2d.to("cpu").detach().numpy().copy()
@@ -119,7 +119,6 @@ def main():
     img_width = cfg.img_width
 
     '''
-    model = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width, in_chans=4)
     model = resnet.ResNet50(pretrained=False, in_ch=4)
     model = swin_transformer_v2.SwinTransformerV2(img_height=img_height, img_width=img_width,
                                                   in_chans=4, output_H=img_height, output_W=img_width)
@@ -129,13 +128,12 @@ def main():
     model = vis_transformer.VisionTransformer(in_channels=5, patch_size=4, emb_size=64,
                                               img_H=img_height, img_W=img_width, num_layers=2,
                                               num_heads=2, forward_expansion=4, num_classes=128)
-    '''
     model = PJAE_conv.ModelSpatial(in_ch=5)
-    '''
     model = cnn_transformer.CNNTransformer2Heatmap(in_channels=5,
                                                    img_size=(img_height, img_width),
                                                    output_size=(img_height, img_width))
     '''
+    model = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width, in_chans=5, num_classes=1)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:
@@ -164,7 +162,7 @@ def main():
 
     test_data_dir = "data/test"
     test_data = dataset.Dataset(test_data_dir, img_height=img_height, img_width=img_width,
-                                transform=None, is_train=False, inf_rotate=0)
+                                transform=None, is_train=False, inf_rotate=90)
     test_dataloader = DataLoader(test_data, batch_size=1,
                                  shuffle=False, num_workers=1)
     test(test_dataloader, model, loss_function, device)
