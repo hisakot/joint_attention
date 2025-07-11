@@ -10,9 +10,12 @@ from tqdm import tqdm
 
 gt_paths = glob.glob("data/test/gt_heatmap_1ch/*/*.png")
 gt_paths.sort()
-# pred_paths = glob.glob("data/test/pred/result1/*.png")
-pred_paths = glob.glob("data/test/pred/final_jo_att/*.png")
+pred_paths = glob.glob("data/test/pred/result1/*.png")
+# pred_paths = glob.glob("data/test/pred/final_jo_att/*.png")
 pred_paths.sort()
+img_paths = glob.glob("data/test/frames/*/*.png")
+img_paths.sort()
+
 size = len(gt_paths)
 H = 640
 W = 1280
@@ -28,26 +31,29 @@ for i, gt_path in tqdm(enumerate(gt_paths), total=len(gt_paths)):
     # GT
     gt = cv2.imread(gt_path, 0)
     gt = cv2.resize(gt, (W, H))
-    gt = gt.astype(np.float64)
-    gt /= 255.
-    gt_max = np.max(gt)
-    gt_argmax = np.unravel_index(np.argmax(gt), gt.shape)
-    gt_flat = gt.reshape(-1)
+    gt_float = gt.astype(np.float64)
+    gt_float /= 255.
+    gt_argmax = np.unravel_index(np.argmax(gt_float), gt_float.shape)
+    gt_flat = gt_float.reshape(-1)
     gt_flat = np.where(gt_flat > 0, 1, 0)
 
     # PRED
     pred_path = pred_paths[i]
     pred = cv2.imread(pred_path, 0)
     pred = cv2.resize(pred, (W, H))
-    pred = pred.astype(np.float64)
-    pred /= 255.
-    pred_max = np.max(pred)
-    pred_argmax = np.unravel_index(np.argmax(pred), pred.shape)
-    pred_flat = pred.reshape(-1)
+    pred_float = pred.astype(np.float64)
+    pred_float /= 255.
+    pred_argmax = np.unravel_index(np.argmax(pred_float), pred_float.shape)
+    pred_flat = pred_float.reshape(-1)
+
+    # concat image
+    zeros = np.zeros((H, W, 1), dtype=np.uint8)
+    concat = np.concatenate([pred[:, :, np.newaxis], zeros, gt[:, :, np.newaxis]], axis=2)
+    img = cv2.imread(img_paths[i])
+    img = cv2.resize(img, (W, H))
+    result = cv2.addWeighted(img, 1, concat, 1, 0)
 
     # if using pred moment
-    pred = cv2.imread(pred_path, 0)
-    pred = cv2.resize(pred, (W, H))
     pred = pred[:, :, np.newaxis]
     _, pred_binary = cv2.threshold(pred, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     pred_contours, _ = cv2.findContours(pred_binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -69,6 +75,12 @@ for i, gt_path in tqdm(enumerate(gt_paths), total=len(gt_paths)):
                 dist_min[0] = dist_x
                 dist_min[1] = dist_y
                 dist_min[2] = dist_xy
+            cv2.line(result, (cx, cy), (gt_argmax[1], gt_argmax[0]), color=(255, 255, 255),
+                     thickness=2, lineType=cv2.LINE_AA)
+            cv2.drawMarker(result, (cx, cy), color=(255, 0, 0), 
+                           markerType=cv2.MARKER_CROSS, markerSize=20, thickness=3)
+            cv2.drawMarker(result, (gt_argmax[1], gt_argmax[0]), color=(0, 0, 255), 
+                           markerType=cv2.MARKER_CROSS, markerSize=20, thickness=3)
     x += dist_min[0]
     y += dist_min[1]
     xy += dist_min[2]
@@ -123,6 +135,8 @@ for i, gt_path in tqdm(enumerate(gt_paths), total=len(gt_paths)):
     plt.title('ROC Curve')
     plt.legend(loc="lower right")
     plt.savefig('data/test/pred/roc/' + str(i).zfill(6) + '.png')
+
+    cv2.imwrite('data/test/pred/result/' + str(i).zfill(6) + '.png', result)
    
 print("size: ", size)
 x /= size
@@ -134,13 +148,16 @@ thr90 /= size
 auc_sum /= len(gt_paths)
 max_x = max(list_x)
 min_x = min(list_x)
+std_x = np.std(list_x)
 max_y = max(list_y)
 min_y = min(list_y)
+std_y = np.std(list_y)
 max_xy = max(list_xy)
 min_xy = min(list_xy)
-print(f"x: max {max_x}, min {min_x}, ave {x}")
-print(f"y: max {max_y}, min {min_y}, ave {y}")
-print(f"xy: max {max_xy}, min {min_xy}, ave {xy}")
+std_xy = np.std(list_xy)
+print(f"x: max {max_x}, min {min_x}, ave {x}, std {std_x}")
+print(f"y: max {max_y}, min {min_y}, ave {y}, std {std_y}")
+print(f"xy: max {max_xy}, min {min_xy}, ave {xy}, std {std_xy}")
 print("auc: ", auc_sum)
 print("Thr=30: ", thr30)
 print("Thr=60: ", thr60)
