@@ -39,7 +39,8 @@ def tensor_to_numpy(tensor2d):
     npy2d = np.transpose(npy2d, (1, 2, 0))
     npy2d *= 255
     npy2d = npy2d.astype(np.uint8)
-    npy2d = cv2.resize(npy2d, (960, 480))
+    npy2d = cv2.resize(npy2d, (960, 480)) # (960, 480)
+    npy2d = npy2d[:, :, np.newaxis] # (960, 480, 1)
     # npy2d = cv2.applyColorMap(npy2d, cv2.COLORMAP_JET)
     return npy2d
 
@@ -56,7 +57,8 @@ def test(test_dataloader, model, loss_function, device):
             kptmap = inp["kptmap"]
             gazecone = inp["gazecone_map"]
             img = inp["img"]
-            inputs = torch.cat([img, gazecone, kptmap], dim=1)
+            # inputs = torch.cat([img, gazecone, kptmap], dim=1)
+            inputs = torch.cat([gazecone, kptmap], dim=1)
 
             targets = data[1].to(device)
             pred = model(inputs)
@@ -82,9 +84,9 @@ def test(test_dataloader, model, loss_function, device):
                 loss = lossfunc(pred, targets)
             elif loss_function[0] == "cos_MSE":
                 alpha = loss_function[1]
-                pred = pred.view(pred.size(0), -1)
-                targets = targets.view(targets.size(0), -1)
-                cos_loss = 1 - F.cosine_similarity(pred, targets).mean()
+                pred_1vec = pred.view(pred.size(0), -1)
+                targets_1vec = targets.view(targets.size(0), -1)
+                cos_loss = 1 - F.cosine_similarity(pred_1vec, targets_1vec).mean()
                 mse_loss = F.mse_loss(pred, targets)
                 loss = alpha * cos_loss + (1 - alpha) * mse_loss
             elif loss_function[0] == "BCE":
@@ -96,9 +98,9 @@ def test(test_dataloader, model, loss_function, device):
             print(loss)
 
             np_pred = tensor_to_numpy(pred)
-            np_pred = np_pred[:, :, np.newaxis]
             cv2.imwrite("data/test/pred/result1/" + str(i).zfill(6) + ".png", np_pred)
 
+            '''
             np_img = tensor_to_numpy(img)
             np_target = tensor_to_numpy(targets)
             np_target = np_target[:, :, np.newaxis]
@@ -106,6 +108,7 @@ def test(test_dataloader, model, loss_function, device):
             result = np.concatenate([np_pred, zero, np_target], axis=2)
             result_img = cv2.addWeighted(np_img, 0.7, result, 1, 0)
             cv2.imwrite("data/test/pred/gaze_mult_allaround_augmentation_0/" + str(i).zfill(6) + ".png", result_img)
+            '''
             print("------------")
 
 def main():
@@ -133,7 +136,7 @@ def main():
                                                    img_size=(img_height, img_width),
                                                    output_size=(img_height, img_width))
     '''
-    model = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width, in_chans=5, num_classes=1)
+    model = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width, in_chans=2, num_classes=1)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:
@@ -145,8 +148,8 @@ def main():
 
     # loss_function = ["MSE"]
     # loss_function = ["MAE"]
-    loss_function = ["cos_similarity"]
-    # loss_function = ["cos_MSE", 0.5]
+    # loss_function = ["cos_similarity"]
+    loss_function = ["cos_MSE", 0.8]
 
     checkpoint = torch.load(args.model)
     if torch.cuda.device_count() >= 1:
@@ -162,7 +165,7 @@ def main():
 
     test_data_dir = "data/test"
     test_data = dataset.Dataset(test_data_dir, img_height=img_height, img_width=img_width,
-                                transform=None, is_train=False, inf_rotate=90)
+                                transform=None, is_train=False, inf_rotate=0)
     test_dataloader = DataLoader(test_data, batch_size=1,
                                  shuffle=False, num_workers=1)
     test(test_dataloader, model, loss_function, device)

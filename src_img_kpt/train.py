@@ -59,7 +59,8 @@ def train(train_dataloader, model, loss_function, optimizer, device):
             img = inp["img"]
             gazecone = inp["gazecone_map"]
             kptmap = inp["kptmap"]
-            inputs = torch.cat([img, gazecone, kptmap], dim=1)
+            # inputs = torch.cat([img, gazecone, kptmap], dim=1)
+            inputs = torch.cat([gazecone, kptmap], dim=1)
 
             targets = data[1].to(device)
             pred = model(inputs)
@@ -122,7 +123,8 @@ def evaluate(val_dataloader, model, loss_function, device):
                 kptmap = inp["kptmap"]
                 gazecone = inp["gazecone_map"]
                 img = inp["img"]
-                inputs = torch.cat([img, gazecone, kptmap], dim=1)
+                # inputs = torch.cat([img, gazecone, kptmap], dim=1)
+                inputs = torch.cat([gazecone, kptmap], dim=1)
 
                 targets = data[1].to(device)
                 pred = model(inputs)
@@ -175,13 +177,10 @@ def main():
     parser.add_argument("--checkpoint", required=False,
                         help="if you want to retry training, write model path")
     args = parser.parse_args()
-
-    cfg = config.Config()
-
     batch_size = args.batch_size
 
+    cfg = config.Config()
     lr = cfg.lr
-
     img_height = cfg.img_height
     img_width = cfg.img_width
 
@@ -203,25 +202,25 @@ def main():
                                                    in_chans=5, output_H=img_height, output_W=img_width)
     '''
     model = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width,
-                                            in_chans=5, num_classes=1)
+                                        in_chans=2, num_classes=1)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() >= 2:
-        print("---------- Use GPU ----------")
+        print('---------- Use GPUs ----------')
         # model = nn.DataParallel(model)
     else:
-        print("---------- Use CPU ----------")
+        print(f'---------- Use {device} ----------')
     model.to(device)
 
     # loss_function = nn.CrossEntropyLoss()
-    loss_function = ["MSE"]
+    # loss_function = ["MSE"]
     # loss_function = ["MAE"]
     # loss_function = ["cos_similarity"]
-    # loss_function = ["cos_MSE", 0.8]
+    loss_function = ["cos_MSE", 0.8]
     # loss_function = ["BCE"]
     optimizer = optim.SGD(model.parameters(), lr=lr, weight_decay=1e-4)
     # optimizer = optim.Adam(model.parameters(), lr=lr)
-    scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda epoch: 0.95**epoch)
+    scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.95)
 
     writer = SummaryWriter(log_dir="logs")
 
