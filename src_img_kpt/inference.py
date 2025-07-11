@@ -131,18 +131,19 @@ def main():
     model = vis_transformer.VisionTransformer(in_channels=5, patch_size=4, emb_size=64,
                                               img_H=img_height, img_W=img_width, num_layers=2,
                                               num_heads=2, forward_expansion=4, num_classes=128)
-    model = PJAE_conv.ModelSpatial(in_ch=5)
     model = cnn_transformer.CNNTransformer2Heatmap(in_channels=5,
                                                    img_size=(img_height, img_width),
                                                    output_size=(img_height, img_width))
+    model = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width,
+                                        in_chans=2, num_classes=1)
     '''
-    model = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width, in_chans=2, num_classes=1)
+    model = PJAE_conv.ModelSpatial(in_ch=2)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    if torch.cuda.device_count() > 0:
-        print("---------- Use GPU ----------")
+    if torch.cuda.device_count() > 2:
+        print("---------- Use GPUs ----------")
     else:
-        print("---------- Use CPU ----------")
+        print(f"---------- Use {device} ----------")
     # model.half().to(device)
     model.to(device)
 
