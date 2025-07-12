@@ -82,7 +82,7 @@ class TransformerBlock(nn.Module):
 class Upsampling(nn.Module):
     def __init__(self):
         super(Upsampling, self).__init__()
-        self.pixshuffle = nn.PixelShuffle(scale_fuctor=2)
+        self.pixshuffle = nn.PixelShuffle(upscale_factor=2)
 
     def forward(self, x):
         B, L, C = x.shape
@@ -92,33 +92,37 @@ class Upsampling(nn.Module):
         x = self.pixshuffle(x)
         return x
 
+'''
 class VisionTransformer(nn.Module):
         self.to_cls_token = nn.Identity()
         self.mlp_head = nn.Sequential(
             nn.LayerNorm(emb_size),
             nn.Linear(emb_size, num_classes*2)
         )
+'''
 
 class TransGAN(nn.Module):
-    def __init__(self, patch_size, emb_size, img_height, img_width, in_ch):
+    def __init__(self, patch_size, emb_size, num_heads, forward_expansion, img_height, img_width, in_ch):
         super(TransGAN, self).__init__()
-        self.embedding = PatchEmbedding(in_ch, patch_size, emb_size, img_H, img_W)
+        self.embedding = PatchEmbedding(in_ch, patch_size, emb_size, img_height, img_width)
         self.encoder = TransformerBlock(emb_size, num_heads, forward_expansion)
         self.upsampling = Upsampling()
-        self.fc = nn.Liniar(TODO, 1) # TODO
+        self.fc = nn.Linear(8, 1) # TODO
 
     def forward(self, x):
         B, H, W, C = x.shape
-        print(x.shape)
         x = self.embedding(x)
+        x = self.encoder(x) # (B, 12801, 1024)
+        print(x.shape)
+        x = self.upsampling(x)
+        print(x.shape)
+        x = self.encoder(x)
+        print(x.shape)
+        x = self.upsampling(x)
         print(x.shape)
         x = self.encoder(x)
         print(x.shape)
         exit()
-        x = self.upsampling(x)
-        x = self.encoder(x)
-        x = self.upsampling(x)
-        x = self.encoder(x)
         x = self.fc(x)
         x = torch.reshape(x, (-1, img_H, img_W, 1))
         return output
