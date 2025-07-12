@@ -18,7 +18,7 @@ class PatchEmbedding(nn.Module):
         b, c, h, w = x.shape
         p = self.patch_size
 
-        x = x.view(b, c, h // p, p, w // p // 2, p)
+        x = x.view(b, c, h // p, p, w // p, p)
         x = x.permute(0, 2, 4, 3, 5, 1).contiguous().view(b, -1, p * p * 2 * c)
 
         # Patch to embedding
@@ -113,8 +113,8 @@ class TransGAN(nn.Module):
 
     def forward(self, x):
         B, H, W, C = x.shape
-        x = self.embedding(x)
-        x = self.encoder(x) # (B, 12801, 1024)
+        x = self.embedding(x) # (B, 6400, 1024)
+        x = self.encoder(x) # (B, 6400, 1024)
         print(x.shape)
         x = self.upsampling(x)
         print(x.shape)
