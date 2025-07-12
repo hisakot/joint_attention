@@ -59,8 +59,7 @@ def train(train_dataloader, model, loss_function, optimizer, device):
             img = inp["img"]
             gazecone = inp["gazecone_map"]
             kptmap = inp["kptmap"]
-            # inputs = torch.cat([img, gazecone, kptmap], dim=1)
-            inputs = torch.cat([gazecone, kptmap], dim=1)
+            inputs = torch.cat([img, gazecone, kptmap], dim=1)
 
             targets = data[1].to(device)
             pred = model(inputs)
@@ -123,8 +122,7 @@ def evaluate(val_dataloader, model, loss_function, device):
                 kptmap = inp["kptmap"]
                 gazecone = inp["gazecone_map"]
                 img = inp["img"]
-                # inputs = torch.cat([img, gazecone, kptmap], dim=1)
-                inputs = torch.cat([gazecone, kptmap], dim=1)
+                inputs = torch.cat([img, gazecone, kptmap], dim=1)
 
                 targets = data[1].to(device)
                 pred = model(inputs)
@@ -202,7 +200,7 @@ def main():
     model = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width,
                                         in_chans=2, num_classes=1)
     '''
-    model = PJAE_conv.ModelSpatial(in_ch=2)
+    model = PJAE_conv.ModelSpatial(in_ch=5)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() >= 2:

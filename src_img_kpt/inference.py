@@ -57,8 +57,7 @@ def test(test_dataloader, model, loss_function, device):
             kptmap = inp["kptmap"]
             gazecone = inp["gazecone_map"]
             img = inp["img"]
-            # inputs = torch.cat([img, gazecone, kptmap], dim=1)
-            inputs = torch.cat([gazecone, kptmap], dim=1)
+            inputs = torch.cat([img, gazecone, kptmap], dim=1)
 
             targets = data[1].to(device)
             pred = model(inputs)
@@ -100,7 +99,6 @@ def test(test_dataloader, model, loss_function, device):
             np_pred = tensor_to_numpy(pred)
             cv2.imwrite("data/test/pred/result1/" + str(i).zfill(6) + ".png", np_pred)
 
-            '''
             np_img = tensor_to_numpy(img)
             np_target = tensor_to_numpy(targets)
             np_target = np_target[:, :, np.newaxis]
@@ -108,7 +106,6 @@ def test(test_dataloader, model, loss_function, device):
             result = np.concatenate([np_pred, zero, np_target], axis=2)
             result_img = cv2.addWeighted(np_img, 0.7, result, 1, 0)
             cv2.imwrite("data/test/pred/gaze_mult_allaround_augmentation_0/" + str(i).zfill(6) + ".png", result_img)
-            '''
             print("------------")
 
 def main():
@@ -137,7 +134,7 @@ def main():
     model = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width,
                                         in_chans=2, num_classes=1)
     '''
-    model = PJAE_conv.ModelSpatial(in_ch=2)
+    model = PJAE_conv.ModelSpatial(in_ch=5)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 2:
