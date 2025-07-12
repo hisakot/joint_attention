@@ -88,9 +88,9 @@ class Upsampling(nn.Module):
 
     def forward(self, x):
         B, L, C = x.shape
-        re_size = int(math.sqrt(L))
+        re_size = int(math.sqrt(L // 2))
         re_ch = int(C / 4)
-        x = torch.reshape(x, (-1, re_size, re_size, re_ch))
+        x = torch.reshape(x, (-1, re_size, re_size * 2, re_ch))
         x = self.pixshuffle(x)
         return x
 
