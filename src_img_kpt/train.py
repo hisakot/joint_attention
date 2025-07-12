@@ -35,6 +35,7 @@ import PJAE_conv
 import cnn_transformer
 import swin_transformer_v2
 import vision_transformer
+import transGan
 
 def print_memory_usage():
     allocated = torch.cuda.memory_allocated() / 1024**2
@@ -201,6 +202,8 @@ def main():
                                         in_chans=2, num_classes=1)
     '''
     model = PJAE_conv.ModelSpatial(in_ch=5)
+    model = transGan.TransGAN(patch_size=4, emb_size=1024,
+                              img_height=img_height, img_width=img_width, in_ch=5)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() >= 2:
