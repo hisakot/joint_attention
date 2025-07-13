@@ -10,16 +10,16 @@ class PatchEmbedding(nn.Module):
         super(PatchEmbedding, self).__init__()
         self.patch_size = patch_size
         self.emb_size = emb_size
-        self.projection = nn.Linear(patch_size * patch_size * 2 * in_channels, emb_size)
+        self.projection = nn.Linear(patch_size * patch_size * in_channels, emb_size)
         # self.cls_token = nn.Parameter(torch.randn(1, 1, emb_size))
-        self.position_embeddings = nn.Parameter(torch.randn((img_H // patch_size) * (img_W // patch_size // 2), emb_size))
+        self.position_embeddings = nn.Parameter(torch.randn((img_H // patch_size) * (img_W // patch_size), emb_size))
 
     def forward(self, x):
         b, c, h, w = x.shape
         p = self.patch_size
 
-        x = x.view(b, c, h // p, p, w // p // 2, p * 2)
-        x = x.permute(0, 2, 4, 3, 5, 1).contiguous().view(b, -1, p * p * 2 * c)
+        x = x.view(b, c, h // p, p, w // p, p)
+        x = x.permute(0, 2, 4, 3, 5, 1).contiguous().view(b, -1, p * p * c)
 
         # Patch to embedding
         x = self.projection(x)
