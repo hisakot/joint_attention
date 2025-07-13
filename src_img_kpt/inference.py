@@ -61,6 +61,8 @@ def test(test_dataloader, model, loss_function, device):
 
             targets = data[1].to(device)
             pred = model(inputs)
+            print(targets.shape)
+            print(pred.shape)
 
             '''
             pred_sigmoid = torch.sigmoid(pred)
@@ -96,7 +98,7 @@ def test(test_dataloader, model, loss_function, device):
                 print("Loss function is wrong")
             print(loss)
 
-            print(pred.shape)
+            exit()
             np_pred = tensor_to_numpy(pred)
             np_pred = np_pred[:, :, np.newaxis] # (960, 480, 1)
             cv2.imwrite("data/test/pred/result1/" + str(i).zfill(6) + ".png", np_pred)
