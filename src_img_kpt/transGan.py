@@ -18,7 +18,7 @@ class PatchEmbedding(nn.Module):
         b, c, h, w = x.shape
         p = self.patch_size
 
-        x = x.view(b, c, h // p, p, w // p, p)
+        x = x.view(b, c, h // p, p, w // p // 2, p * 2)
         x = x.permute(0, 2, 4, 3, 5, 1).contiguous().view(b, -1, p * p * 2 * c)
 
         # Patch to embedding
