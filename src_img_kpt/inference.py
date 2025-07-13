@@ -32,6 +32,7 @@ import vis_transformer
 import PJAE_conv
 import cnn_transformer
 import vision_transformer
+import transGan
 
 def tensor_to_numpy(tensor2d):
     npy2d = tensor2d.to("cpu").detach().numpy().copy()
@@ -135,6 +136,8 @@ def main():
                                         in_chans=2, num_classes=1)
     '''
     model = PJAE_conv.ModelSpatial(in_ch=5)
+    model = transGan.TransGAN(patch_size=4, emb_size=256, num_heads=2, forward_expansion=4,
+                              img_height=img_height, img_width=img_width, in_ch=5)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 2:
@@ -146,8 +149,8 @@ def main():
 
     # loss_function = ["MSE"]
     # loss_function = ["MAE"]
-    # loss_function = ["cos_similarity"]
-    loss_function = ["cos_MSE", 0.8]
+    loss_function = ["cos_similarity"]
+    # loss_function = ["cos_MSE", 0.8]
 
     checkpoint = torch.load(args.model)
     if torch.cuda.device_count() >= 1:
