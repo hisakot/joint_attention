@@ -129,5 +129,6 @@ class TransGAN(nn.Module):
         x = self.encoder3(x) # (B, 20000, 16)
         x = self.fc(x) # (B, 20000, 1)
         x = torch.reshape(x, (-1, self.img_height, self.img_width, 1)) # (B, 100, 200, 1)
+        x = x.permute(0, 3, 1, 2) # (B, 1, 100, 200)
         x = self.sigmoid(x)
         return x
