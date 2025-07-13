@@ -109,27 +109,25 @@ class VisionTransformer(nn.Module):
 class TransGAN(nn.Module):
     def __init__(self, patch_size, emb_size, num_heads, forward_expansion, img_height, img_width, in_ch):
         super(TransGAN, self).__init__()
+        self.img_height = img_height
+        self.img_width = img_width
         self.embedding = PatchEmbedding(in_ch, patch_size, emb_size, img_height, img_width)
         self.encoder1 = TransformerBlock(emb_size, num_heads, forward_expansion)
         self.encoder2 = TransformerBlock(emb_size // 4, num_heads, forward_expansion)
         self.encoder3 = TransformerBlock(emb_size // (4**2), num_heads, forward_expansion)
         self.upsampling = Upsampling()
-        self.fc = nn.Linear(8, 1) # TODO
+        self.fc = nn.Linear(emb_size // (4**2), 1) # TODO
+        self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
         B, H, W, C = x.shape
-        x = self.embedding(x) # (B, 12800, 1024)
-        x = self.encoder1(x) # (B, 12800, 1024)
-        print(x.shape)
-        x = self.upsampling(x) # (B, 51200, 256)
-        print(x.shape)
-        x = self.encoder2(x)
-        print(x.shape)
-        x = self.upsampling(x)
-        print(x.shape)
-        x = self.encoder3(x)
-        print(x.shape)
-        exit()
-        x = self.fc(x)
-        x = torch.reshape(x, (-1, img_H, img_W, 1))
-        return output
+        x = self.embedding(x) # (B, 1250, 256)
+        x = self.encoder1(x) # (B, 1250, 256)
+        x = self.upsampling(x) # (B, 5000, 64)
+        x = self.encoder2(x) # (B, 5000, 64)
+        x = self.upsampling(x) # (B, 20000, 16)
+        x = self.encoder3(x) # (B, 20000, 16)
+        x = self.fc(x) # (B, 20000, 1)
+        x = torch.reshape(x, (-1, self.img_height, self.img_width, 1)) # (B, 100, 200, 1)
+        x = self.sigmoid(x)
+        return x
