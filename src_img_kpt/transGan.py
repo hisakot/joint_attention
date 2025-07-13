@@ -110,22 +110,24 @@ class TransGAN(nn.Module):
     def __init__(self, patch_size, emb_size, num_heads, forward_expansion, img_height, img_width, in_ch):
         super(TransGAN, self).__init__()
         self.embedding = PatchEmbedding(in_ch, patch_size, emb_size, img_height, img_width)
-        self.encoder = TransformerBlock(emb_size, num_heads, forward_expansion)
+        self.encoder1 = TransformerBlock(emb_size, num_heads, forward_expansion)
+        self.encoder2 = TransformerBlock(emb_size // 4, num_heads, forward_expansion)
+        self.encoder3 = TransformerBlock(emb_size // (4**2), num_heads, forward_expansion)
         self.upsampling = Upsampling()
         self.fc = nn.Linear(8, 1) # TODO
 
     def forward(self, x):
         B, H, W, C = x.shape
         x = self.embedding(x) # (B, 12800, 1024)
-        x = self.encoder(x) # (B, 12800, 1024)
+        x = self.encoder1(x) # (B, 12800, 1024)
         print(x.shape)
         x = self.upsampling(x) # (B, 51200, 256)
         print(x.shape)
-        x = self.encoder(x)
+        x = self.encoder2(x)
         print(x.shape)
         x = self.upsampling(x)
         print(x.shape)
-        x = self.encoder(x)
+        x = self.encoder3(x)
         print(x.shape)
         exit()
         x = self.fc(x)
