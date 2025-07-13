@@ -104,6 +104,7 @@ def test(test_dataloader, model, loss_function, device):
             np_target = tensor_to_numpy(targets)
             np_target = np_target[:, :, np.newaxis]
             zero = np.zeros((480, 960, 1), dtype=np.uint8)
+            print(np_pred.shape, np_target.shape, zero.shape)
             result = np.concatenate([np_pred, zero, np_target], axis=2)
             result_img = cv2.addWeighted(np_img, 0.7, result, 1, 0)
             cv2.imwrite("data/test/pred/gaze_mult_allaround_augmentation_0/" + str(i).zfill(6) + ".png", result_img)
