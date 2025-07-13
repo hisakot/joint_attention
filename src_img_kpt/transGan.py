@@ -89,9 +89,12 @@ class Upsampling(nn.Module):
     def forward(self, x):
         B, L, C = x.shape
         re_size = int(math.sqrt(L // 2))
-        # re_ch = int(C / 4)
-        x = torch.reshape(x, (B, re_size, re_size * 2, C))
+        x = x.permute(0, 2, 1)
+        x = torch.reshape(x, (B, C, re_size, re_size * 2))
         x = self.pixshuffle(x)
+        B, C, H, W = x.shape
+        x = torch.reshape(x, (B, C, H * W))
+        x = x.permute(0, 2, 1)
         return x
 
 '''
@@ -113,10 +116,10 @@ class TransGAN(nn.Module):
 
     def forward(self, x):
         B, H, W, C = x.shape
-        x = self.embedding(x) # (B, 6400, 1024)
-        x = self.encoder(x) # (B, 6400, 1024)
+        x = self.embedding(x) # (B, 12800, 1024)
+        x = self.encoder(x) # (B, 12800, 1024)
         print(x.shape)
-        x = self.upsampling(x)
+        x = self.upsampling(x) # (B, 51200, 256)
         print(x.shape)
         x = self.encoder(x)
         print(x.shape)
