@@ -41,7 +41,6 @@ def tensor_to_numpy(tensor2d):
     npy2d *= 255
     npy2d = npy2d.astype(np.uint8)
     npy2d = cv2.resize(npy2d, (960, 480)) # (960, 480)
-    npy2d = npy2d[:, :, np.newaxis] # (960, 480, 1)
     # npy2d = cv2.applyColorMap(npy2d, cv2.COLORMAP_JET)
     return npy2d
 
@@ -97,7 +96,9 @@ def test(test_dataloader, model, loss_function, device):
                 print("Loss function is wrong")
             print(loss)
 
+            print(pred.shape)
             np_pred = tensor_to_numpy(pred)
+            np_pred = np_pred[:, :, np.newaxis] # (960, 480, 1)
             cv2.imwrite("data/test/pred/result1/" + str(i).zfill(6) + ".png", np_pred)
 
             np_img = tensor_to_numpy(img)
