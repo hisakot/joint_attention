@@ -136,7 +136,7 @@ def main():
                                         in_chans=2, num_classes=1)
     '''
     model = PJAE_conv.ModelSpatial(in_ch=5)
-    model = transGan.TransGAN(patch_size=4, emb_size=256, num_heads=2, forward_expansion=4,
+    model = transGan.TransGAN(patch_size=10, emb_size=512, num_heads=2, forward_expansion=4,
                               img_height=img_height, img_width=img_width, in_ch=5)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
