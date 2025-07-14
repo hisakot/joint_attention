@@ -128,7 +128,11 @@ class TransGAN(nn.Module):
         x = self.upsampling(x) # (B, 20000, 16)
         x = self.encoder3(x) # (B, 20000, 16)
         x = self.fc(x) # (B, 20000, 1)
-        x = torch.reshape(x, (-1, self.img_height, self.img_width, 1)) # (B, 100, 200, 1)
+        B, L, C = x.shape
+        height = int(math.sqrt(L // 2))
+        width = int(height * 2)
+        x = torch.reshape(x, (B, height, width, 1)) # (B, 100, 200, 1)
         x = x.permute(0, 3, 1, 2) # (B, 1, 100, 200)
         x = self.sigmoid(x)
+        x = F.interpolate(x, (self.img_height, self.img_width), mode='bilinear', align_corners=False)
         return x

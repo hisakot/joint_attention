@@ -202,7 +202,7 @@ def main():
                                         in_chans=2, num_classes=1)
     '''
     model = PJAE_conv.ModelSpatial(in_ch=5)
-    model = transGan.TransGAN(patch_size=4, emb_size=256, num_heads=2, forward_expansion=4,
+    model = transGan.TransGAN(patch_size=10, emb_size=512, num_heads=2, forward_expansion=4,
                               img_height=img_height, img_width=img_width, in_ch=5)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -221,7 +221,7 @@ def main():
     # loss_function = ["BCE"]
     optimizer = optim.SGD(model.parameters(), lr=lr, weight_decay=1e-4)
     # optimizer = optim.Adam(model.parameters(), lr=lr)
-    scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.95)
+    scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=1)
 
     writer = SummaryWriter(log_dir="logs")
 
