@@ -111,7 +111,7 @@ class TransGAN(nn.Module):
         super(TransGAN, self).__init__()
         self.img_height = img_height
         self.img_width = img_width
-        self.embedding = PatchEmbedding(in_ch, patch_size, emb_size, img_height, img_width)
+        self.embedding = PatchEmbedding(in_ch, patch_size, emb_size, 100, 200)
         self.encoder1 = TransformerBlock(emb_size, num_heads, forward_expansion)
         self.encoder2 = TransformerBlock(emb_size // 4, num_heads, forward_expansion)
         self.encoder3 = TransformerBlock(emb_size // (4**2), num_heads, forward_expansion)
@@ -121,6 +121,7 @@ class TransGAN(nn.Module):
 
     def forward(self, x):
         B, H, W, C = x.shape
+        x = F.interpolate(x, (100, 200), mode='bilinear', align_corners=False)
         x = self.embedding(x) # (B, 1250, 256)
         x = self.encoder1(x) # (B, 1250, 256)
         x = self.upsampling(x) # (B, 5000, 64)
