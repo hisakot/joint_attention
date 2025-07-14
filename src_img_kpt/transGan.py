@@ -97,6 +97,29 @@ class Upsampling(nn.Module):
         x = x.permute(0, 2, 1)
         return x
 
+class UpConvBlock(nn.Module):
+    def __init__(self, in_ch, out_ch):
+        super().__init__()
+        self.up = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=False)
+        self.conv = nn.Sequential(
+                nn.Conv2d(in_ch, out_ch, kernel_size=3, padding=1),
+                nn.BatchNorm2d(out_ch)
+                nn.ReLU(inplace=True)
+                )
+
+    def forward(self, x):
+        B, L, C = x.shape
+        height = int(math.sqrt(L // 2))
+        width = int(height * 2)
+        x = torch.reshape(x, (B, height, width, 1)) # (B, 100, 200, 1)
+        print(x.shape)
+        x = x.permute(0, 3, 1, 2) # (B, 1, 100, 200)
+        print(x.shape)
+        x = self.up(x)
+        x = self.conv(x)
+        print(x.shape)
+        return x
+
 '''
 class VisionTransformer(nn.Module):
         self.to_cls_token = nn.Identity()
@@ -116,6 +139,7 @@ class TransGAN(nn.Module):
         self.encoder2 = TransformerBlock(emb_size // 4, num_heads, forward_expansion)
         self.encoder3 = TransformerBlock(emb_size // (4**2), num_heads, forward_expansion)
         self.upsampling = Upsampling()
+        self.upconv = UpConvBlock(1, 1)
         self.fc = nn.Linear(emb_size // (4**2), 1) # TODO
         self.sigmoid = nn.Sigmoid()
 
@@ -129,11 +153,7 @@ class TransGAN(nn.Module):
         x = self.upsampling(x) # (B, 20000, 16)
         x = self.encoder3(x) # (B, 20000, 16)
         x = self.fc(x) # (B, 20000, 1)
-        B, L, C = x.shape
-        height = int(math.sqrt(L // 2))
-        width = int(height * 2)
-        x = torch.reshape(x, (B, height, width, 1)) # (B, 100, 200, 1)
-        x = x.permute(0, 3, 1, 2) # (B, 1, 100, 200)
+        x = self.upconv(x)
         x = self.sigmoid(x)
         x = F.interpolate(x, (self.img_height, self.img_width), mode='bilinear', align_corners=False)
         return x
