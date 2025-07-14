@@ -100,10 +100,10 @@ class Upsampling(nn.Module):
 class UpConvBlock(nn.Module):
     def __init__(self, in_ch, out_ch):
         super().__init__()
-        self.up = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=False)
+        self.up = nn.Upsample(scale_factor=4, mode='bilinear', align_corners=False)
         self.conv = nn.Sequential(
                 nn.Conv2d(in_ch, out_ch, kernel_size=3, padding=1),
-                nn.BatchNorm2d(out_ch)
+                nn.BatchNorm2d(out_ch),
                 nn.ReLU(inplace=True)
                 )
 
@@ -112,12 +112,9 @@ class UpConvBlock(nn.Module):
         height = int(math.sqrt(L // 2))
         width = int(height * 2)
         x = torch.reshape(x, (B, height, width, 1)) # (B, 100, 200, 1)
-        print(x.shape)
         x = x.permute(0, 3, 1, 2) # (B, 1, 100, 200)
-        print(x.shape)
         x = self.up(x)
         x = self.conv(x)
-        print(x.shape)
         return x
 
 '''
@@ -146,14 +143,14 @@ class TransGAN(nn.Module):
     def forward(self, x):
         B, H, W, C = x.shape
         x = F.interpolate(x, (100, 200), mode='bilinear', align_corners=False)
-        x = self.embedding(x) # (B, 1250, 256)
-        x = self.encoder1(x) # (B, 1250, 256)
-        x = self.upsampling(x) # (B, 5000, 64)
-        x = self.encoder2(x) # (B, 5000, 64)
-        x = self.upsampling(x) # (B, 20000, 16)
-        x = self.encoder3(x) # (B, 20000, 16)
-        x = self.fc(x) # (B, 20000, 1)
-        x = self.upconv(x)
+        x = self.embedding(x) # (B, 200, 256)
+        x = self.encoder1(x) # (B, 200, 256)
+        x = self.upsampling(x) # (B, 800, 64)
+        x = self.encoder2(x) # (B, 800, 64)
+        x = self.upsampling(x) # (B, 3200, 16)
+        x = self.encoder3(x) # (B, 3200, 16)
+        x = self.fc(x) # (B, 3200, 1)
+        x = self.upconv(x) # (B, 1, 160, 320)
         x = self.sigmoid(x)
         x = F.interpolate(x, (self.img_height, self.img_width), mode='bilinear', align_corners=False)
         return x
