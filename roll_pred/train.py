@@ -42,10 +42,12 @@ def train(train_dataloader, model, loss_function, optimizer, device):
         for images, targets in train_dataloader:
             for img, target in zip(images, targets):
                 img = img.to(device)
+                keypoints = target["keypoints"].to(device)
                 bboxes = target["bboxes"].to(device)
                 labels = target["labels"].to(device)
 
-                pred = model(img.unsqueeze(0), [bboxes])
+                # pred = model(img.unsqueeze(0), [bboxes])
+                pred = model(keypoints)
 
                 if loss_function[0] == "cos_similarity":
                     pred = pred.view(pred.size(0), -1)
@@ -82,10 +84,12 @@ def evaluate(val_dataloader, model, loss_function, device):
             for images, targets in val_dataloader:
                 for img, target in zip(images, targets):
                     img = img.to(device)
+                    keypoints = target["keypoints"].to(device)
                     bboxes = target["bboxes"].to(device)
                     labels = target["labels"].to(device)
 
-                    pred = model(img.unsqueeze(0), [bboxes])
+                    # pred = model(img.unsqueeze(0), [bboxes])
+                    pred = model(keypoints)
 
                     if loss_function[0] == "cos_similarity":
                         pred = pred.view(pred.size(0), -1)
@@ -123,6 +127,7 @@ def main():
     img_width = cfg.img_width
 
     model = classifier.ROIClassifier(num_classes=7)
+    model = classifier.MLPClassifier(input_dim=266, num_classes=7)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() >= 2:

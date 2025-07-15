@@ -26,3 +26,17 @@ class ROIClassifier(nn.Module):
         roi_features = roi_align(features, rois, output_size=(7, 7))
         outputs = self.classifier(roi_features)
         return outputs # (total_rois, num_classes)
+
+class MLPClassifier(nn.Module):
+    def __init__(self, input_dim, num_classes):
+        super().__init__()
+        self.fc = nn.Sequential(
+                nn.Linear(input_dim, 256),
+                nn.ReLU(),
+                nn.Linear(256, 128),
+                nn.ReLU(),
+                nn.Linear(128, num_classes)
+                )
+
+    def forward(self, x):
+        return self.fc(x)

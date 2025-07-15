@@ -44,9 +44,13 @@ class Dataset(Dataset):
         frame_id = mmpose["frame_id"]
         instances = mmpose["instances"]
 
+        keypoints = []
         bboxes = []
         rolls = []
         for instance in instances:
+            keypoint = np.array(instance["keypoints"])
+            keypoint = keypoint.flatten()
+            keypoints.append(keypoint)
             bbox = instance["bbox"][0]
             bbox = [int(v) for v in bbox]
             bboxes.append(bbox)
@@ -56,6 +60,7 @@ class Dataset(Dataset):
             except KeyError:
                 pass
             rolls.append(roll)
+        keypoints = np.array(keypoints)
 
         # frame image
         img = cv2.imread(self.img_paths[idx], 1) # H, W, C (gray scale-> 0)
@@ -66,7 +71,8 @@ class Dataset(Dataset):
         img = torch.tensor(img, dtype=torch.float32)
 
         # labels
-        targets = {"bboxes" : torch.tensor(bboxes, dtype=torch.float32),
+        targets = {"keypoints" : torch.from_numpy(keypoints).float(),
+                   "bboxes" : torch.tensor(bboxes, dtype=torch.float32),
                    "labels" : torch.tensor(rolls, dtype= torch.float32),
                    }
 
