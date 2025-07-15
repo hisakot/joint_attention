@@ -51,7 +51,10 @@ class Dataset(Dataset):
             bbox = [int(v) for v in bbox]
             bboxes.append(bbox)
             roll = [0] * len(ROLL)
-            roll[ROLL.index(instance["roll"])] += 1
+            try:
+                roll[ROLL.index(instance["roll"])] += 1
+            except KeyError:
+                pass
             rolls.append(roll)
 
         # frame image

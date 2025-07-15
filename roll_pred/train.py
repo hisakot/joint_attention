@@ -57,7 +57,7 @@ def train(train_dataloader, model, loss_function, optimizer, device):
                     loss = lossfunc(pred, labels)
                 elif loss_function[0] == "CrossEntropyLoss":
                     labels = torch.argmax(labels, dim=1)
-                    lossfunc = nn.CrossEntropyLoss()
+                    lossfunc = nn.CrossEntropyLoss(weight=loss_function[1])
                     loss = lossfunc(pred, labels)
                 else:
                     print("Loss function is wrong")
@@ -132,7 +132,8 @@ def main():
         print(f'---------- Use {device} ----------')
     model.to(device)
 
-    loss_function = ["CrossEntropyLoss"]
+    class_weight = torch.tensor([0.6704204716137199, 0.05643845806952233, 0.039862838852707666, 0.09454647676603742, 0.04994102835948702, 0.0735012477184477, 0.015289478620077922], dtype=torch.float).to(device)
+    loss_function = ["CrossEntropyLoss", class_weight]
     # loss_function = ["MSE"]
     optimizer = optim.SGD(model.parameters(), lr=lr, weight_decay=1e-4)
     # optimizer = optim.Adam(model.parameters(), lr=lr)
