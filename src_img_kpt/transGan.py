@@ -99,11 +99,11 @@ class Upsampling(nn.Module):
 
 class UpSampleBlock(nn.Module):
     def __init__(self, in_dim, out_dim):
-        duper().__init__()
+        super().__init__()
         self.block = nn.Sequential(
                 nn.Upsample(scale_factor=2, mode='bilinear', align_corners=False),
-                nn.Conv2d(in_dim, out_dim, stride=3, padding=1),
-                nn.BatchNorm2d(out_dim)
+                nn.Conv2d(in_dim, out_dim, kernel_size=3, padding=1),
+                nn.BatchNorm2d(out_dim), 
                 nn.ReLU(inplace=True)
                 )
 
@@ -139,7 +139,7 @@ class FinalConv(nn.Module):
     def __init__(self, in_ch):
         super().__init__()
         self.out = nn.Sequential(
-                nn.Conv2d(in_ch, 16, stride=3, padding=1),
+                nn.Conv2d(in_ch, 16, kernel_size=3, padding=1),
                 nn.BatchNorm2d(16),
                 nn.ReLU(inplace=True),
                 nn.Conv2d(16, 1, 1),
