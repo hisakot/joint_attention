@@ -97,6 +97,24 @@ class Upsampling(nn.Module):
         x = x.permute(0, 2, 1)
         return x
 
+class UpSampleBlock(nn.Module):
+    def __init__(self, in_dim, out_dim):
+        duper().__init__()
+        self.block = nn.Sequential(
+                nn.Upsample(scale_factor=2, mode='bilinear', align_corners=False),
+                nn.Conv2d(in_dim, out_dim, stride=3, padding=1),
+                nn.BatchNorm2d(out_dim)
+                nn.ReLU(inplace=True)
+                )
+
+    def forward(self, x, H, W):
+        B, L, C = x.shape
+        x = x.transpose(1, 2).contiguous().view(B, C, H, W)
+        x = self.block(x)
+        B, C, H, W = x.shape
+        x = x.view(B, C, -1).transpose(1, 2).contiguous()
+        return x, H, W
+
 class UpConvBlock(nn.Module):
     def __init__(self, in_ch, out_ch):
         super().__init__()
@@ -117,6 +135,21 @@ class UpConvBlock(nn.Module):
         x = self.conv(x)
         return x
 
+class FinalConv(nn.Module):
+    def __init__(self, in_ch):
+        super().__init__()
+        self.out = nn.Sequential(
+                nn.Conv2d(in_ch, 16, stride=3, padding=1),
+                nn.BatchNorm2d(16),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(16, 1, 1),
+                nn.Sigmoid()
+                )
+
+    def forward(self, x):
+        return self.out(x)
+
+
 '''
 class VisionTransformer(nn.Module):
         self.to_cls_token = nn.Identity()
@@ -127,6 +160,53 @@ class VisionTransformer(nn.Module):
 '''
 
 class TransGAN(nn.Module):
+    def __init__(self, patch_size, emb_size, num_heads, forward_expansion, img_height, img_width, in_ch):
+        super(TransGAN, self).__init__()
+        self.img_height = img_height
+        self.img_width = img_width
+
+        # Downsample input for efficiency
+        self.input_size = (100, 200)  # fixed size for patch embedding
+        self.embedding = PatchEmbedding(in_ch, patch_size, emb_size, *self.input_size)
+
+        # Transformer blocks (same emb_size throughout)
+        self.encoder1 = TransformerBlock(emb_size, num_heads, forward_expansion)
+        self.encoder2 = TransformerBlock(emb_size, num_heads, forward_expansion)
+        self.encoder3 = TransformerBlock(emb_size, num_heads, forward_expansion)
+
+        # Upsample blocks
+        self.upsample1 = UpSampleBlock(emb_size, emb_size // 2)
+        self.upsample2 = UpSampleBlock(emb_size // 2, emb_size // 4)
+
+        # Final conv layers
+        self.final_conv = FinalConv(emb_size // 4)
+
+    def forward(self, x):
+        B, H, W, C = x.shape
+        x = F.interpolate(x, self.input_size, mode='bilinear', align_corners=False)
+        x = x.permute(0, 3, 1, 2)  # (B, C, H, W)
+
+        # Patch Embedding
+        x = self.embedding(x)  # (B, L, emb_size)
+
+        # Transformer
+        x = self.encoder1(x)
+        x = self.encoder2(x)
+        x = self.encoder3(x)
+
+        # Upsample 1
+        x, h1, w1 = self.upsample1(x, H=10, W=20)  # H=100/10, W=200/10
+        x, h2, w2 = self.upsample2(x, H=h1, W=w1)
+
+        # Final conv
+        x = x.transpose(1, 2).contiguous().view(B, -1, h2, w2)
+        x = self.final_conv(x)
+
+        # Upsample to original
+        x = F.interpolate(x, (self.img_height, self.img_width), mode='bilinear', align_corners=False)
+        return x
+
+class TransGAN_v1(nn.Module):
     def __init__(self, patch_size, emb_size, num_heads, forward_expansion, img_height, img_width, in_ch):
         super(TransGAN, self).__init__()
         self.img_height = img_height
