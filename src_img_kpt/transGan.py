@@ -177,14 +177,15 @@ class TransGAN(nn.Module):
         # Upsample blocks
         self.upsample1 = UpSampleBlock(emb_size, emb_size // 2)
         self.upsample2 = UpSampleBlock(emb_size // 2, emb_size // 4)
+        self.upsample3 = UpSampleBlock(emb_size // 4, emb_size // 8)
+        self.upsample4 = UpSampleBlock(emb_size // 8, emb_size // 16)
 
         # Final conv layers
-        self.final_conv = FinalConv(emb_size // 4)
+        self.final_conv = FinalConv(emb_size // 16)
 
     def forward(self, x):
         B, H, W, C = x.shape
         x = F.interpolate(x, self.input_size, mode='bilinear', align_corners=False)
-        x = x.permute(0, 3, 1, 2)  # (B, C, H, W)
 
         # Patch Embedding
         x = self.embedding(x)  # (B, L, emb_size)
@@ -197,9 +198,11 @@ class TransGAN(nn.Module):
         # Upsample 1
         x, h1, w1 = self.upsample1(x, H=10, W=20)  # H=100/10, W=200/10
         x, h2, w2 = self.upsample2(x, H=h1, W=w1)
+        x, h3, w3 = self.upsample3(x, H=h2, W=w2)
+        x, h4, w4 = self.upsample4(x, H=h3, W=w3)
 
         # Final conv
-        x = x.transpose(1, 2).contiguous().view(B, -1, h2, w2)
+        x = x.transpose(1, 2).contiguous().view(B, -1, h4, w4)
         x = self.final_conv(x)
 
         # Upsample to original
