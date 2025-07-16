@@ -55,7 +55,7 @@ for i, gt_path in tqdm(enumerate(gt_paths), total=len(gt_paths)):
 
     # if using pred moment
     pred = pred[:, :, np.newaxis]
-    _, pred_binary = cv2.threshold(pred, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    _, pred_binary = cv2.threshold(pred, 127, 255, cv2.THRESH_BINARY)
     pred_contours, _ = cv2.findContours(pred_binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     dist_min = [0, 0, math.sqrt(W**2 + H**2)]
     for cnt in pred_contours:
