@@ -10,6 +10,8 @@ import cv2
 import numpy as np
 from tqdm import tqdm
 
+ROLL = ["NotHuman", "Surgeon", "Assistant", "Anesthesiology", "ScrubNurse", "CirculationNurse", "Visitor"]
+
 def head_direction(face_kpt, H, W):
     image_points = np.array([
         tuple(face_kpt[30]),
@@ -205,9 +207,9 @@ def generate_pose(hs_kpts, H, W, links, sigma=3):
 
     return pose_map
 
-def make_face_bbox(hs_kpts, H, W):
+def make_face_bbox(hs_kpts, hs_roll, H, W):
     data = dict()
-    for id, hs_kpt in enumerate(hs_kpts):
+    for i, hs_kpt in enumerate(hs_kpts):
         face_kpt = hs_kpt[23:91]
         min_x, min_y, max_x, max_y = W, H, 0, 0
         for kpt in face_kpt:
@@ -242,20 +244,23 @@ def make_face_bbox(hs_kpts, H, W):
         xy = math.sqrt(x**2+y**2)
         x /= xy
         y /= xy
-        person_data = {"person_idx" : str(id),
+
+        roll_num = ROLL.index(hs_roll[i])
+
+        person_data = {"person_idx" : str(i),
                        "head_x_center" : str(x_center),
                        "head_y_center" : str(y_center),
                        "head_radius" : str(radius),
                        "gaze_x" : str(x),
                        "gaze_y" : str(y),
-                       "action_num" : "0",
-                       "pred_action_num" : "0"}
-        data.update({str(id) : person_data})
+                       "action_num" : str(roll_num),
+                       "pred_action_num" : str(roll_num)}
+        data.update({str(i) : person_data})
     return data
 
 def make_human_bbox(hs_kpts, H, W, frame_id):
     data = list()
-    for id, hs_kpt in enumerate(hs_kpts):
+    for i, hs_kpt in enumerate(hs_kpts):
         x_min = W
         y_min = H
         x_max = 0
@@ -273,7 +278,7 @@ def make_human_bbox(hs_kpts, H, W, frame_id):
         h = int(y_max - y_min)
         x_min = int(x_min)
         y_min = int(y_min)
-        data.append(f"{id} {x_min} {y_min} {w} {h} {frame_id} 0 0 0 passing \n")
+        data.append(f"{i} {x_min} {y_min} {w} {h} {frame_id} 0 0 0 passing \n")
     return data
 
 def load_mmpose_json(json_path):
@@ -293,7 +298,8 @@ if __name__ == '__main__':
     parser.add_argument("--save_gt", required=False, action="store_true", help="save file name")
     args = parser.parse_args()
 
-    json_paths = glob.glob(os.path.join(args.root, "mmpose/*"))
+    # json_paths = glob.glob(os.path.join(args.root, "mmpose/*"))
+    json_paths = glob.glob(os.path.join(args.root, "roll_ann/*"))
     for json_path in tqdm(json_paths):
         if os.path.isfile(json_path):
             video_name = os.path.splitext(os.path.basename(json_path))[0] # ex.) ds_014
@@ -370,12 +376,15 @@ if __name__ == '__main__':
             frame_id = instance_info["frame_id"]
             instances = instance_info["instances"]
             hs_kpts = [] # high scored keypoints
+            hs_roll = []
 
             for instance in instances:
                 keypoints = instance["keypoints"]
                 scores = instance["keypoint_scores"]
+                roll = instance["roll"]
                 if sum(score >= 0.5 for score in scores) > 133 / 5:
                     hs_kpts.append(keypoints)
+                    hs_roll.append(roll)
             # face bbox
             if i % 20 == 0:
                 csv_num = frame_id
@@ -389,7 +398,7 @@ if __name__ == '__main__':
             if not os.path.exists(save_dir):
                 os.mkdir(save_dir)
             save_path = os.path.join(save_dir, str(frame_id).zfill(6) + ".json")
-            frame_data = make_face_bbox(hs_kpts, H, W)
+            frame_data = make_face_bbox(hs_kpts, hs_roll, H, W)
             with open(save_path, 'w') as f:
                 json.dump(frame_data, f)
 
