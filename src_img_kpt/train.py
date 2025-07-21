@@ -214,11 +214,11 @@ def main():
     model.to(device)
 
     # loss_function = nn.CrossEntropyLoss()
-    # loss_function = ["MSE"]
+    loss_function = ["MSE"]
     # loss_function = ["MAE"]
     # loss_function = ["cos_similarity"]
     # loss_function = ["cos_MSE", 0.8]
-    loss_function = ["BCE"]
+    # loss_function = ["BCE"]
     optimizer = optim.SGD(model.parameters(), lr=lr, weight_decay=1e-4)
     # optimizer = optim.Adam(model.parameters(), lr=lr)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=1)
