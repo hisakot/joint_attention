@@ -75,6 +75,12 @@ def head_direction(face_kpt, H, W):
     p1 = (int(image_points[0][0]), int(image_points[0][1]))
     p2 = (int(nose_end_point2D[0][0][0]), int(nose_end_point2D[0][0][1]))
 
+    if pitch > 0:
+        dx = p2[0] - p1[0]
+        dy = p2[1] - p1[1]
+        if dy < 0:
+            p2 = (int(p1[0] - dx), int(p1[1] - dy))
+
     return p1, p2, yaw, pitch, roll
 
 def generate_gaze_heatmap(heatmap, p1, p2, sigma_angle=0.2, sigma_distance=500):
