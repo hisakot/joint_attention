@@ -176,7 +176,7 @@ def main():
 
     writer = SummaryWriter(log_dir="logs")
 
-    num_cpu = os.spu_count()
+    num_cpu = os.cpu_count()
     num_cpu = num_cpu // 4
     print("number of cpu: ", num_cpu)
 
