@@ -472,10 +472,11 @@ if __name__ == '__main__':
 
                         p1, p2, _, _, _ = head_direction(face_kpt, H, W)
                         cv2.arrowedLine(img, p1, p2, (255, 0, 0), thickness=3, tipLength=0.5)
+                        print(p1, p2, np.sqrt((p2[0]-p1[0])**2 +(p2[1]-p1[1])**2))
+                        '''
                         new_p2 = get_intersection_2d_2(p1, p2, H, W)
                         cv2.arrowedLine(img, p1, new_p2, (0, 0, 255), thickness=3, tipLength=0.5)
 
-                        '''
                         target = head_direction_3d(face_kpt, H, W)
                         nose_img = tuple([int(p) for p in face_kpt[30]])
                         target_img = sphere_to_img(target, H, W)
@@ -507,9 +508,9 @@ if __name__ == '__main__':
                         '''
 
 
+                '''
                 img = cv2.resize(img, None, fx=0.5, fy=0.5)
                 cv2.imwrite("data/test/gazearea/ds_005/" + str(i) + ".png", img)
-                '''
                 cv2.imshow("img", img)
                 cv2.waitKey(0)
                 cv2.destroyAllWindows()
