@@ -3,15 +3,18 @@ import math
 import os
 
 import cv2
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import roc_curve, auc
 from tqdm import tqdm
 
+matplotlib.use('Agg')
+
 gt_paths = glob.glob("data/test/gt_heatmap_1ch/*/*.png")
 gt_paths.sort()
-pred_paths = glob.glob("data/test/pred/result1/*.png")
-# pred_paths = glob.glob("data/test/pred/final_jo_att/*.png")
+# pred_paths = glob.glob("data/test/pred/result1/*.png")
+pred_paths = glob.glob("data/test/pred/retrain_PJAE/*.png")
 pred_paths.sort()
 img_paths = glob.glob("data/test/frames/*/*.png")
 img_paths.sort()
@@ -55,7 +58,7 @@ for i, gt_path in tqdm(enumerate(gt_paths), total=len(gt_paths)):
 
     # if using pred moment
     pred = pred[:, :, np.newaxis]
-    _, pred_binary = cv2.threshold(pred, 127, 255, cv2.THRESH_BINARY)
+    _, pred_binary = cv2.threshold(pred, 20, 255, cv2.THRESH_BINARY)
     pred_contours, _ = cv2.findContours(pred_binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     dist_min = [0, 0, math.sqrt(W**2 + H**2)]
     for cnt in pred_contours:
