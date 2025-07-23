@@ -508,9 +508,9 @@ if __name__ == '__main__':
                         '''
 
 
-                '''
                 img = cv2.resize(img, None, fx=0.5, fy=0.5)
-                cv2.imwrite("data/test/gazearea/ds_005/" + str(i) + ".png", img)
+                cv2.imwrite("data/test/gazearrow/ds_005/" + str(i) + ".png", img)
+                '''
                 cv2.imshow("img", img)
                 cv2.waitKey(0)
                 cv2.destroyAllWindows()
