@@ -17,6 +17,7 @@ from torch.utils.tensorboard import SummaryWriter
 import config
 import dataset
 import PJAE_conv
+import transGan
 
 def print_memory_usage():
     allocated = torch.cuda.memory_allocated() / 1024**2
@@ -144,22 +145,23 @@ def main():
     parser.add_argument("--checkpoint", required=False,
                         help="if you want to retry training, write model path")
     args = parser.parse_args()
-
-    cfg = config.Config()
-
     batch_size = args.batch_size
 
+    cfg = config.Config()
     lr = cfg.lr
+    seq_len = cfg.seq_len
 
     img_height = cfg.img_height
     img_width = cfg.img_width
 
-    net = PJAE_conv.ModelSpatial(in_ch=5)
+    # net = PJAE_conv.ModelSpatial(in_ch=5)
+    net = transGan.TransGAN_LSTM(patch_size=10, emb_size=512, num_heads=2, forward_expansion=4,
+                                 img_height=img_height, img_width=img_width, in_ch=5, seq_len=seq_len)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:
         print("---------- Use GPU ----------")
-        net = nn.DataParallel(net)
+        # net = nn.DataParallel(net)
     else:
         print("---------- Use CPU ----------")
     net.to(device)
@@ -173,6 +175,10 @@ def main():
 
     writer = SummaryWriter(log_dir="logs")
 
+    num_cpu = os.spu_count()
+    num_cpu = num_cpu // 4
+    print("number of cpu: ", num_cpu)
+
     train_loss_list = list()
     val_loss_list = list()
 
@@ -180,15 +186,15 @@ def main():
     val_data_dir = "data/val"
     train_data = dataset.Dataset(train_data_dir,
                                  img_height=img_height, img_width=img_width,
-                                 seq_len=3, transform=None, is_train=True)
+                                 seq_len=seq_len, transform=None, is_train=True)
     val_data = dataset.Dataset(val_data_dir,
                                img_height=img_height, img_width=img_width,
-                               seq_len=3, transform=None, is_train=False)
+                               seq_len=seq_len, transform=None, is_train=False)
 
     train_dataloader = DataLoader(train_data, batch_size=batch_size,
-                                  shuffle=False, num_workers=1) # FIXME shuffle
+                                  shuffle=False, num_workers=num_cpu) # FIXME shuffle
     val_dataloader = DataLoader(val_data, batch_size=batch_size,
-                                shuffle=False, num_workers=1)
+                                shuffle=False, num_workers=num_cpu)
 
     if args.checkpoint:
         checkpoint = torch.load(args.checkpoint)

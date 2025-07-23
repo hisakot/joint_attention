@@ -221,7 +221,7 @@ class ModelSpatial(nn.Module):
 
             x = x.view(batch_size, 1, -1) # batch, seq, input_dim
             lstm_input.append(x)
-        lstm_input = torch.cat(lstm_input, dim=1)
+        lstm_input = torch.cat(lstm_input, dim=1) # (1, 3=seq_len, 7497)
 
         lstm_out, (hidden, cell) = self.lstm(lstm_input)
         lstm_out = self.lstm_linear1(lstm_out[:, -1, :])
