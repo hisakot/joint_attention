@@ -172,7 +172,7 @@ def main():
     # loss_function = "MAE"
     loss_function = "cos_similarity"
     optimizer = optim.SGD(net.parameters(), lr=lr)
-    scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda epoch: 1**epoch)
+    scheduler = lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.95)
 
     writer = SummaryWriter(log_dir="logs")
 
@@ -247,7 +247,7 @@ def main():
                             "train_loss_list" : train_loss_list,
                             "train_loss_list" : train_loss_list,
                             "val_loss_list" : val_loss_list,
-                            }, "save_models/newest_model.pth")
+                            }, "save_models/lstm_trial.pth")
             else:
                 early_stopping[2] += 1
                 if early_stopping[2] == early_stopping[1]:

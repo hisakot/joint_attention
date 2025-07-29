@@ -20,6 +20,7 @@ import config
 import dataset
 import train
 import PJAE_conv
+import transGan
 
 
 def test(test_dataloader, model, loss_function, device):
@@ -61,7 +62,7 @@ def test(test_dataloader, model, loss_function, device):
             pred = pred.astype(np.uint8)
             # pred = cv2.applyColorMap(pred, cv2.COLORMAP_JET)
             pred = cv2.resize(pred, (960, 480))
-            cv2.imwrite("data/test/pred/" + str(i).zfill(6) + ".png", pred)
+            cv2.imwrite("data/test/pred/result1/" + str(i).zfill(6) + ".png", pred)
             print("------------")
 
 def main():
@@ -105,7 +106,7 @@ def main():
     test_data_dir = "data/test"
     test_data = dataset.Dataset(test_data_dir,
                                 img_height=img_height, img_width=img_width,
-                                seq_len=3, transform=None, is_train=False)
+                                seq_len=seq_len, transform=None, is_train=False)
     test_dataloader = DataLoader(test_data, batch_size=1,
                                  shuffle=False, num_workers=1)
     test(test_dataloader, model, loss_function, device)

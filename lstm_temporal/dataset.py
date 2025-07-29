@@ -66,6 +66,8 @@ class Dataset(Dataset):
             try:
                 if not video_name in self.img_paths[idx+i]:
                     print(video_name)
+                    one_seq = np.zeros((5, self.H, self.W))
+                    inputs.append(one_seq)
                     continue
                 mmpose = self.mmpose[idx+i]
                 frame_id = mmpose["frame_id"]
@@ -200,8 +202,9 @@ class Dataset(Dataset):
                 one_seq = np.concatenate([img, kptmap, gazecone_map], axis=0)
                 inputs.append(one_seq)
             except IndexError:
+                one_seq = np.zeros((5, self.H, self.W))
+                inputs.append(one_seq)
                 print("Error: IndexError")
-                pass
         inputs = np.array(inputs)
         inputs = torch.tensor(inputs, dtype=torch.float32)
 
