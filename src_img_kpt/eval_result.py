@@ -13,8 +13,9 @@ matplotlib.use('Agg')
 
 gt_paths = glob.glob("data/test/gt_heatmap_1ch/*/*.png")
 gt_paths.sort()
-# pred_paths = glob.glob("data/test/pred/result1/*.png")
-pred_paths = glob.glob("data/test/pred/retrain_PJAE/*.png")
+pred_paths = glob.glob("data/test/pred/transGANv2_lr1e4_gazearea/*.png")
+# pred_paths = glob.glob("data/test/pred/swinunet_no_skipconnection/*.png")
+# pred_paths = glob.glob("data/test/pred/retrain_PJAE/*.png")
 pred_paths.sort()
 img_paths = glob.glob("data/test/frames/*/*.png")
 img_paths.sort()
@@ -36,7 +37,8 @@ for i, gt_path in tqdm(enumerate(gt_paths), total=len(gt_paths)):
     gt = cv2.resize(gt, (W, H))
     gt_float = gt.astype(np.float64)
     gt_float /= 255.
-    gt_argmax = np.unravel_index(np.argmax(gt_float), gt_float.shape)
+    gt_argmax = list(zip(*np.where(gt_float == np.max(gt_float))))
+    # gt_argmax = np.unravel_index(np.argmax(gt_float), gt_float.shape)
     gt_flat = gt_float.reshape(-1)
     gt_flat = np.where(gt_flat > 0, 1, 0)
 
@@ -57,45 +59,70 @@ for i, gt_path in tqdm(enumerate(gt_paths), total=len(gt_paths)):
     result = cv2.addWeighted(img, 1, concat, 1, 0)
 
     # if using pred moment
-    pred = pred[:, :, np.newaxis]
-    _, pred_binary = cv2.threshold(pred, 20, 255, cv2.THRESH_BINARY)
-    pred_contours, _ = cv2.findContours(pred_binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    dist_min = [0, 0, math.sqrt(W**2 + H**2)]
-    for cnt in pred_contours:
-        area = cv2.contourArea(cnt)
-        if area < 100:
-            continue
-        M = cv2.moments(cnt)
+    _, gt_binary = cv2.threshold(gt, 127, 255, cv2.THRESH_BINARY)
+    gt_contours, _ = cv2.findContours(gt_binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    for gt_cnt in gt_contours:
+        gt_M = cv2.moments(gt_cnt)
+        if gt_M['m00'] != 0:
+            gt_x = int(gt_M['m10'] / gt_M['m00'])
+            gt_y = int(gt_M['m01'] / gt_M['m00'])
+
+        '''
+        pred = cv2.applyColorMap(pred, cv2.COLORMAP_JET)
+        cv2.imshow("jet", pred)
+        cv2.waitKey(0)
+        '''
+        _, pred_binary = cv2.threshold(pred, 127, 255, cv2.THRESH_BINARY)
+        # pred_binary = cv2.cvtColor(pred_binary, cv2.COLOR_BGR2GRAY)
+        pred_contours, _ = cv2.findContours(pred_binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        max_brightness = -1
+        best_contour = None
+
+        dist_min = [0, 0, math.sqrt(W**2 + H**2)]
+        for cnt in pred_contours:
+            area = cv2.contourArea(cnt)
+            if area < 100:
+                continue
+            mask = np.zeros_like(pred, dtype=np.uint8)
+            cv2.drawContours(mask, [cnt], -1, 255, thickness=-1)
+            mean_val = cv2.mean(pred, mask=mask)[0]
+            if mean_val > max_brightness:
+                max_brightness = mean_val
+                best_contour = cnt
+
+        cv2.drawContours(result, [best_contour], -1, (0, 255, 0), 2)
+        M = cv2.moments(best_contour)
         if M['m00'] != 0:
             cx = int(M['m10'] / M['m00'])
             cy = int(M['m01'] / M['m00'])
-            dist_x = abs(cx - gt_argmax[1])
+            dist_x = abs(cx - gt_x)
             if dist_x > W / 2:
                 dist_x = W - dist_x
-            dist_y = abs(cy - gt_argmax[0])
+            dist_y = abs(cy - gt_y)
             dist_xy = math.sqrt(dist_x**2 + dist_y**2)
             if dist_min[2] > dist_xy:
                 dist_min[0] = dist_x
                 dist_min[1] = dist_y
                 dist_min[2] = dist_xy
-            cv2.line(result, (cx, cy), (gt_argmax[1], gt_argmax[0]), color=(255, 255, 255),
+            cv2.line(result, (cx, cy), (gt_x, gt_y), color=(255, 255, 255),
                      thickness=2, lineType=cv2.LINE_AA)
             cv2.drawMarker(result, (cx, cy), color=(255, 0, 0), 
                            markerType=cv2.MARKER_CROSS, markerSize=20, thickness=3)
-            cv2.drawMarker(result, (gt_argmax[1], gt_argmax[0]), color=(0, 0, 255), 
+            cv2.drawMarker(result, (gt_x, gt_y), color=(0, 0, 255), 
                            markerType=cv2.MARKER_CROSS, markerSize=20, thickness=3)
-    x += dist_min[0]
-    y += dist_min[1]
-    xy += dist_min[2]
-    list_x.append(dist_min[0])
-    list_y.append(dist_min[1])
-    list_xy.append(dist_min[2])
-    if dist_min[2] <= 30:
-        thr30 += 1
-    if dist_min[2] <= 60:
-        thr60 += 1
-    if dist_min[2] <= 90:
-        thr90 += 1
+
+        x += dist_min[0]
+        y += dist_min[1]
+        xy += dist_min[2]
+        list_x.append(dist_min[0])
+        list_y.append(dist_min[1])
+        list_xy.append(dist_min[2])
+        if dist_min[2] <= 30:
+            thr30 += 1
+        if dist_min[2] <= 60:
+            thr60 += 1
+        if dist_min[2] <= 90:
+            thr90 += 1
 
     # if using pred argmax
     '''

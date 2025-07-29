@@ -204,6 +204,8 @@ def main():
     model = PJAE_conv.ModelSpatial(in_ch=5)
     model = transGan.TransGAN(patch_size=10, emb_size=512, num_heads=2, forward_expansion=4,
                               img_height=img_height, img_width=img_width, in_ch=5)
+    model = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width,
+                                        in_chans=5, num_classes=1)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() >= 2:
