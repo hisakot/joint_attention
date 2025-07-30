@@ -53,9 +53,14 @@ class Dataset(Dataset):
 
     def __getitem__(self, idx):
         # rotation anguler
-        roll = random.uniform(0, 0) # FIXME if need, change angular range
-        pitch = random.uniform(0, 0) # FIXME if need, change angular range
-        yaw = random.uniform(0, 360)
+        if self.is_train is True:
+            roll = random.uniform(0, 0) # FIXME if need, change angular range
+            pitch = random.uniform(0, 0) # FIXME if need, change angular range
+            yaw = random.uniform(0, 360)
+        else:
+            roll = random.uniform(0, 0) # FIXME if need, change angular range
+            pitch = random.uniform(0, 0) # FIXME if need, change angular range
+            yaw = random.uniform(0, 0)
         map_x, map_y = rotate_omni_img(self.H, self.W, roll, pitch, yaw)
 
         # inputs
