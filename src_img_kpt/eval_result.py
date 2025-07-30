@@ -13,14 +13,14 @@ matplotlib.use('Agg')
 
 gt_paths = glob.glob("data/test/gt_heatmap_1ch/*/*.png")
 gt_paths.sort()
-pred_paths = glob.glob("data/test/pred/transGANv2_lr1e4_gazearea/*.png")
-# pred_paths = glob.glob("data/test/pred/swinunet_no_skipconnection/*.png")
-# pred_paths = glob.glob("data/test/pred/retrain_PJAE/*.png")
+# pred_paths = glob.glob("data/test/pred/result1/*.png")
+# pred_paths = glob.glob("data/test/pred/transGANv2_lr1e4_gazearea/*.png")
+pred_paths = glob.glob("data/test/pred/swinunet_no_skipconnection/*.png")
+# pred_paths = glob.glob("data/test/pred/result1/*.png")
 pred_paths.sort()
 img_paths = glob.glob("data/test/frames/*/*.png")
 img_paths.sort()
 
-size = len(gt_paths)
 H = 640
 W = 1280
 
@@ -31,6 +31,7 @@ list_xy = []
 thr30 = 0
 thr60 = 0
 thr90 = 0
+size = 0
 for i, gt_path in tqdm(enumerate(gt_paths), total=len(gt_paths)):
     # GT
     gt = cv2.imread(gt_path, 0)
@@ -72,7 +73,7 @@ for i, gt_path in tqdm(enumerate(gt_paths), total=len(gt_paths)):
         cv2.imshow("jet", pred)
         cv2.waitKey(0)
         '''
-        _, pred_binary = cv2.threshold(pred, 127, 255, cv2.THRESH_BINARY)
+        _, pred_binary = cv2.threshold(pred, 100, 255, cv2.THRESH_BINARY)
         # pred_binary = cv2.cvtColor(pred_binary, cv2.COLOR_BGR2GRAY)
         pred_contours, _ = cv2.findContours(pred_binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         max_brightness = -1
@@ -93,6 +94,7 @@ for i, gt_path in tqdm(enumerate(gt_paths), total=len(gt_paths)):
         cv2.drawContours(result, [best_contour], -1, (0, 255, 0), 2)
         M = cv2.moments(best_contour)
         if M['m00'] != 0:
+            size += 1
             cx = int(M['m10'] / M['m00'])
             cy = int(M['m01'] / M['m00'])
             dist_x = abs(cx - gt_x)
