@@ -789,7 +789,9 @@ class SwinTransformerSys(nn.Module):
 
         # lstm_inp = torch.stack([self.avgpool(x).flatten(1) for x in x_list], dim=1)
         lstm_inp = torch.cat(x_list, dim=1) # (B, 1000, 768) 1000=200*5(seq_len)
+        print("lstm_inp: ", lstm_inp)
         lstm_feat, _ = self.lstm(lstm_inp) # (B, 1000, 768)
+        print("lstm_feat: ", lstm_feat)
 
         out_list = []
         for seq in range(seq_len):
