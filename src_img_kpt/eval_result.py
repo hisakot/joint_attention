@@ -13,9 +13,9 @@ matplotlib.use('Agg')
 
 gt_paths = glob.glob("data/test/gt_heatmap_1ch/*/*.png")
 gt_paths.sort()
-# pred_paths = glob.glob("data/test/pred/result1/*.png")
+pred_paths = glob.glob("data/test/pred/0731/PJAE_original/*.png")
 # pred_paths = glob.glob("data/test/pred/transGANv2_lr1e4_gazearea/*.png")
-pred_paths = glob.glob("data/test/pred/swinunet_no_skipconnection/*.png")
+# pred_paths = glob.glob("data/test/pred/swinunet_no_skipconnection/*.png")
 # pred_paths = glob.glob("data/test/pred/result1/*.png")
 pred_paths.sort()
 img_paths = glob.glob("data/test/frames/*/*.png")
@@ -32,9 +32,9 @@ thr30 = 0
 thr60 = 0
 thr90 = 0
 size = 0
-for i, gt_path in tqdm(enumerate(gt_paths), total=len(gt_paths)):
+for i, pred_path in tqdm(enumerate(pred_paths), total=len(pred_paths)):
     # GT
-    gt = cv2.imread(gt_path, 0)
+    gt = cv2.imread(gt_paths[i], 0)
     gt = cv2.resize(gt, (W, H))
     gt_float = gt.astype(np.float64)
     gt_float /= 255.
@@ -44,7 +44,6 @@ for i, gt_path in tqdm(enumerate(gt_paths), total=len(gt_paths)):
     gt_flat = np.where(gt_flat > 0, 1, 0)
 
     # PRED
-    pred_path = pred_paths[i]
     pred = cv2.imread(pred_path, 0)
     pred = cv2.resize(pred, (W, H))
     pred_float = pred.astype(np.float64)
@@ -67,13 +66,17 @@ for i, gt_path in tqdm(enumerate(gt_paths), total=len(gt_paths)):
         if gt_M['m00'] != 0:
             gt_x = int(gt_M['m10'] / gt_M['m00'])
             gt_y = int(gt_M['m01'] / gt_M['m00'])
+        else:
+            continue
 
         '''
         pred = cv2.applyColorMap(pred, cv2.COLORMAP_JET)
         cv2.imshow("jet", pred)
         cv2.waitKey(0)
         '''
-        _, pred_binary = cv2.threshold(pred, 100, 255, cv2.THRESH_BINARY)
+        # unique, count = np.unique(pred, return_counts=True)
+        thr = int(np.max(pred) / 2)
+        _, pred_binary = cv2.threshold(pred, thr, 255, cv2.THRESH_BINARY)
         # pred_binary = cv2.cvtColor(pred_binary, cv2.COLOR_BGR2GRAY)
         pred_contours, _ = cv2.findContours(pred_binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         max_brightness = -1
@@ -90,6 +93,7 @@ for i, gt_path in tqdm(enumerate(gt_paths), total=len(gt_paths)):
             if mean_val > max_brightness:
                 max_brightness = mean_val
                 best_contour = cnt
+            cv2.drawContours(result, [cnt], -1, (0, 255, 0), 2)
 
         cv2.drawContours(result, [best_contour], -1, (0, 255, 0), 2)
         M = cv2.moments(best_contour)
@@ -177,7 +181,7 @@ xy /= size
 thr30 /= size
 thr60 /= size
 thr90 /= size
-auc_sum /= len(gt_paths)
+auc_sum /= len(pred_paths)
 max_x = max(list_x)
 min_x = min(list_x)
 std_x = np.std(list_x)
