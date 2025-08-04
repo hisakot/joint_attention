@@ -49,7 +49,7 @@ class Dataset(Dataset):
         self.kpt_paths = kpt_paths
 
     def __len__(self):
-        return len(self.mmpose)
+        return len(self.mmpose) - self.seq_len + 1
 
     def __getitem__(self, idx):
         # rotation anguler
