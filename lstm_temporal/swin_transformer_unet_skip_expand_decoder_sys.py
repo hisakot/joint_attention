@@ -612,7 +612,7 @@ class SwinTransformerSys(nn.Module):
                  drop_rate=0., attn_drop_rate=0., drop_path_rate=0.1,
                  norm_layer=nn.LayerNorm, ape=False, patch_norm=True,
                  use_checkpoint=False, final_upsample="expand_first",
-                 lstm_input_dim=512, lstm_hidden_dim=512, **kwargs):
+                 lstm_input_dim=512, lstm_hidden_dim=512, seq_len=5, **kwargs):
         super().__init__()
 
         print(
@@ -711,7 +711,6 @@ class SwinTransformerSys(nn.Module):
         # TODO added LSTM
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1)) # before flatten
         self.lstm = nn.LSTM(input_size=lstm_input_dim, hidden_size=lstm_hidden_dim, batch_first=True)
-        # self.conv = nn.Conv1d(seq_len, 200, kernel_size=1, stride=1)
 
     def _init_weights(self, m):
         if isinstance(m, nn.Linear):
@@ -787,27 +786,17 @@ class SwinTransformerSys(nn.Module):
             x_list.append(inp)
             x_downsample_list.append(inp_downsample)
 
-        # lstm_inp = torch.stack([self.avgpool(x).flatten(1) for x in x_list], dim=1)
-        lstm_inp = torch.cat(x_list, dim=1) # (B, 1000, 768) 1000=200*5(seq_len)
-        print("lstm_inp: ", lstm_inp.shape)
-        lstm_feat, _ = self.lstm(lstm_inp) # (B, 1000, 768)
-        print("lstm_feat: ", lstm_feat.shape)
+        lstm_inp = torch.stack(x_list, dim=1) # (B, seq_len, 200, 768)
+        lstm_inp = lstm_inp.permute(0, 2, 1, 3) # (B, 200, seq_len, 768)
+        B, P, seq_len, feat_dim = lstm_inp.shape
+        lstm_inp = lstm_inp.reshape(B * P, seq_len, feat_dim) # (B*200, seq_len, 768)
 
-        out_list = []
-        for seq in range(seq_len):
-            x_lstm = lstm_feat[:, seq] # (B, 200, 768)
-            print("x_lstm: ", x_lstm.shape)
-            exit()
-            # x_feat_dec = x_list[seq]
-            # print(x_feat_dec.shape)
-            x_dec = self.forward_up_features(x_lstm, x_downsample_list[seq])
-            print("x_dec: ", x_dec.shape)
-            out_list.append(x_dec)
+        lstm_feat, _ = self.lstm(lstm_inp) # (B*200, seq_len, 768)
+        lstm_feat = lstm_feat[:, -1] # using the last time step
 
-        out = torch.stack(out_list, dim=1)
-        print(out.shape)
+        lstm_feat = lstm_feat.view(B, 200, -1) # (B, 200, 768)
+        out = self.forward_up_features(lstm_feat, x_downsample_list[-1]) # (B, 12800, 96)
         out = self.up_x4(out)
-        print(out.shape)
 
         return x
 
