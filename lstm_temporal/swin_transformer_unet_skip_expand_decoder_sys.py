@@ -778,7 +778,6 @@ class SwinTransformerSys(nn.Module):
 
     def forward(self, x):
         B, seq_len, C, H, W = x.shape
-        print(x.shape)
         x_list = []
         x_downsample_list = []
         for seq in range(seq_len):
@@ -787,12 +786,11 @@ class SwinTransformerSys(nn.Module):
             print(inp.shape)
             inp, inp_downsample = self.forward_features(inp)
             print(inp.shape, len(inp_downsample))
-            tmp = self.avgpool(inp)
-            print(tmp.shape, tmp.flatten(1).shape)
             x_list.append(inp)
             x_downsample_list.append(inp_downsample)
 
-        lstm_inp = torch.stack([self.avgpool(x).flatten(1) for x in x_list], dim=1)
+        # lstm_inp = torch.stack([self.avgpool(x).flatten(1) for x in x_list], dim=1)
+        lstm_inp = torch.cat(x_list, dim=1)
         print(lstm_inp.shape)
         lstm_feat, _ = self.lstm(lstm_inp)
         print(lstm_feat.shape)
