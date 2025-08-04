@@ -783,25 +783,22 @@ class SwinTransformerSys(nn.Module):
         for seq in range(seq_len):
             inp = x[:, seq, :, :, :] 
             inp = inp.view(B, C, H, W)
-            inp, inp_downsample = self.forward_features(inp)
-            print(inp.shape, len(inp_downsample))
+            inp, inp_downsample = self.forward_features(inp) # (B, 200, 768)
             x_list.append(inp)
             x_downsample_list.append(inp_downsample)
 
         # lstm_inp = torch.stack([self.avgpool(x).flatten(1) for x in x_list], dim=1)
-        lstm_inp = torch.cat(x_list, dim=1)
-        print(lstm_inp.shape)
-        lstm_feat, _ = self.lstm(lstm_inp)
-        print(lstm_feat.shape)
+        lstm_inp = torch.cat(x_list, dim=1) # (B, 1000, 768) 1000=200*5(seq_len)
+        lstm_feat, _ = self.lstm(lstm_inp) # (B, 1000, 768)
 
         out_list = []
         for seq in range(seq_len):
-            x_lstm = lstm_feat[:, seq]
-            print(x_lstm.shape)
-            x_feat_dec = x_list[seq]
-            print(x_feat_dec.shape)
-            x_dec = self.forward_up_features(x_feat_dec, x_downsample_list[seq])
-            print(x_dec.shape)
+            x_lstm = lstm_feat[:, seq] # (B, 200, 768)
+            print("x_lstm: ", x_lstm.shape)
+            # x_feat_dec = x_list[seq]
+            # print(x_feat_dec.shape)
+            x_dec = self.forward_up_features(x_lstm, x_downsample_list[seq])
+            print("x_dec: ", x_dec.shape)
             out_list.append(x_dec)
 
         out = torch.stack(out_list, dim=1)
