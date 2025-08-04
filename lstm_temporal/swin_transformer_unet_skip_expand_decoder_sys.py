@@ -797,6 +797,7 @@ class SwinTransformerSys(nn.Module):
         for seq in range(seq_len):
             x_lstm = lstm_feat[:, seq] # (B, 200, 768)
             print("x_lstm: ", x_lstm.shape)
+            exit()
             # x_feat_dec = x_list[seq]
             # print(x_feat_dec.shape)
             x_dec = self.forward_up_features(x_lstm, x_downsample_list[seq])
