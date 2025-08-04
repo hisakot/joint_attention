@@ -798,7 +798,7 @@ class SwinTransformerSys(nn.Module):
         out = self.forward_up_features(lstm_feat, x_downsample_list[-1]) # (B, 12800, 96)
         out = self.up_x4(out)
 
-        return x
+        return out
 
     def flops(self):
         flops = 0
