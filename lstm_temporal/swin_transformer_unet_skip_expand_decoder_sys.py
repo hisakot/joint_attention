@@ -783,7 +783,6 @@ class SwinTransformerSys(nn.Module):
         for seq in range(seq_len):
             inp = x[:, seq, :, :, :] 
             inp = inp.view(B, C, H, W)
-            print(inp.shape)
             inp, inp_downsample = self.forward_features(inp)
             print(inp.shape, len(inp_downsample))
             x_list.append(inp)
