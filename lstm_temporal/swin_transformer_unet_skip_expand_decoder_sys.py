@@ -711,7 +711,7 @@ class SwinTransformerSys(nn.Module):
         # TODO added LSTM
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1)) # before flatten
         self.lstm = nn.LSTM(input_size=lstm_input_dim, hidden_size=lstm_hidden_dim, batch_first=True)
-        self.conv = nn.Conv1d(seq_len, 200, kernel_size=1, stride=1)
+        # self.conv = nn.Conv1d(seq_len, 200, kernel_size=1, stride=1)
 
     def _init_weights(self, m):
         if isinstance(m, nn.Linear):
@@ -777,16 +777,18 @@ class SwinTransformerSys(nn.Module):
         return x
 
     def forward(self, x):
-        B, seq_len, H, W, C = x.shape
+        B, seq_len, C, H, W = x.shape
         print(x.shape)
         x_list = []
         x_downsample_list = []
         for seq in range(seq_len):
             inp = x[:, seq, :, :, :] 
-            inp = inp.view(B, H, W, C)
+            inp = inp.view(B, C, H, W)
             print(inp.shape)
             inp, inp_downsample = self.forward_features(inp)
-            print(inp.shape, inp_downsample.shape)
+            print(inp.shape, len(inp_downsample))
+            tmp = self.avgpool(inp)
+            print(tmp.shape, tmp.flatten(1).shape)
             x_list.append(inp)
             x_downsample_list.append(inp_downsample)
 
