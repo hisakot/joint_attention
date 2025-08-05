@@ -21,7 +21,7 @@ import dataset
 import train
 import PJAE_conv
 import transGan
-
+import swin_unet
 
 def test(test_dataloader, model, loss_function, device):
     model.eval()
@@ -76,9 +76,14 @@ def main():
     img_width = cfg.img_width
     seq_len = cfg.seq_len
 
+    '''
     model = PJAE_conv.ModelSpatial(in_ch=5)
     model = transGan.TransGAN_LSTM(patch_size=10, emb_size=512, num_heads=2, forward_expansion=4,
                                    img_height=img_height, img_width=img_width, in_ch=5, seq_len=seq_len)
+    '''
+    net = swin_unet.SwinUnet(img_height=img_height, img_width=img_width, 
+                             in_chans=5, num_classes=1, 
+                             lstm_input_dim=768, lstm_hidden_dim=768, seq_len=seq_len)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:
