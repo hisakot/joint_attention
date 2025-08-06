@@ -70,7 +70,6 @@ class Dataset(Dataset):
         for i in range(self.seq_len):
             try:
                 if not video_name in self.img_paths[idx+i]:
-                    print(video_name)
                     one_seq = np.zeros((5, self.H, self.W))
                     inputs.append(one_seq)
                     continue

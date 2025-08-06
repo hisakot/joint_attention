@@ -13,7 +13,7 @@ matplotlib.use('Agg')
 
 gt_paths = glob.glob("data/test/gt_heatmap_1ch/*/*.png")
 gt_paths.sort()
-pred_paths = glob.glob("data/test/pred/0731/PJAE_original/*.png")
+pred_paths = glob.glob("data/test/pred/SwinUnetLSTM_seq5/*.png")
 # pred_paths = glob.glob("data/test/pred/transGANv2_lr1e4_gazearea/*.png")
 # pred_paths = glob.glob("data/test/pred/swinunet_no_skipconnection/*.png")
 # pred_paths = glob.glob("data/test/pred/result1/*.png")
