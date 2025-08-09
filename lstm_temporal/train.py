@@ -57,7 +57,8 @@ def train(train_dataloader, net, loss_function, optimizer, device):
                     cos_loss = F.cosine_similarity(pred, targets)
                     loss = (1 - cos_loss).mean()
                 elif loss_function == "MSE":
-                    loss = nn.MSELoss(pred, targets)
+                    lossfunc = nn.MSELoss()
+                    loss = lossfunc(pred, targets)
                 elif loss_function == "MAE":
                     lossfunc = nn.L1Loss()
                     loss = lossfunc(pred, targets)
@@ -116,7 +117,8 @@ def evaluate(val_dataloader, net, loss_function, device):
                         cos_loss = F.cosine_similarity(pred, targets)
                         loss = (1 - cos_loss).mean()
                     elif loss_function == "MSE":
-                        loss = nn.MSELoss(pred, targets)
+                        lossfunc = nn.MSELoss()
+                        loss = lossfunc(pred, targets)
                     elif loss_function == "MAE":
                         lossfunc = nn.L1Loss()
                         loss = lossfunc(pred, targets)
@@ -172,9 +174,9 @@ def main():
     net.to(device)
 
     # loss_function = nn.CrossEntropyLoss()
-    # loss_function = "MSE"
+    loss_function = "MSE"
     # loss_function = "MAE"
-    loss_function = "cos_similarity"
+    # loss_function = "cos_similarity"
     optimizer = optim.SGD(net.parameters(), lr=lr)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.95)
 
