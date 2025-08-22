@@ -174,9 +174,9 @@ def main():
     net.to(device)
 
     # loss_function = nn.CrossEntropyLoss()
-    loss_function = "MSE"
+    # loss_function = "MSE"
     # loss_function = "MAE"
-    # loss_function = "cos_similarity"
+    loss_function = "cos_similarity"
     optimizer = optim.SGD(net.parameters(), lr=lr)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.95)
 
