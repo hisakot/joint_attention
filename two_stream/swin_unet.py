@@ -843,7 +843,6 @@ class SwinTransformerSys(nn.Module):
         B, seq_len, C, H, W = inp.shape
         x = inp[:, :, 0:3, :, :]
         y = inp[:, :, 3:5, :, :]
-        print(x.shape, y.shape)
         x_list = []
         x_downsample_list = []
         y_list = []
