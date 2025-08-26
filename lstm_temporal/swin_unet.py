@@ -48,8 +48,8 @@ class SwinUnet(nn.Module):
                                             seq_len=seq_len)
 
     def forward(self, x):
-        if x.size()[1] == 1:
-            x = x.repeat(1,3,1,1)
+        if x.size()[2] == 1: # if C == 1
+            x = x.repeat(1,1,3,1,1) # C = 3
         logits = self.swin_unet(x)
         logits = torch.nn.functional.sigmoid(logits)
         return logits
