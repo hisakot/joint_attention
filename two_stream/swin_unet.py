@@ -756,7 +756,7 @@ class SwinTransformerSys(nn.Module):
 
         # TODO added LSTM
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1)) # before flatten
-        self.lstm = nn.LSTM(input_size=lstm_input_dim, hidden_size=lstm_hidden_dim//2, batch_first=True)
+        self.lstm = nn.LSTM(input_size=lstm_input_dim*2, hidden_size=lstm_hidden_dim, batch_first=True)
 
     def _init_weights(self, m):
         if isinstance(m, nn.Linear):
@@ -865,13 +865,13 @@ class SwinTransformerSys(nn.Module):
         inp_y = torch.stack(y_list, dim=1) # (B, seq_len, 200, 768)
         inp_y = inp_y.permute(0, 2, 1, 3) # (B, 200, seq_len, 768)
 
-        lstm_inp = torch.cat([inp_x, inp_y], dim=1)
+        lstm_inp = torch.cat([inp_x, inp_y], dim=3)
 
         B, P, seq_len, feat_dim = lstm_inp.shape
-        lstm_inp = lstm_inp.reshape(B * P, seq_len, feat_dim) # (B*200*2, seq_len, 768)
+        lstm_inp = lstm_inp.reshape(B * P, seq_len, feat_dim) # (B*200, seq_len, 768*2)
 
-        lstm_feat, _ = self.lstm(lstm_inp) # (B*400, seq_len, 384)
-        lstm_feat = lstm_feat[:, -1] # using the last time step (400, 384)
+        lstm_feat, _ = self.lstm(lstm_inp) # (B*200, seq_len, 768)
+        lstm_feat = lstm_feat[:, -1] # using the last time step (200, 768)
 
         lstm_feat = lstm_feat.view(B, 200, -1) # (B, 200, 768)
         out = self.forward_up_features(lstm_feat, x_downsample_list[-1]) # (B, 12800, 96)
