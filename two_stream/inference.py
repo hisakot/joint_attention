@@ -19,8 +19,6 @@ from torch.utils.tensorboard import SummaryWriter
 import config
 import dataset
 import train
-import PJAE_conv
-import transGan
 import swin_unet
 
 def test(test_dataloader, model, loss_function, device):
