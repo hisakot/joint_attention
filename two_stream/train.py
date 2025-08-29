@@ -1,5 +1,6 @@
 import argparse
 import glob
+import math
 import os
 import time
 from tqdm import tqdm
@@ -147,16 +148,16 @@ def collate_fn(batch):
 def normalize_prob(heatmap, eps=1e-12):
     B, C, H, W = heatmap.shape
     heatmap = heatmap.view(B, -1)
-    heatmap = (heatmap.sum(dim=-1, keepdim=True) + eps)
+    heatmap = heatmap / (heatmap.sum(dim=-1, keepdim=True) + eps)
     return heatmap.view(B, C, H, W)
 
-# KL
 def log_prob_from_logits(logits):
     B, C, H, W = logits.shape
     logits = logits.view(B, -1)
-    logits = torch.longsumexp(logits, dim=-1, keepdim=True)
+    logits = logits - torch.logsumexp(logits, dim=-1, keepdim=True)
     return logits.view(B, C, H, W)
 
+# KL
 def kl_div_loss(pred_logits, gt_prob, reduce=True):
     log_p = log_prob_from_logits(pred_logits)
     p = log_p.exp()
@@ -168,11 +169,12 @@ def kl_div_loss(pred_logits, gt_prob, reduce=True):
 def soft_argmax_2d(logits, tau=1.0):
     # smaller tau -> sharper
 
-    B, C, H, W = logits.shapeflat = (logits / tau).view(B, -1)
+    B, C, H, W = logits.shape
+    flat = (logits / tau).view(B, -1)
     prob = F.softmax(flat, dim=-1).view(B, H, W)
 
-    xs = torch.linspace(0, W - 1, W, device=lodits.device)
-    ys = torch.linspace(0, H - 1, H, device=lodits.device)
+    xs = torch.linspace(0, W - 1, W, device=logits.device)
+    ys = torch.linspace(0, H - 1, H, device=logits.device)
     xs, ys = torch.meshgrid(xs, ys, indexing="xy")
     x = (prob * xs).sum(dim=(1, 2))
     y = (prob * ys).sum(dim=(1, 2))
@@ -253,7 +255,7 @@ def varience_matching_loss(pred_logits, gt_prob, W, H, tau=1.0):
 def lonlat_from_xy(x, y, W, H):
     # x: [0, W), y: [0, H) -> longitude(lambda): [-pi, pi), latitude(phi): [-pi/2, pi/2]
     lam = (x / W) * 2 * math.pi - math.pi
-    phi = (0.5 - y ? H) * math.pi
+    phi = (0.5 - y / H) * math.pi
     return lam, phi
 
 def angular_distance_loss(pred, logits, gt_prob, W, H, tau=1.0):
@@ -261,8 +263,8 @@ def angular_distance_loss(pred, logits, gt_prob, W, H, tau=1.0):
     B = xh.shape[0]
 
     # GT
-    xs = torch.linspace(0, W - 1, W, device=gt_prob,device)
-    ys = torch.linspace(0, H - 1, H, device=gt_prob,device)
+    xs = torch.linspace(0, W - 1, W, device=gt_prob.device)
+    ys = torch.linspace(0, H - 1, H, device=gt_prob.device)
     xs, ys = torch.meshgrid(xs, ys, indexing="xy")
     xg = (gt_prob[:, 0] * xs).sum(dim=(1, 2))
     yg = (gt_prob[:, 0] * ys).sum(dim=(1, 2))
@@ -291,12 +293,16 @@ def combined_gaze_loss(
     gt_prob = normalize_prob(gt_heatmap)
 
     loss_kl = kl_div_loss(pred_logits, gt_prob)
+    print("KL: "loss_kl)
     loss_coord = coord_loss_from_logits(pred_logits, gt_prob, W, H, tau)
+    print("Coord: ", loss_coord)
     loss_var = varience_matching_loss(pred_logits, gt_prob, W, H, tau)
+    print("Variance: ", loss_var)
     if lam_ang > 0:
         loss_ang = angular_distance_loss(pred_logits, gt_prob, W, H, tau)
     else:
         loss_ang = pred_logits.new_tensor(0.0)
+    print("Angular: ", loss_ang)
 
     total = lam_kl * loss_kl + lam_coord * loss_coord + lam_var * loss_var + lam_ang + loss_ang
     return total
