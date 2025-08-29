@@ -181,7 +181,7 @@ def soft_argmax_2d(logits, tau=1.0):
     return x, y, prob
 
 def circular_dx(pred_x, gt_x, W):
-    dx = torch.abs(pred_x, gt_x)
+    dx = torch.abs(pred_x - gt_x)
     return torch.min(dx, W - dx)
 
 def coord_loss_from_logits(pred_logits, gt_prob, W, H, tau=1.0):
@@ -198,16 +198,16 @@ def coord_loss_from_logits(pred_logits, gt_prob, W, H, tau=1.0):
     dy = torch.abs(yh - yg)
     return (dx**2 + dy**2).mean()
 
-# range
+# Variance
 def circular_moments(prob, axis_len, axis='x'):
     B, H, W = prob.shape
     if axis == 'x':
         px = prob.sum(dim=1)
-        idx = torch.arange(W, device=prob.divece)
+        idx = torch.arange(W, device=prob.device)
         theta = 2 * math.pi * idx / W
     else:
         py = prob.sum(dim=2)
-        idx = torch.arange(H, device=prob.divece)
+        idx = torch.arange(H, device=prob.device)
         theta = 2 * math.pi * idx / H
 
     ct = torch.cos(theta)[None, :] # (1, L)
@@ -232,7 +232,7 @@ def circular_moments(prob, axis_len, axis='x'):
 
 def variance_y(prob):
     B, H, W = prob.shape
-    ys = torch.linspace(0, H - 1, H, device=prob.devece)
+    ys = torch.linspace(0, H - 1, H, device=prob.device)
     mean_y = (prob * ys[:, None]).sum(dim=(1, 2))
     var_y = (prob * (ys[:, None] - mean_y[:, None, None])**2).sum(dim=(1, 2))
     return mean_y, var_y
@@ -258,7 +258,7 @@ def lonlat_from_xy(x, y, W, H):
     phi = (0.5 - y / H) * math.pi
     return lam, phi
 
-def angular_distance_loss(pred, logits, gt_prob, W, H, tau=1.0):
+def angular_distance_loss(pred_logits, gt_prob, W, H, tau=1.0):
     xh, yh, p = soft_argmax_2d(pred_logits, tau)
     B = xh.shape[0]
 
@@ -288,21 +288,17 @@ def angular_distance_loss(pred, logits, gt_prob, W, H, tau=1.0):
 # loss integration
 def combined_gaze_loss(
         pred_logits, gt_heatmap,
-        lam_kl=1.0, lam_coord=0.1, lam_var=0.05, lam_ang=0.0, tau=0.8):
+        lam_kl=1.0, lam_coord=0.1, lam_var=0.05, lam_ang=0.05, tau=0.8):
     B, _, H, W = pred_logits.shape
     gt_prob = normalize_prob(gt_heatmap)
 
     loss_kl = kl_div_loss(pred_logits, gt_prob)
-    print("KL: "loss_kl)
     loss_coord = coord_loss_from_logits(pred_logits, gt_prob, W, H, tau)
-    print("Coord: ", loss_coord)
     loss_var = varience_matching_loss(pred_logits, gt_prob, W, H, tau)
-    print("Variance: ", loss_var)
     if lam_ang > 0:
         loss_ang = angular_distance_loss(pred_logits, gt_prob, W, H, tau)
     else:
         loss_ang = pred_logits.new_tensor(0.0)
-    print("Angular: ", loss_ang)
 
     total = lam_kl * loss_kl + lam_coord * loss_coord + lam_var * loss_var + lam_ang + loss_ang
     return total
