@@ -61,6 +61,16 @@ def train(train_dataloader, net, loss_function, optimizer, device):
                 elif loss_function == "MAE":
                     lossfunc = nn.L1Loss()
                     loss = lossfunc(pred, targets)
+                elif loss_function == "KLDiv":
+                    lossfunc = nn.KLDivLoss(reduction='batchmean')
+                    # pred
+                    pred = pred.view(pred.size(0), -1)
+                    log_pred = F.log_softmax(pred, dim=1)
+                    # targets
+                    targets = targets.view(targets.size(0), -1)
+                    targets_sum = targets.sum(dim=1, keepdim=True)
+                    targets_norm = torch.where(targets_sum > 0, targets / targets_sum, targets)
+                    loss = lossfunc(log_pred, targets_norm)
                 elif loss_function == "combined_loss":
                     loss = combined_gaze_loss(pred, targets)
 
@@ -123,6 +133,16 @@ def evaluate(val_dataloader, net, loss_function, device):
                     elif loss_function == "MAE":
                         lossfunc = nn.L1Loss()
                         loss = lossfunc(pred, targets)
+                    elif loss_function == "KLDiv":
+                        lossfunc = nn.KLDivLoss(reduction='batchmean')
+                        # pred
+                        pred = pred.view(pred.size(0), -1)
+                        log_pred = F.log_softmax(pred, dim=1)
+                        # targets
+                        targets = targets.view(targets.size(0), -1)
+                        targets_sum = targets.sum(dim=1, keepdim=True)
+                        targets_norm = torch.where(targets_sum > 0, targets / targets_sum, targets)
+                        loss = lossfunc(log_pred, targets_norm)
                     elif loss_function == "combined_loss":
                         loss = combined_gaze_loss(pred, targets)
 
@@ -300,6 +320,11 @@ def combined_gaze_loss(
     else:
         loss_ang = pred_logits.new_tensor(0.0)
 
+    print(loss_kl)
+    print(loss_coord)
+    print(loss_var)
+    print(loss_ang)
+    exit()
     total = lam_kl * loss_kl + lam_coord * loss_coord + lam_var * loss_var + lam_ang + loss_ang
     return total
 
@@ -342,7 +367,8 @@ def main():
     # loss_function = "MSE"
     # loss_function = "MAE"
     # loss_function = "cos_similarity"
-    loss_function = "combined_loss"
+    loss_function = "KLDiv"
+    # loss_function = "combined_loss"
     optimizer = optim.SGD(net.parameters(), lr=lr)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=20, gamma=1)
 
