@@ -185,6 +185,18 @@ def kl_div_loss(pred_logits, gt_prob, reduce=True):
     kl = (gt_prob * (gt_prob.clamp_min(1e-12).log() - log_p)).sum(dim=(1, 2, 3))
     return kl.mean() if reduce else kl
 
+def kl(pred, gt):
+    lossfunc = nn.KLDivLoss(reduction='batchmean')
+    # pred
+    pred = pred.view(pred.size(0), -1)
+    log_pred = F.log_softmax(pred, dim=1)
+    # targets
+    targets = gt.view(gt.size(0), -1)
+    targets_sum = targets.sum(dim=1, keepdim=True)
+    targets_norm = torch.where(targets_sum > 0, targets / targets_sum, targets)
+    loss = lossfunc(log_pred, targets_norm)
+    return loss
+
 # soft-argmax + wrap-around distance
 def soft_argmax_2d(logits, tau=1.0):
     # smaller tau -> sharper
@@ -308,11 +320,12 @@ def angular_distance_loss(pred_logits, gt_prob, W, H, tau=1.0):
 # loss integration
 def combined_gaze_loss(
         pred_logits, gt_heatmap,
-        lam_kl=1.0, lam_coord=0.1, lam_var=0.05, lam_ang=0.05, tau=0.8):
+        lam_kl=1.0, lam_coord=0.0, lam_var=0.0, lam_ang=1.0, tau=0.8):
     B, _, H, W = pred_logits.shape
     gt_prob = normalize_prob(gt_heatmap)
 
-    loss_kl = kl_div_loss(pred_logits, gt_prob)
+    # loss_kl = kl_div_loss(pred_logits, gt_prob)
+    loss_kl = kl(pred_logits, gt_prob)
     loss_coord = coord_loss_from_logits(pred_logits, gt_prob, W, H, tau)
     loss_var = varience_matching_loss(pred_logits, gt_prob, W, H, tau)
     if lam_ang > 0:
@@ -320,11 +333,6 @@ def combined_gaze_loss(
     else:
         loss_ang = pred_logits.new_tensor(0.0)
 
-    print(loss_kl)
-    print(loss_coord)
-    print(loss_var)
-    print(loss_ang)
-    exit()
     total = lam_kl * loss_kl + lam_coord * loss_coord + lam_var * loss_var + lam_ang + loss_ang
     return total
 
@@ -367,8 +375,8 @@ def main():
     # loss_function = "MSE"
     # loss_function = "MAE"
     # loss_function = "cos_similarity"
-    loss_function = "KLDiv"
-    # loss_function = "combined_loss"
+    # loss_function = "KLDiv"
+    loss_function = "combined_loss"
     optimizer = optim.SGD(net.parameters(), lr=lr)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=20, gamma=1)
 
