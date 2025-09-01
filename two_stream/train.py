@@ -320,7 +320,7 @@ def angular_distance_loss(pred_logits, gt_prob, W, H, tau=1.0):
 # loss integration
 def combined_gaze_loss(
         pred_logits, gt_heatmap,
-        lam_kl=1.0, lam_coord=0.0, lam_var=0.0, lam_ang=1.0, tau=0.1):
+        lam_kl=1.0, lam_coord=0.0, lam_var=0.0, lam_ang=1.0, tau=0.6):
     B, _, H, W = pred_logits.shape
     gt_prob = normalize_prob(gt_heatmap)
 
