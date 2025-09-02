@@ -13,7 +13,7 @@ matplotlib.use('Agg')
 
 gt_paths = glob.glob("data/test/gt_heatmap_1ch/*/*.png")
 gt_paths.sort()
-pred_paths = glob.glob("data/test/pred/result1/*.png")
+pred_paths = glob.glob("data/test/pred/result_hm/*.png")
 # pred_paths = glob.glob("data/test/pred/transGANv2_lr1e4_gazearea/*.png")
 # pred_paths = glob.glob("data/test/pred/swinunet_no_skipconnection/*.png")
 # pred_paths = glob.glob("data/test/pred/result1/*.png")
@@ -172,7 +172,7 @@ for i, pred_path in tqdm(enumerate(pred_paths), total=len(pred_paths)):
     plt.legend(loc="lower right")
     plt.savefig('data/test/pred/roc/' + str(i).zfill(6) + '.png')
 
-    cv2.imwrite('data/test/pred/result/' + str(i).zfill(6) + '.png', result)
+    cv2.imwrite('data/test/pred/result_color/' + str(i).zfill(6) + '.png', result)
    
 print("size: ", size)
 x /= size
