@@ -62,7 +62,7 @@ def test(test_dataloader, model, loss_function, device):
             pred = pred.astype(np.uint8)
             # pred = cv2.applyColorMap(pred, cv2.COLORMAP_JET)
             pred = cv2.resize(pred, (960, 480))
-            cv2.imwrite("data/test/pred/result1/" + str(i).zfill(6) + ".png", pred)
+            cv2.imwrite("data/test/pred/result_hm/" + str(i).zfill(6) + ".png", pred)
             print("------------")
 
 def main():
