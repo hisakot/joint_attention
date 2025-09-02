@@ -1,5 +1,6 @@
 import argparse
 import glob
+import math
 import os
 import time
 from tqdm import tqdm
@@ -62,6 +63,18 @@ def train(train_dataloader, net, loss_function, optimizer, device):
                 elif loss_function == "MAE":
                     lossfunc = nn.L1Loss()
                     loss = lossfunc(pred, targets)
+                elif loss_function == "KLDiv":
+                    lossfunc = nn.KLDivLoss(reduction='batchmean')
+                    # pred
+                    pred = pred.view(pred.size(0), -1)
+                    log_pred = F.log_softmax(pred, dim=1)
+                    # targets
+                    targets = targets.view(targets.size(0), -1)
+                    targets_sum = targets.sum(dim=1, keepdim=True)
+                    targets_norm = torch.where(targets_sum > 0, targets / targets_sum, targets)
+                    loss = lossfunc(log_pred, targets_norm)
+                elif loss_function == "combined_loss":
+                    loss = combined_gaze_loss(pred, targets)
 
                 optimizer.zero_grad()
                 loss.backward()
@@ -122,6 +135,18 @@ def evaluate(val_dataloader, net, loss_function, device):
                     elif loss_function == "MAE":
                         lossfunc = nn.L1Loss()
                         loss = lossfunc(pred, targets)
+                    elif loss_function == "KLDiv":
+                        lossfunc = nn.KLDivLoss(reduction='batchmean')
+                        # pred
+                        pred = pred.view(pred.size(0), -1)
+                        log_pred = F.log_softmax(pred, dim=1)
+                        # targets
+                        targets = targets.view(targets.size(0), -1)
+                        targets_sum = targets.sum(dim=1, keepdim=True)
+                        targets_norm = torch.where(targets_sum > 0, targets / targets_sum, targets)
+                        loss = lossfunc(log_pred, targets_norm)
+                    elif loss_function == "combined_loss":
+                        loss = combined_gaze_loss(pred, targets)
 
                     total_loss += loss.item()
                     pbar.update()
@@ -141,6 +166,177 @@ def collate_fn(batch):
 
     labels = torch.stack(labels)
     return padded_inputs, attention_mask, labels, length
+
+def normalize_prob(heatmap, eps=1e-12):
+    B, C, H, W = heatmap.shape
+    heatmap = heatmap.view(B, -1)
+    heatmap = heatmap / (heatmap.sum(dim=-1, keepdim=True) + eps)
+    return heatmap.view(B, C, H, W)
+
+def log_prob_from_logits(logits):
+    B, C, H, W = logits.shape
+    logits = logits.view(B, -1)
+    logits = logits - torch.logsumexp(logits, dim=-1, keepdim=True)
+    return logits.view(B, C, H, W)
+
+# KL
+def kl_div_loss(pred_logits, gt_prob, reduce=True):
+    log_p = log_prob_from_logits(pred_logits)
+    p = log_p.exp()
+    # KL(gt || p)
+    kl = (gt_prob * (gt_prob.clamp_min(1e-12).log() - log_p)).sum(dim=(1, 2, 3))
+    return kl.mean() if reduce else kl
+
+def kl(pred, gt):
+    lossfunc = nn.KLDivLoss(reduction='batchmean')
+    # pred
+    pred = pred.view(pred.size(0), -1)
+    log_pred = F.log_softmax(pred, dim=1)
+    # targets
+    targets = gt.view(gt.size(0), -1)
+    targets_sum = targets.sum(dim=1, keepdim=True)
+    targets_norm = torch.where(targets_sum > 0, targets / targets_sum, targets)
+    loss = lossfunc(log_pred, targets_norm)
+    return loss
+
+# soft-argmax + wrap-around distance
+def soft_argmax_2d(logits, tau=1.0):
+    # smaller tau -> sharper
+
+    B, C, H, W = logits.shape
+    flat = (logits / tau).view(B, -1)
+    prob = F.softmax(flat, dim=-1).view(B, H, W)
+
+    xs = torch.linspace(0, W - 1, W, device=logits.device)
+    ys = torch.linspace(0, H - 1, H, device=logits.device)
+    xs, ys = torch.meshgrid(xs, ys, indexing="xy")
+    x = (prob * xs).sum(dim=(1, 2))
+    y = (prob * ys).sum(dim=(1, 2))
+    return x, y, prob
+
+def circular_dx(pred_x, gt_x, W):
+    dx = torch.abs(pred_x - gt_x)
+    return torch.min(dx, W - dx)
+
+def coord_loss_from_logits(pred_logits, gt_prob, W, H, tau=1.0):
+    xh, yh, _ = soft_argmax_2d(pred_logits, tau)
+
+    B, C, H, W = gt_prob.shape
+    xs = torch.linspace(0, W - 1, W, device=gt_prob.device)
+    ys = torch.linspace(0, H - 1, H, device=gt_prob.device)
+    xs, ys = torch.meshgrid(xs, ys, indexing="xy")
+    xg = (gt_prob[:, 0] * xs).sum(dim=(1, 2))
+    yg = (gt_prob[:, 0] * ys).sum(dim=(1, 2))
+
+    dx = circular_dx(xh, xg, W)
+    dy = torch.abs(yh - yg)
+    return (dx**2 + dy**2).mean()
+
+# Variance
+def circular_moments(prob, axis_len, axis='x'):
+    B, H, W = prob.shape
+    if axis == 'x':
+        px = prob.sum(dim=1)
+        idx = torch.arange(W, device=prob.device)
+        theta = 2 * math.pi * idx / W
+    else:
+        py = prob.sum(dim=2)
+        idx = torch.arange(H, device=prob.device)
+        theta = 2 * math.pi * idx / H
+
+    ct = torch.cos(theta)[None, :] # (1, L)
+    st = torch.sin(theta)[None, :]
+
+    if axis == 'x':
+        C = (px * ct).sum(dim=1)
+        S = (px * st).sum(dim=1)
+        R = torch.sqrt(C**2 + S**2).clamp_min(1e-12)
+        mean_theta = torch.atan2(S, C) % (2 * math.pi)
+        circ_var = 1 - R # 0=forcusing 1=dispersing
+        mean_idx = (mean_theta / (2 * math.pi)) * W
+    else:
+        C = (py * ct).sum(dim=1)
+        S = (py * st).sum(dim=1)
+        R = torch.sqrt(C**2 + S**2).clamp_min(1e-12)
+        mean_theta = torch.atan2(S, C) % (2 * math.pi)
+        circ_var = 1 - R # 0=forcusing 1=dispersing
+        mean_idx = (mean_theta / (2 * math.pi)) * W
+
+    return mean_idx, circ_var
+
+def variance_y(prob):
+    B, H, W = prob.shape
+    ys = torch.linspace(0, H - 1, H, device=prob.device)
+    mean_y = (prob * ys[:, None]).sum(dim=(1, 2))
+    var_y = (prob * (ys[:, None] - mean_y[:, None, None])**2).sum(dim=(1, 2))
+    return mean_y, var_y
+
+def varience_matching_loss(pred_logits, gt_prob, W, H, tau=1.0):
+    _, _, p = soft_argmax_2d(pred_logits, tau)
+
+    # x: circular variance
+    mx_p, vx_p = circular_moments(p, W, axis='x')
+    mx_g, vx_g = circular_moments(gt_prob[:, 0], W, axis='x')
+    # y: variance
+    my_p, vy_p = variance_y(p)
+    my_g, vy_g = variance_y(gt_prob[:, 0])
+
+    loss_var_x = (vx_p - vx_g).abs().mean()
+    loss_var_y = (vy_p - vy_g).abs().mean()
+    return (loss_var_x + loss_var_y) * 0.5
+
+# spherical surface distance
+def lonlat_from_xy(x, y, W, H):
+    # x: [0, W), y: [0, H) -> longitude(lambda): [-pi, pi), latitude(phi): [-pi/2, pi/2]
+    lam = (x / W) * 2 * math.pi - math.pi
+    phi = (0.5 - y / H) * math.pi
+    return lam, phi
+
+def angular_distance_loss(pred_logits, gt_prob, W, H, tau=1.0):
+    xh, yh, p = soft_argmax_2d(pred_logits, tau)
+    B = xh.shape[0]
+
+    # GT
+    xs = torch.linspace(0, W - 1, W, device=gt_prob.device)
+    ys = torch.linspace(0, H - 1, H, device=gt_prob.device)
+    xs, ys = torch.meshgrid(xs, ys, indexing="xy")
+    xg = (gt_prob[:, 0] * xs).sum(dim=(1, 2))
+    yg = (gt_prob[:, 0] * ys).sum(dim=(1, 2))
+
+    lam_h, phi_h = lonlat_from_xy(xh, yh, W, H)
+    lam_g, phi_g = lonlat_from_xy(xg, yg, W, H)
+
+    # spherical surface angular
+    def sph2vec(lam, phi):
+        x = torch.cos(phi) * torch.cos(lam)
+        y = torch.cos(phi) * torch.sin(lam)
+        z = torch.sin(phi)
+        return torch.stack([x, y, z], dim=-1) # (B, 3)
+
+    vh = sph2vec(lam_h, phi_h)
+    vg = sph2vec(lam_g, phi_g)
+    cosang = (vh * vg).sum(dim=-1).clamp(-1.0, 1.0)
+    ang = torch.acos(cosang) # [0, pi]
+    return ang.mean()
+
+# loss integration
+def combined_gaze_loss(
+        pred_logits, gt_heatmap,
+        lam_kl=1.0, lam_coord=0.0001, lam_var=0.001, lam_ang=1.0, tau=1.0):
+    B, _, H, W = pred_logits.shape
+    gt_prob = normalize_prob(gt_heatmap)
+
+    # loss_kl = kl_div_loss(pred_logits, gt_prob)
+    loss_kl = kl(pred_logits, gt_prob)
+    loss_coord = coord_loss_from_logits(pred_logits, gt_prob, W, H, tau)
+    loss_var = varience_matching_loss(pred_logits, gt_prob, W, H, tau)
+    if lam_ang > 0:
+        loss_ang = angular_distance_loss(pred_logits, gt_prob, W, H, tau)
+    else:
+        loss_ang = pred_logits.new_tensor(0.0)
+
+    total = lam_kl * loss_kl + lam_coord * loss_coord + lam_var * loss_var + lam_ang + loss_ang
+    return total
 
 def main():
 
@@ -176,7 +372,9 @@ def main():
     # loss_function = nn.CrossEntropyLoss()
     # loss_function = "MSE"
     # loss_function = "MAE"
-    loss_function = "cos_similarity"
+    # loss_function = "cos_similarity"
+    # loss_function = "KLDiv"
+    loss_function = "combined_loss"
     optimizer = optim.SGD(net.parameters(), lr=lr)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.95)
 
