@@ -4,13 +4,14 @@ import math
 import cv2
 import numpy as np
 
-H = 1920
-W = 3840
-F = 420 # frame
+H = 1920 
+W = 3840 
+F = 1 # frame
 
-img = cv2.imread("data/MovieRenders/LevelSequence_OR_0420.png")
+img = cv2.imread("data/ue/MovieRenders/0001.jpeg")
+# img = cv2.imread("data/MovieRenders/LevelSequence_OR_0000.png")
 
-camera = {"x" : 600, "y" : 450, "z" : 170}
+camera = {"x" : 488.0, "y" : 474.0, "z" : 183.0}
 
 def transform(cod_3d, camera):
     cod_3d = np.array([cod_3d["x"], cod_3d["y"], cod_3d["z"]])
@@ -33,8 +34,24 @@ def transform(cod_3d, camera):
     y = y_c + H / 2
 
     return x, y
+with open("data/ue/JSON/Aoi_gaze.json") as f:
+    data = json.load(f)
+    print(len(data["Structure_gaze"]))
+    for i, part in enumerate(data["Structure_gaze"][F]):
+        value = data["Structure_gaze"][F][part]
+        x, y = transform(value, camera)
+        print(value)
+        print(x, y)
+        print(img.shape)
+        cv2.circle(img, (int(x), int(y)), 10, (255, 255, 0), 2)
+        print(img.shape)
+        cv2.imshow("img", img)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+        cv2.putText(img, str(i), (int(x), int(y)), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 0))
 
-with open("data/UE_json/Aoi_face.json") as f:
+'''
+with open("data/ue/JSON/Aoi_face.json") as f:
     data = json.load(f)
     print(len(data["Structure_face"]))
 
@@ -44,8 +61,7 @@ with open("data/UE_json/Aoi_face.json") as f:
     cv2.putText(img, "f0", (int(x), int(y)), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 0))
     cv2.putText(img, "f0: nose", (100, 100 + 18 * 70), cv2.FONT_HERSHEY_COMPLEX, 2, (0, 0, 0))
 
-
-with open("data/UE_json/Aoi_body.json") as f:
+with open("data/ue/JSON/Aoi_body.json") as f:
     data = json.load(f)
     print(len(data["Structure_body"]))
     for i, part in enumerate(data["Structure_body"][F]):
@@ -55,7 +71,7 @@ with open("data/UE_json/Aoi_body.json") as f:
         cv2.putText(img, str(i), (int(x), int(y)), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 0))
         cv2.putText(img, str(i) + ": " + part, (100, 100 + i * 70), cv2.FONT_HERSHEY_COMPLEX, 2, (0, 0, 0))
 
-with open("data/UE_json/Bernice_body.json") as f:
+with open("data/ue/JSON/Bernice_body.json") as f:
     data = json.load(f)
     print(len(data["Structure_body"]))
     for i, part in enumerate(data["Structure_body"][F]):
@@ -64,7 +80,7 @@ with open("data/UE_json/Bernice_body.json") as f:
         cv2.circle(img, (int(x), int(y)), 10, (0, 255, 0), 2)
         cv2.putText(img, str(i), (int(x), int(y)), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 0))
 
-with open("data/UE_json/Danielle_body.json") as f:
+with open("data/ue/JSON//Danielle_body.json") as f:
     data = json.load(f)
     print(len(data["Structure_body"]))
     for i, part in enumerate(data["Structure_body"][F]):
@@ -72,6 +88,7 @@ with open("data/UE_json/Danielle_body.json") as f:
         x, y = transform(value, camera)
         cv2.circle(img, (int(x), int(y)), 10, (0, 0, 255), 2)
         cv2.putText(img, str(i), (int(x), int(y)), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 0))
+'''
 
 cv2.imwrite("./test_img.png", img)
 cv2.imshow("img", img)
