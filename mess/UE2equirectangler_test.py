@@ -1,3 +1,4 @@
+import glob
 import json
 import math
 
@@ -8,10 +9,11 @@ H = 1920
 W = 3840 
 F = 1 # frame
 
-img = cv2.imread("data/ue/MovieRenders/0001.jpeg")
+img_paths = glob.glob("data/ue/MovieRenders/*.png")
+# img = cv2.imread("data/ue/MovieRenders/0001.jpeg")
 # img = cv2.imread("data/MovieRenders/LevelSequence_OR_0000.png")
 
-camera = {"x" : 488.0, "y" : 474.0, "z" : 183.0}
+camera = {"x" : 488.2, "y" : 474.5, "z" : 183.9}
 
 def transform(cod_3d, camera):
     cod_3d = np.array([cod_3d["x"], cod_3d["y"], cod_3d["z"]])
@@ -34,20 +36,15 @@ def transform(cod_3d, camera):
     y = y_c + H / 2
 
     return x, y
+
 with open("data/ue/JSON/Aoi_gaze.json") as f:
     data = json.load(f)
     print(len(data["Structure_gaze"]))
+
     for i, part in enumerate(data["Structure_gaze"][F]):
         value = data["Structure_gaze"][F][part]
         x, y = transform(value, camera)
-        print(value)
-        print(x, y)
-        print(img.shape)
         cv2.circle(img, (int(x), int(y)), 10, (255, 255, 0), 2)
-        print(img.shape)
-        cv2.imshow("img", img)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
         cv2.putText(img, str(i), (int(x), int(y)), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 0))
 
 '''
