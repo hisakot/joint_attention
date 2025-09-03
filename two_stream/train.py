@@ -223,12 +223,16 @@ def coord_loss_from_logits(pred_logits, gt_prob, W, H, tau=1.0):
     xs = torch.linspace(0, W - 1, W, device=gt_prob.device)
     ys = torch.linspace(0, H - 1, H, device=gt_prob.device)
     xs, ys = torch.meshgrid(xs, ys, indexing="xy")
+
+    gt_sum = gt_prob[:, 0].sum(dim=(1, 2), keepdim=True) # (B, 1, 1)
+    gt_norm = gt_prob[:, 0] / (gt_sum + 1e-8)
+
     xg = (gt_prob[:, 0] * xs).sum(dim=(1, 2))
     yg = (gt_prob[:, 0] * ys).sum(dim=(1, 2))
 
     dx = circular_dx(xh, xg, W)
     dy = torch.abs(yh - yg)
-    return (dx**2 + dy**2).mean()
+    return ((dx/W)**2 + (dy/H)**2).mean()
 
 # Variance
 def circular_moments(prob, axis_len, axis='x'):
