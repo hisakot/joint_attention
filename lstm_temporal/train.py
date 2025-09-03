@@ -74,7 +74,7 @@ def train(train_dataloader, net, loss_function, optimizer, device):
                     targets_norm = torch.where(targets_sum > 0, targets / targets_sum, targets)
                     loss = lossfunc(log_pred, targets_norm)
                 elif loss_function == "combined_loss":
-                    loss = combined_gaze_loss(pred, targets)
+                    loss = compute_all_losses(pred, targets)
 
                 optimizer.zero_grad()
                 loss.backward()
@@ -146,7 +146,7 @@ def evaluate(val_dataloader, net, loss_function, device):
                         targets_norm = torch.where(targets_sum > 0, targets / targets_sum, targets)
                         loss = lossfunc(log_pred, targets_norm)
                     elif loss_function == "combined_loss":
-                        loss = combined_gaze_loss(pred, targets)
+                        loss = compute_all_losses(pred, targets)
 
                     total_loss += loss.item()
                     pbar.update()
