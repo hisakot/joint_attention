@@ -62,12 +62,12 @@ for i, pred_path in tqdm(enumerate(pred_paths), total=len(pred_paths)):
     pred_iou_flat = np.where(pred_iou_flat > 127, 255, 0)
 
     gt_pix, pred_pix, both_pix = 0, 0, 0
-    for i in range(gt_iou_flat.shape[0]):
-        if gt_iou_flat[i] != 0:
+    for j in range(gt_iou_flat.shape[0]):
+        if gt_iou_flat[j] != 0:
             gt_pix += 1
-        if pred_iou_flat[i] != 0:
+        if pred_iou_flat[j] != 0:
             pred_pix += 1
-        if gt_iou_flat[i] != 0 and pred_iou_flat[i] != 0:
+        if gt_iou_flat[j] != 0 and pred_iou_flat[j] != 0:
             both_pix += 1
     iou = both_pix / (gt_pix + pred_pix - both_pix)
 
