@@ -60,9 +60,17 @@ for i, pred_path in tqdm(enumerate(pred_paths), total=len(pred_paths)):
     _, pred_iou = cv2.threshold(pred, thr, 255, cv2.THRESH_BINARY)
     pred_iou_flat = pred_iou.reshape(-1)
     pred_iou_flat = np.where(pred_iou_flat > 127, 255, 0)
-    print(gt_iou_flat, pred_iou_flat)
-    print(gt_iou_flat.shape, pred_iou_flat.shape)
-    exit()
+
+    gt_pix, pred_pix, both_pix = 0, 0, 0
+    for i in range(gt_iou_flat.shape[0]):
+        if gt_iou_flat[i] != 0:
+            gt_pix += 1
+        if pred_iou_flat[i] != 0:
+            pred_pix += 1
+        if gt_iou_flat[i] != 0 and pred_iou_flat[i] != 0:
+            both_pix += 1
+    iou = both_pix / (gt_pix + pred_pix - both_pix)
+
 
     # concat image
     zeros = np.zeros((H, W, 1), dtype=np.uint8)
@@ -211,3 +219,4 @@ print("auc: ", auc_sum)
 print("Thr=30: ", thr30)
 print("Thr=60: ", thr60)
 print("Thr=90: ", thr90)
+print("IoU: ", iou)
