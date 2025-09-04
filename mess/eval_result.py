@@ -51,6 +51,19 @@ for i, pred_path in tqdm(enumerate(pred_paths), total=len(pred_paths)):
     pred_argmax = np.unravel_index(np.argmax(pred_float), pred_float.shape)
     pred_flat = pred_float.reshape(-1)
 
+    # IoU
+    _, gt_iou = cv2.threshold(gt, 127, 255, cv2.THRESH_BINARY)
+    gt_iou_flat = gt_iou.reshape(-1)
+    gt_iou_flat = np.where(gt_iou_flat > 127, 255, 0)
+
+    thr = int(np.max(pred) / 2)
+    _, pred_iou = cv2.threshold(pred, thr, 255, cv2.THRESH_BINARY)
+    pred_iou_flat = pred_iou.reshape(-1)
+    pred_iou_flat = np.where(pred_iou_flat > 127, 255, 0)
+    print(gt_iou_flat, pred_iou_flat)
+    print(gt_iou_flat.shape, pred_iou_flat.shape)
+    exit()
+
     # concat image
     zeros = np.zeros((H, W, 1), dtype=np.uint8)
     concat = np.concatenate([pred[:, :, np.newaxis], zeros, gt[:, :, np.newaxis]], axis=2)
