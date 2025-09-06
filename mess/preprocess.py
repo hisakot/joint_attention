@@ -76,6 +76,12 @@ def head_direction(face_kpt, H, W):
     p1 = (int(image_points[0][0]), int(image_points[0][1]))
     p2 = (int(nose_end_point2D[0][0][0]), int(nose_end_point2D[0][0][1]))
 
+    if pitch > 0:
+        dx = p2[0] - p1[0]
+        dy = p2[1] - p1[1]
+        if dy < 0:
+            p2 = (int(p1[0] - dx), int(p1[1] - dy))
+
     return p1, p2, yaw, pitch, roll
 
 def get_body_forward(kpts):
@@ -229,7 +235,7 @@ if __name__ == '__main__':
         else:
             continue
 
-        H, W, C = 1920, 3840, 3
+        H, W, C = 960, 1920, 3
         links, instance_info = load_mmpose_json(json_path)
         data_len = len(instance_info)
         for i, instance_info in tqdm(enumerate(instance_info), total=data_len):
