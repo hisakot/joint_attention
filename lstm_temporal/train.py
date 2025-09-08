@@ -15,6 +15,7 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence
 from torch.utils.tensorboard import SummaryWriter
+from pytorch_msssim import ssim
 
 import config
 import dataset
@@ -75,6 +76,8 @@ def train(train_dataloader, net, loss_function, optimizer, device):
                     loss = lossfunc(log_pred, targets_norm)
                 elif loss_function == "combined_loss":
                     loss = compute_all_losses(pred, targets)
+                elif loss_function == "SSIM":
+                    loss = 1 - ssim(pred, targets)
 
                 optimizer.zero_grad()
                 loss.backward()
@@ -147,6 +150,8 @@ def evaluate(val_dataloader, net, loss_function, device):
                         loss = lossfunc(log_pred, targets_norm)
                     elif loss_function == "combined_loss":
                         loss = compute_all_losses(pred, targets)
+                    elif loss_function == "SSIM":
+                        loss = 1 - ssim(pred, targets)
 
                     total_loss += loss.item()
                     pbar.update()
@@ -310,7 +315,8 @@ def main():
     # loss_function = "MAE"
     # loss_function = "cos_similarity"
     # loss_function = "KLDiv"
-    loss_function = "combined_loss"
+    # loss_function = "combined_loss"
+    loss_function = "SSIM"
     optimizer = optim.SGD(net.parameters(), lr=lr)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.95)
 
