@@ -77,7 +77,7 @@ def train(train_dataloader, net, loss_function, optimizer, device):
                 elif loss_function == "combined_loss":
                     loss = compute_all_losses(pred, targets)
                 elif loss_function == "SSIM":
-                    loss = 1 - ssim(pred, targets)
+                    loss = 1 - ssim(pred, targets, data_range=1, size_average=True)
 
                 optimizer.zero_grad()
                 loss.backward()
@@ -151,7 +151,7 @@ def evaluate(val_dataloader, net, loss_function, device):
                     elif loss_function == "combined_loss":
                         loss = compute_all_losses(pred, targets)
                     elif loss_function == "SSIM":
-                        loss = 1 - ssim(pred, targets)
+                        loss = 1 - ssim(pred, targets, data_range=1, size_average=True)
 
                     total_loss += loss.item()
                     pbar.update()
