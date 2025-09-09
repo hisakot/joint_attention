@@ -142,6 +142,8 @@ def evaluate(val_dataloader, net, loss_function, device):
                         lossfunc = nn.L1Loss()
                         loss = lossfunc(pred, targets)
                     elif loss_function == "KLDiv":
+                        ssim_loss = 1 - ssim(pred, targets, data_range=1, size_average=True)
+
                         lossfunc = nn.KLDivLoss(reduction='batchmean')
                         # pred
                         pred = pred.view(pred.size(0), -1)
@@ -151,7 +153,6 @@ def evaluate(val_dataloader, net, loss_function, device):
                         targets_sum = targets.sum(dim=1, keepdim=True)
                         targets_norm = torch.where(targets_sum > 0, targets / targets_sum, targets)
                         kl_loss = lossfunc(log_pred, targets_norm)
-                        ssim_loss = 1 - ssim(pred, targets, data_range=1, size_average=True)
                         loss = kl_loss + ssim_loss
                     elif loss_function == "combined_loss":
                         loss = compute_all_losses(pred, targets)
