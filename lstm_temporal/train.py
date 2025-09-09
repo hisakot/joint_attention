@@ -73,11 +73,13 @@ def train(train_dataloader, net, loss_function, optimizer, device):
                     targets = targets.view(targets.size(0), -1)
                     targets_sum = targets.sum(dim=1, keepdim=True)
                     targets_norm = torch.where(targets_sum > 0, targets / targets_sum, targets)
-                    loss = lossfunc(log_pred, targets_norm)
+                    kl_loss = lossfunc(log_pred, targets_norm)
+                    ssim_loss = 1 - ssim(pred, targets, data_range=1, size_average=True)
+                    loss = kl_loss + ssim_loss
                 elif loss_function == "combined_loss":
                     loss = compute_all_losses(pred, targets)
                 elif loss_function == "SSIM":
-                    loss = 1 - ssim(pred, targets, data_range=1, size_average=True)
+                    ssim_loss = 1 - ssim(pred, targets, data_range=1, size_average=True)
 
                 optimizer.zero_grad()
                 loss.backward()
@@ -147,7 +149,9 @@ def evaluate(val_dataloader, net, loss_function, device):
                         targets = targets.view(targets.size(0), -1)
                         targets_sum = targets.sum(dim=1, keepdim=True)
                         targets_norm = torch.where(targets_sum > 0, targets / targets_sum, targets)
-                        loss = lossfunc(log_pred, targets_norm)
+                        kl_loss = lossfunc(log_pred, targets_norm)
+                        ssim_loss = 1 - ssim(pred, targets, data_range=1, size_average=True)
+                        loss = kl_loss + ssim_loss
                     elif loss_function == "combined_loss":
                         loss = compute_all_losses(pred, targets)
                     elif loss_function == "SSIM":
@@ -314,9 +318,9 @@ def main():
     # loss_function = "MSE"
     # loss_function = "MAE"
     # loss_function = "cos_similarity"
-    # loss_function = "KLDiv"
+    loss_function = "KLDiv"
     # loss_function = "combined_loss"
-    loss_function = "SSIM"
+    # loss_function = "SSIM"
     optimizer = optim.SGD(net.parameters(), lr=lr)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=20, gamma=1)
 
