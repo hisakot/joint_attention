@@ -319,8 +319,8 @@ def main():
     # loss_function = nn.CrossEntropyLoss()
     # loss_function = "MSE"
     # loss_function = "MAE"
-    # loss_function = "cos_similarity"
-    loss_function = "KLDiv"
+    loss_function = "cos_similarity"
+    # loss_function = "KLDiv"
     # loss_function = "combined_loss"
     # loss_function = "SSIM"
     optimizer = optim.SGD(net.parameters(), lr=lr)
