@@ -49,7 +49,7 @@ class Dataset(Dataset):
         self.kpt_paths = kpt_paths
 
     def __len__(self):
-        return len(self.mmpose) - self.seq_len + 1
+        return len(self.img_paths) - self.seq_len + 1
 
     def __getitem__(self, idx):
         # rotation anguler
@@ -73,6 +73,7 @@ class Dataset(Dataset):
                     one_seq = np.zeros((5, self.H, self.W))
                     inputs.append(one_seq)
                     continue
+                '''
                 mmpose = self.mmpose[idx+i]
                 frame_id = mmpose["frame_id"]
                 instances = mmpose["instances"]
@@ -84,8 +85,8 @@ class Dataset(Dataset):
                     scores = instance["keypoint_scores"]
                     if sum(score >= 0.5 for score in scores) > 133 / 5:
                         kpts.append(keypoints)
+
                 # whole body keypoints
-                '''
                 kptmap = generate_pose_heatmap(self.H, self.W, kpts, sigma=3) # H, W, 1
                 kptmap = cv2.remap(kptmap, map_x.astype(np.float32), map_y.astype(np.float32), interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_WRAP)
                 kptmap = kptmap[:, :, np.newaxis]
