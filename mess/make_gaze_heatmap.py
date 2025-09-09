@@ -71,11 +71,11 @@ def main():
     if args.data_type == "ue":
         H = 960
         W = 1920
-        save_dir = "data/ue/gt_heatmap_1ch/01"
-        camera = {"x" : 500.0, "y" : 450.0, "z" : 160.0}
+        save_dir = "data/ue/gt_heatmap_1ch/ds_ue_02"
+        camera = {"x" : 600.0, "y" : 400.0, "z" : 200.0}
         cam_rot = (0, 180, 0)
 
-        with open("data/ue/01/JSON/Aoi_gaze.json") as f:
+        with open("data/ue/02/JSON/Aoi_gaze.json") as f:
             data = json.load(f)
             length = len(data["Structure_gaze"])
 
