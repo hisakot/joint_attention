@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.utils.checkpoint as checkpoint
+import torch.nn.functional as F
 from einops import rearrange
 from timm.layers import DropPath, to_2tuple, trunc_normal_
 
@@ -793,9 +794,10 @@ class SwinTransformerSys(nn.Module):
         lstm_feat, _ = self.lstm(lstm_inp) # (B*200, seq_len, 768)
         lstm_feat = lstm_feat[:, -1] # using the last time step
 
-        lstm_feat = lstm_feat.view(B, 200, -1) # (B, 200, 768)
+        lstm_feat = lstm_feat.view(B, P, -1) # (B, 200, 768)
         out = self.forward_up_features(lstm_feat, x_downsample_list[-1]) # (B, 12800, 96)
         out = self.up_x4(out)
+        out = F.interpolate(out, size=(H, W), mode='bilinear')
 
         return out
 
