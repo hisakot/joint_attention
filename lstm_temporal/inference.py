@@ -81,9 +81,9 @@ def main():
     model = transGan.TransGAN_LSTM(patch_size=10, emb_size=512, num_heads=2, forward_expansion=4,
                                    img_height=img_height, img_width=img_width, in_ch=5, seq_len=seq_len)
     '''
-    model = swin_unet.SwinUnet(img_height=img_height, img_width=img_width, 
-                               in_chans=5, num_classes=1, 
-                               lstm_input_dim=768, lstm_hidden_dim=768, seq_len=seq_len)
+    model = swin_unet.SwinUnet(img_height=img_height, img_width=img_width,
+                               patch_size=2, in_chans=5, num_classes=1, embed_dim=48,
+                               lstm_input_dim=384, lstm_hidden_dim=384, seq_len=seq_len)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 0:
