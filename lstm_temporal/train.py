@@ -29,7 +29,7 @@ def print_memory_usage():
     print(F"GPU Memory Allocated: {allocated:.2f} MB")
     print(F"GPU Memory Reserved: {reserved:.2f} MB")
 
-def train(train_dataloader, net, loss_function, optimizer, device):
+def train(train_dataloader, net, loss_functions, optimizer, device):
     net.train()
 
     total_loss =  0
@@ -104,7 +104,7 @@ def train(train_dataloader, net, loss_function, optimizer, device):
 
     return total_loss / len(train_dataloader)
 
-def evaluate(val_dataloader, net, loss_function, device):
+def evaluate(val_dataloader, net, loss_functions, device):
     '''
     resnet50.eval()
     unet.eval()
@@ -376,13 +376,13 @@ def main():
         try:
             # train
             train_loss = train(train_dataloader, net,
-                               loss_function, optimizer, device)
+                               loss_functions, optimizer, device)
             train_loss_list.append(train_loss)
 
             # test
             with torch.no_grad():
                 val_loss = evaluate(val_dataloader, net,
-                                    loss_function, device)
+                                    loss_functions, device)
                 val_loss_list.append(val_loss)
 
             print("Epoch %d : train_loss %.3f" % (epoch + 1, train_loss))
