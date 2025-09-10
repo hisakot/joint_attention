@@ -53,34 +53,37 @@ def train(train_dataloader, net, loss_function, optimizer, device):
 
                 pred = net(inputs)
 
-                if loss_function == "cos_similarity":
-                    pred = pred.view(pred.size(0), -1)
-                    targets = targets.view(targets.size(0), -1)
-                    cos_loss = F.cosine_similarity(pred, targets)
-                    loss = (1 - cos_loss).mean()
-                elif loss_function == "MSE":
-                    lossfunc = nn.MSELoss()
-                    loss = lossfunc(pred, targets)
-                elif loss_function == "MAE":
-                    lossfunc = nn.L1Loss()
-                    loss = lossfunc(pred, targets)
-                elif loss_function == "KLDiv":
-                    ssim_loss = 1 - ssim(pred, targets, data_range=1, size_average=True)
-
-                    lossfunc = nn.KLDivLoss(reduction='batchmean')
-                    # pred
-                    pred = pred.view(pred.size(0), -1)
-                    log_pred = F.log_softmax(pred, dim=1)
-                    # targets
-                    targets = targets.view(targets.size(0), -1)
-                    targets_sum = targets.sum(dim=1, keepdim=True)
-                    targets_norm = torch.where(targets_sum > 0, targets / targets_sum, targets)
-                    kl_loss = lossfunc(log_pred, targets_norm)
-                    loss = kl_loss + ssim_loss
-                elif loss_function == "combined_loss":
-                    loss = compute_all_losses(pred, targets)
-                elif loss_function == "SSIM":
-                    ssim_loss = 1 - ssim(pred, targets, data_range=1, size_average=True)
+                loss = 0
+                for loss_function in loss_functions:
+                    if loss_function == "cos_similarity":
+                        pred_flat = pred.view(pred.size(0), -1)
+                        targets_flat = targets.view(targets.size(0), -1)
+                        cos_loss = F.cosine_similarity(pred_flat, targets_flat)
+                        loss += (1 - cos_loss).mean()
+                    elif loss_function == "MSE":
+                        lossfunc = nn.MSELoss()
+                        mse_loss = lossfunc(pred, targets)
+                        loss += mse_loss
+                    elif loss_function == "MAE":
+                        lossfunc = nn.L1Loss()
+                        mae_loss = lossfunc(pred, targets)
+                        loss += mae_loss
+                    elif loss_function == "KLDiv":
+                        lossfunc = nn.KLDivLoss(reduction='batchmean')
+                        # pred
+                        pred_flat = pred.view(pred.size(0), -1)
+                        log_pred = F.log_softmax(pred_flat, dim=1)
+                        # targets
+                        targets_flat = targets.view(targets.size(0), -1)
+                        targets_sum = targets_flat.sum(dim=1, keepdim=True)
+                        targets_norm = torch.where(targets_sum > 0, targets_flat / targets_sum, targets_flat)
+                        kl_loss = lossfunc(log_pred, targets_norm)
+                        loss += kl_loss
+                    elif loss_function == "combined_loss":
+                        loss = compute_all_losses(pred, targets)
+                    elif loss_function == "SSIM":
+                        ssim_loss = 1 - ssim(pred, targets, data_range=1, size_average=True)
+                        loss += ssim_loss
 
                 optimizer.zero_grad()
                 loss.backward()
@@ -130,34 +133,37 @@ def evaluate(val_dataloader, net, loss_function, device):
 
                     pred = net(inputs)
 
-                    if loss_function == "cos_similarity":
-                        pred = pred.view(pred.size(0), -1)
-                        targets = targets.view(targets.size(0), -1)
-                        cos_loss = F.cosine_similarity(pred, targets)
-                        loss = (1 - cos_loss).mean()
-                    elif loss_function == "MSE":
-                        lossfunc = nn.MSELoss()
-                        loss = lossfunc(pred, targets)
-                    elif loss_function == "MAE":
-                        lossfunc = nn.L1Loss()
-                        loss = lossfunc(pred, targets)
-                    elif loss_function == "KLDiv":
-                        ssim_loss = 1 - ssim(pred, targets, data_range=1, size_average=True)
-
-                        lossfunc = nn.KLDivLoss(reduction='batchmean')
-                        # pred
-                        pred = pred.view(pred.size(0), -1)
-                        log_pred = F.log_softmax(pred, dim=1)
-                        # targets
-                        targets = targets.view(targets.size(0), -1)
-                        targets_sum = targets.sum(dim=1, keepdim=True)
-                        targets_norm = torch.where(targets_sum > 0, targets / targets_sum, targets)
-                        kl_loss = lossfunc(log_pred, targets_norm)
-                        loss = kl_loss + ssim_loss
-                    elif loss_function == "combined_loss":
-                        loss = compute_all_losses(pred, targets)
-                    elif loss_function == "SSIM":
-                        loss = 1 - ssim(pred, targets, data_range=1, size_average=True)
+                    loss = 0
+                    for loss_function in loss_functions:
+                        if loss_function == "cos_similarity":
+                            pred_flat = pred.view(pred.size(0), -1)
+                            targets_flat = targets.view(targets.size(0), -1)
+                            cos_loss = F.cosine_similarity(pred_flat, targets_flat)
+                            loss += (1 - cos_loss).mean()
+                        elif loss_function == "MSE":
+                            lossfunc = nn.MSELoss()
+                            mse_loss = lossfunc(pred, targets)
+                            loss += mse_loss
+                        elif loss_function == "MAE":
+                            lossfunc = nn.L1Loss()
+                            mae_loss = lossfunc(pred, targets)
+                            loss += mae_loss
+                        elif loss_function == "KLDiv":
+                            lossfunc = nn.KLDivLoss(reduction='batchmean')
+                            # pred
+                            pred_flat = pred.view(pred.size(0), -1)
+                            log_pred = F.log_softmax(pred_flat, dim=1)
+                            # targets
+                            targets_flat = targets.view(targets.size(0), -1)
+                            targets_sum = targets_flat.sum(dim=1, keepdim=True)
+                            targets_norm = torch.where(targets_sum > 0, targets_flat / targets_sum, targets_flat)
+                            kl_loss = lossfunc(log_pred, targets_norm)
+                            loss += kl_loss
+                        elif loss_function == "combined_loss":
+                            loss = compute_all_losses(pred, targets)
+                        elif loss_function == "SSIM":
+                            ssim_loss = 1 - ssim(pred, targets, data_range=1, size_average=True)
+                            loss += ssim_loss
 
                     total_loss += loss.item()
                     pbar.update()
@@ -317,12 +323,8 @@ def main():
     net.to(device)
 
     # loss_function = nn.CrossEntropyLoss()
-    # loss_function = "MSE"
-    # loss_function = "MAE"
-    loss_function = "cos_similarity"
-    # loss_function = "KLDiv"
-    # loss_function = "combined_loss"
-    # loss_function = "SSIM"
+    # loss_functions = ["MSE", "MAE", "cos_similarity", "KLDiv", "combined_loss", "SSIM"]
+    loss_functions = ["cos_similarity", "KLDiv", "SSIM"]
     optimizer = optim.SGD(net.parameters(), lr=lr)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=20, gamma=1)
 
