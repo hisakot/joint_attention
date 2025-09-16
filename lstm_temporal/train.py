@@ -340,8 +340,8 @@ def main():
     train_loss_list = list()
     val_loss_list = list()
 
-    train_data_dir = "data/train"
-    val_data_dir = "data/val"
+    train_data_dir = "data/ue/train"
+    val_data_dir = "data/ue/val"
     train_data = dataset.Dataset(train_data_dir,
                                  img_height=img_height, img_width=img_width,
                                  seq_len=seq_len, transform=None, is_train=True)
