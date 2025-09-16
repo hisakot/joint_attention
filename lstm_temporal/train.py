@@ -329,7 +329,7 @@ def main():
     loss_functions = ["cos_similarity", "KLDiv", "SSIM"]
     # optimizer = optim.SGD(net.parameters(), lr=lr)
     optimizer = optim.AdamW(net.parameters(), lr=lr, weight_decay=1e-2)
-    scheduler = lr_scheduler.StepLR(optimizer, step_size=20, gamma=1)
+    scheduler = lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.95)
 
     writer = SummaryWriter(log_dir="logs")
 
