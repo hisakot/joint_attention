@@ -33,6 +33,7 @@ def train(train_dataloader, net, loss_functions, optimizer, device):
     net.train()
 
     total_loss =  0
+    cos_total, mse_total, mae_total, kl_total, ssim_total = 0, 0, 0, 0, 0
     start_time = time.time()
 
     num_batches = len(train_dataloader)
@@ -54,20 +55,24 @@ def train(train_dataloader, net, loss_functions, optimizer, device):
                 pred = net(inputs)
 
                 loss = 0
+                cos_loss, mse_loss, mae_loss, kl_loss, ssim_loss = 0, 0, 0, 0, 0
                 for loss_function in loss_functions:
                     if loss_function == "cos_similarity":
                         pred_flat = pred.view(pred.size(0), -1)
                         targets_flat = targets.view(targets.size(0), -1)
-                        cos_loss = F.cosine_similarity(pred_flat, targets_flat)
-                        loss += (1 - cos_loss).mean()
+                        cos_loss = (1 - F.cosine_similarity(pred_flat, targets_flat)).mean()
+                        loss += cos_loss
+                        cos_total += cos_loss
                     elif loss_function == "MSE":
                         lossfunc = nn.MSELoss()
                         mse_loss = lossfunc(pred, targets)
                         loss += mse_loss
+                        mse_total += mse_loss
                     elif loss_function == "MAE":
                         lossfunc = nn.L1Loss()
                         mae_loss = lossfunc(pred, targets)
                         loss += mae_loss
+                        mze_total += mae_loss
                     elif loss_function == "KLDiv":
                         lossfunc = nn.KLDivLoss(reduction='batchmean')
                         # pred
@@ -79,11 +84,13 @@ def train(train_dataloader, net, loss_functions, optimizer, device):
                         targets_norm = torch.where(targets_sum > 0, targets_flat / targets_sum, targets_flat)
                         kl_loss = lossfunc(log_pred, targets_norm)
                         loss += kl_loss
+                        kl_total += kl_loss
                     elif loss_function == "combined_loss":
-                        loss = compute_all_losses(pred, targets)
+                        loss += compute_all_losses(pred, targets)
                     elif loss_function == "SSIM":
                         ssim_loss = 1 - ssim(pred, targets, data_range=1, size_average=True)
                         loss += ssim_loss
+                        ssim_total += ssim_loss
 
                 optimizer.zero_grad()
                 loss.backward()
@@ -103,7 +110,7 @@ def train(train_dataloader, net, loss_functions, optimizer, device):
             pass
 
 # return total_loss / len(train_dataloader)
-    return [total_loss / len(train_dataloader), 1-cos_loss.item(), kl_loss.item.item(), ssim_loss]
+    return [total_loss / len(train_dataloader), cos_total.item(), kl_total.item(), ssim_total.item()]
 
 def evaluate(val_dataloader, net, loss_functions, device):
     '''
@@ -116,6 +123,7 @@ def evaluate(val_dataloader, net, loss_functions, device):
     '''
     net.eval()
     total_loss = 0
+    cos_total, mse_total, mae_total, kl_total, ssim_total = 0, 0, 0, 0, 0
 
     with torch.no_grad():
         with tqdm(total=len(val_dataloader)) as pbar:
@@ -135,20 +143,24 @@ def evaluate(val_dataloader, net, loss_functions, device):
                     pred = net(inputs)
 
                     loss = 0
+                    cos_loss, mse_loss, mae_loss, kl_loss, ssim_loss = 0, 0, 0, 0, 0
                     for loss_function in loss_functions:
                         if loss_function == "cos_similarity":
                             pred_flat = pred.view(pred.size(0), -1)
                             targets_flat = targets.view(targets.size(0), -1)
-                            cos_loss = F.cosine_similarity(pred_flat, targets_flat)
-                            loss += (1 - cos_loss).mean()
+                            cos_loss = (1 - F.cosine_similarity(pred_flat, targets_flat)).mean()
+                            loss += cos_loss
+                            cos_total += cos_loss
                         elif loss_function == "MSE":
                             lossfunc = nn.MSELoss()
                             mse_loss = lossfunc(pred, targets)
                             loss += mse_loss
+                            mse_total += mse_loss
                         elif loss_function == "MAE":
                             lossfunc = nn.L1Loss()
                             mae_loss = lossfunc(pred, targets)
                             loss += mae_loss
+                            mae_total += mae_loss
                         elif loss_function == "KLDiv":
                             lossfunc = nn.KLDivLoss(reduction='batchmean')
                             # pred
@@ -160,11 +172,13 @@ def evaluate(val_dataloader, net, loss_functions, device):
                             targets_norm = torch.where(targets_sum > 0, targets_flat / targets_sum, targets_flat)
                             kl_loss = lossfunc(log_pred, targets_norm)
                             loss += kl_loss
+                            kl_total += kl_loss
                         elif loss_function == "combined_loss":
                             loss = compute_all_losses(pred, targets)
                         elif loss_function == "SSIM":
                             ssim_loss = 1 - ssim(pred, targets, data_range=1, size_average=True)
                             loss += ssim_loss
+                            ssim_total += ssim_loss
 
                     total_loss += loss.item()
                     pbar.update()
@@ -173,7 +187,7 @@ def evaluate(val_dataloader, net, loss_functions, device):
                 pass
 
 # return total_loss / len(val_dataloader)
-    return [total_loss / len(val_dataloader), 1-cos_loss.item(), kl_loss.item(), ssim_loss]
+    return [total_loss / len(val_dataloader), cos_loss.item(), kl_loss.item(), ssim_loss.item()]
 
 def collate_fn(batch):
     inputs, labels = zip(*batch)
