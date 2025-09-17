@@ -102,7 +102,8 @@ def train(train_dataloader, net, loss_functions, optimizer, device):
             print("Error: TypeError")
             pass
 
-    return total_loss / len(train_dataloader)
+# return total_loss / len(train_dataloader)
+    return [total_loss / len(train_dataloader), 1-cos_loss.item(), kl_loss.item.item(), ssim_loss]
 
 def evaluate(val_dataloader, net, loss_functions, device):
     '''
@@ -171,7 +172,8 @@ def evaluate(val_dataloader, net, loss_functions, device):
                 print("Error: TypeError")
                 pass
 
-    return total_loss / len(val_dataloader)
+# return total_loss / len(val_dataloader)
+    return [total_loss / len(val_dataloader), 1-cos_loss.item(), kl_loss.item(), ssim_loss]
 
 def collate_fn(batch):
     inputs, labels = zip(*batch)
@@ -388,20 +390,20 @@ def main():
                                     loss_functions, device)
                 val_loss_list.append(val_loss)
 
-            print("Epoch %d : train_loss %.3f" % (epoch + 1, train_loss))
-            print("Epoch %d : val_loss %.3f" % (epoch + 1, val_loss))
+            print("Epoch %d : train_loss %.3f" % (epoch + 1, train_loss[0]))
+            print("Epoch %d : val_loss %.3f" % (epoch + 1, val_loss[0]))
+            print(train_loss, val_loss)
 
             # lr_scheduler
             scheduler.step()
 
             # save model
-            if val_loss < early_stopping[0]:
-                early_stopping[0] = val_loss
+            if val_loss[0] < early_stopping[0]:
+                early_stopping[0] = val_loss[0]
                 early_stopping[2] = 0
                 torch.save({"epoch" : epoch + 1,
                             "net_state_dict" : net.state_dict(),
                             "optimizer_state_dict" : optimizer.state_dict(),
-                            "train_loss_list" : train_loss_list,
                             "train_loss_list" : train_loss_list,
                             "val_loss_list" : val_loss_list,
                             }, "save_models/lstm_trial.pth")
@@ -411,8 +413,14 @@ def main():
                     break
 
             # tensorboard
-            writer.add_scalar("Train Loss", train_loss, epoch + 1)
-            writer.add_scalar("Valid Loss", val_loss, epoch + 1)
+            writer.add_scalar("Train Loss", train_loss[0], epoch + 1)
+            writer.add_scalar("Train cosLoss", train_loss[1], epoch + 1)
+            writer.add_scalar("Train klLoss", train_loss[2], epoch + 1)
+            writer.add_scalar("Train ssimLoss", train_loss[3], epoch + 1)
+            writer.add_scalar("Valid Loss", val_loss[0], epoch + 1)
+            writer.add_scalar("Valid cosLoss", val_loss[1], epoch + 1)
+            writer.add_scalar("Valid klLoss", val_loss[2], epoch + 1)
+            writer.add_scalar("Valid ssimLoss", val_loss[3], epoch + 1)
             print("log updated")
 
         except ValueError:
