@@ -187,7 +187,7 @@ def evaluate(val_dataloader, net, loss_functions, device):
                 pass
 
 # return total_loss / len(val_dataloader)
-    return [total_loss / len(val_dataloader), cos_loss.item(), kl_loss.item(), ssim_loss.item()]
+    return [total_loss / len(val_dataloader), cos_total.item(), kl_total.item(), ssim_total.item()]
 
 def collate_fn(batch):
     inputs, labels = zip(*batch)
