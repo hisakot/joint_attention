@@ -110,7 +110,7 @@ def train(train_dataloader, net, loss_functions, optimizer, device):
             pass
 
 # return total_loss / len(train_dataloader)
-    return [total_loss / len(train_dataloader), cos_total.item(), kl_total, ssim_total.item()]
+    return [total_loss / len(train_dataloader), cos_total.item(), kl_total.item(), ssim_total.item()]
 
 def evaluate(val_dataloader, net, loss_functions, device):
     '''
@@ -187,7 +187,7 @@ def evaluate(val_dataloader, net, loss_functions, device):
                 pass
 
 # return total_loss / len(val_dataloader)
-    return [total_loss / len(val_dataloader), cos_total.item(), kl_total, ssim_total.item()]
+    return [total_loss / len(val_dataloader), cos_total.item(), kl_total.item(), ssim_total.item()]
 
 def collate_fn(batch):
     inputs, labels = zip(*batch)
@@ -344,8 +344,8 @@ def main():
     # loss_function = nn.CrossEntropyLoss()
     # loss_functions = ["MSE", "MAE", "cos_similarity", "KLDiv", "combined_loss", "SSIM"]
     loss_functions = ["cos_similarity", "KLDiv", "SSIM"]
-    # optimizer = optim.SGD(net.parameters(), lr=lr)
-    optimizer = optim.AdamW(net.parameters(), lr=lr, weight_decay=2e-2)
+    optimizer = optim.SGD(net.parameters(), lr=lr)
+    # optimizer = optim.AdamW(net.parameters(), lr=lr, weight_decay=2e-2)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=20, gamma=1)
 
     writer = SummaryWriter(log_dir="logs")
