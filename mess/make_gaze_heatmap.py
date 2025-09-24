@@ -71,11 +71,11 @@ def main():
     if args.data_type == "ue":
         H = 960
         W = 1920
-        save_dir = "data/ue/gt_heatmap_1ch/ds_ue_02"
-        camera = {"x" : 600.0, "y" : 400.0, "z" : 200.0}
+        save_dir = "data/ue/gt_heatmap_1ch/ds_ue01"
+        camera = {"x" : 500.0, "y" : 450.0, "z" : 160.0}
         cam_rot = (0, 180, 0)
 
-        with open("data/ue/02/JSON/Aoi_gaze.json") as f:
+        with open("data/ue/JSON/Aoi_gaze_ue01.json") as f:
             data = json.load(f)
             length = len(data["Structure_gaze"])
 
@@ -88,13 +88,13 @@ def main():
                     x, y = transform(value, camera, cam_rot, H, W)
                     gazemap = np.zeros((H, W))
                     gazemap[int(round(y)) - 1][int(round(x)) - 1] = 1
-                    gazemap = gaussian_blur(gazemap, ksize=499)
+                    gazemap = gaussian_blur(gazemap, ksize=299)
 
                     save_path = os.path.join(save_dir, str(frame_num).zfill(6) + ".png")
                     cv2.imwrite(save_path, gazemap)
                 frame_num += 1
 
-    elif args.data_type == "real":
+    elif args.data_type == "real_bbox":
         W = 3840
         H = 1920
         gaze_ann_paths = glob.glob("data/train/gaze_ann/*.json")
@@ -125,6 +125,30 @@ def main():
                     gazemap[int(round(gaze_y)) - 1][int(round(gaze_x)) - 1] = 1
                 gazemap = gaussian_blur(gazemap, ksize=999)
 
+                save_path = os.path.join(save_dir, str(i).zfill(6) + ".png")
+                cv2.imwrite(save_path, gazemap)
+    elif args.data_type == "real_point":
+        W = 1920
+        H = 960
+        gaze_ann_paths = glob.glob("data/short_or/annotations/*.json")
+        for gaze_ann_path in gaze_ann_paths:
+            data = load_json(gaze_ann_path)
+
+            video_name = os.path.splitext(os.path.basename(gaze_ann_path))[0]
+            save_dir = "data/short_or/gt_heatmap_1ch/" + video_name
+            if os.path.exists(save_dir):
+                print(save_dir + " is exits")
+                continue
+            if not os.path.exists(save_dir):
+                os.mkdir(save_dir)
+            
+            for i, one_frame_ann in enumerate(data):
+                ann_in_img = one_frame_ann["annotations"]
+                gazemap = np.zeros((H, W))
+                for ann in ann_in_img:
+                    point = ann["points"] # (f.f, f.f)
+                    gazemap[int(round(point[1]))][int(round(point[0]))] = 1
+                gazemap = gaussian_blur(gazemap, ksize=499)
                 save_path = os.path.join(save_dir, str(i).zfill(6) + ".png")
                 cv2.imwrite(save_path, gazemap)
 
