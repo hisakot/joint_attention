@@ -13,7 +13,7 @@ from torch.utils.data import Dataset
 import config
 
 class Dataset(Dataset):
-    def __init__(self, data_dir, img_height, img_width, seq_len=10, transform=None, is_train=True):
+    def __init__(self, data_dir, img_height, img_width, ch=3, seq_len=10, transform=None, is_train=True):
         self.data_dir = data_dir
         self.transform = transform
         self.is_train = is_train
@@ -24,6 +24,7 @@ class Dataset(Dataset):
         cfg = config.Config()
         self.H = cfg.img_height
         self.W = cfg.img_width
+        self.ch = ch
         self.seq_len = seq_len
         
         mmpose_paths = glob.glob(data_dir + "/mmpose/*.json")
@@ -70,7 +71,7 @@ class Dataset(Dataset):
         for i in range(self.seq_len):
             try:
                 if not video_name in self.img_paths[idx+i]:
-                    one_seq = np.zeros((5, self.H, self.W))
+                    one_seq = np.zeros((self.ch, self.H, self.W))
                     inputs.append(one_seq)
                     continue
                 '''
@@ -203,10 +204,11 @@ class Dataset(Dataset):
                     data = self.transform(data)
                 '''
 
-                one_seq = np.concatenate([img, kptmap, gazecone_map], axis=0)
+                # one_seq = np.concatenate([img, kptmap, gazecone_map], axis=0)
+                one_seq = np.concatenate([img, gazecone_map], axis=0)
                 inputs.append(one_seq)
             except IndexError:
-                one_seq = np.zeros((5, self.H, self.W))
+                one_seq = np.zeros((self.ch, self.H, self.W))
                 inputs.append(one_seq)
                 print("Error: IndexError")
         inputs = np.array(inputs)

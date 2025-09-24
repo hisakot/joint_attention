@@ -110,7 +110,7 @@ def train(train_dataloader, net, loss_functions, optimizer, device):
             pass
 
 # return total_loss / len(train_dataloader)
-    return [total_loss / len(train_dataloader), cos_total.item(), kl_total.item(), ssim_total.item()]
+    return [total_loss / len(train_dataloader), cos_total.item(), kl_total, ssim_total.item()]
 
 def evaluate(val_dataloader, net, loss_functions, device):
     '''
@@ -187,7 +187,7 @@ def evaluate(val_dataloader, net, loss_functions, device):
                 pass
 
 # return total_loss / len(val_dataloader)
-    return [total_loss / len(val_dataloader), cos_total.item(), kl_total.item(), ssim_total.item()]
+    return [total_loss / len(val_dataloader), cos_total.item(), kl_total, ssim_total.item()]
 
 def collate_fn(batch):
     inputs, labels = zip(*batch)
@@ -330,7 +330,7 @@ def main():
                                  img_height=img_height, img_width=img_width, in_ch=5, seq_len=seq_len)
     '''
     net = swin_unet.SwinUnet(img_height=img_height, img_width=img_width,
-                             patch_size=2, in_chans=5, num_classes=1, embed_dim=48,
+                             patch_size=2, in_chans=4, num_classes=1, embed_dim=48,
                              lstm_input_dim=384, lstm_hidden_dim=384, seq_len=seq_len)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -344,9 +344,9 @@ def main():
     # loss_function = nn.CrossEntropyLoss()
     # loss_functions = ["MSE", "MAE", "cos_similarity", "KLDiv", "combined_loss", "SSIM"]
     loss_functions = ["cos_similarity", "KLDiv", "SSIM"]
-    optimizer = optim.SGD(net.parameters(), lr=lr)
-    # optimizer = optim.AdamW(net.parameters(), lr=lr, weight_decay=2e-2)
-    scheduler = lr_scheduler.StepLR(optimizer, step_size=20, gamma=1)
+    # optimizer = optim.SGD(net.parameters(), lr=lr)
+    optimizer = optim.AdamW(net.parameters(), lr=lr, weight_decay=1e-4)
+    scheduler = lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.9)
 
     writer = SummaryWriter(log_dir="logs")
 
@@ -360,10 +360,10 @@ def main():
     train_data_dir = "data/ue/train"
     val_data_dir = "data/ue/val"
     train_data = dataset.Dataset(train_data_dir,
-                                 img_height=img_height, img_width=img_width,
+                                 img_height=img_height, img_width=img_width, ch=4,
                                  seq_len=seq_len, transform=None, is_train=True)
     val_data = dataset.Dataset(val_data_dir,
-                               img_height=img_height, img_width=img_width,
+                               img_height=img_height, img_width=img_width, ch=4,
                                seq_len=seq_len, transform=None, is_train=False)
 
     train_dataloader = DataLoader(train_data, batch_size=batch_size,
