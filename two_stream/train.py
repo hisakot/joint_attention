@@ -393,7 +393,6 @@ def main():
                             "net_state_dict" : net.state_dict(),
                             "optimizer_state_dict" : optimizer.state_dict(),
                             "train_loss_list" : train_loss_list,
-                            "train_loss_list" : train_loss_list,
                             "val_loss_list" : val_loss_list,
                             }, "save_models/two_stream_trial.pth")
             else:
