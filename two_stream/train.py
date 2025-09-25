@@ -27,7 +27,7 @@ def print_memory_usage():
     print(F"GPU Memory Allocated: {allocated:.2f} MB")
     print(F"GPU Memory Reserved: {reserved:.2f} MB")
 
-def train(train_dataloader, net, loss_function, optimizer, device):
+def train(train_dataloader, net, loss_functions, optimizer, device):
     net.train()
 
     total_loss =  0
@@ -51,31 +51,38 @@ def train(train_dataloader, net, loss_function, optimizer, device):
 
                 pred = net(inputs)
 
-                if loss_function == "cos_similarity":
-                    pred = pred.view(pred.size(0), -1)
-                    targets = targets.view(targets.size(0), -1)
-                    cos_loss = F.cosine_similarity(pred, targets)
-                    loss = (1 - cos_loss).mean()
-                elif loss_function == "MSE":
-                    lossfunc = nn.MSELoss()
-                    loss = lossfunc(pred, targets)
-                elif loss_function == "MAE":
-                    lossfunc = nn.L1Loss()
-                    loss = lossfunc(pred, targets)
-                elif loss_function == "KLDiv":
-                    lossfunc = nn.KLDivLoss(reduction='batchmean')
-                    # pred
-                    pred = pred.view(pred.size(0), -1)
-                    log_pred = F.log_softmax(pred, dim=1)
-                    # targets
-                    targets = targets.view(targets.size(0), -1)
-                    targets_sum = targets.sum(dim=1, keepdim=True)
-                    targets_norm = torch.where(targets_sum > 0, targets / targets_sum, targets)
-                    loss = lossfunc(log_pred, targets_norm)
-                elif loss_function == "combined_loss":
-                    loss = compute_all_losses(pred, targets)
-                elif loss_function == "SSIM":
-                    loss = 1 - ssim(pred, targets, data_range=1, size_average=True)
+                loss = 0
+                cos_lossm mse_loss, mae_loss, kl_loss, ssim_loss = 0, 0, 0, 0, 0
+                for loss_function in loss_functions:
+                    if loss_function == "cos_similarity":
+                        pred_flat = pred.view(pred.size(0), -1)
+                        targets_flat = targets.view(targets.size(0), -1)
+                        cos_loss = (1 - F.cosine_similarity(pred_flat, targets_flat)).mean()
+                        loss += cos_loss
+                    elif loss_function == "MSE":
+                        lossfunc = nn.MSELoss()
+                        mse_loss = lossfunc(pred, targets)
+                        loss += mse_loss
+                    elif loss_function == "MAE":
+                        lossfunc = nn.L1Loss()
+                        mae_loss = lossfunc(pred, targets)
+                        loss += mae_loss
+                    elif loss_function == "KLDiv":
+                        lossfunc = nn.KLDivLoss(reduction='batchmean')
+                        # pred
+                        pred_flat = pred.view(pred.size(0), -1)
+                        log_pred = F.log_softmax(pred_flat, dim=1)
+                        # targets
+                        targets_flat = targets.view(targets.size(0), -1)
+                        targets_sum = targets_flat.sum(dim=1, keepdim=True)
+                        targets_norm = torch.where(targets_sum > 0, targets_flat / targets_sum, targets_flat)
+                        kl_loss = lossfunc(log_pred, targets_norm)
+                        loss += kl_loss
+                    elif loss_function == "combined_loss":
+                        loss = compute_all_losses(pred, targets)
+                    elif loss_function == "SSIM":
+                        ssim_loss = 1 - ssim(pred, targets, data_range=1, size_average=True)
+                        loss += ssim_loss
 
                 optimizer.zero_grad()
                 loss.backward()
@@ -96,7 +103,7 @@ def train(train_dataloader, net, loss_function, optimizer, device):
 
     return total_loss / len(train_dataloader)
 
-def evaluate(val_dataloader, net, loss_function, device):
+def evaluate(val_dataloader, net, loss_functions, device):
     '''
     resnet50.eval()
     unet.eval()
@@ -125,31 +132,38 @@ def evaluate(val_dataloader, net, loss_function, device):
 
                     pred = net(inputs)
 
-                    if loss_function == "cos_similarity":
-                        pred = pred.view(pred.size(0), -1)
-                        targets = targets.view(targets.size(0), -1)
-                        cos_loss = F.cosine_similarity(pred, targets)
-                        loss = (1 - cos_loss).mean()
-                    elif loss_function == "MSE":
-                        lossfunc = nn.MSELoss()
-                        loss = lossfunc(pred, targets)
-                    elif loss_function == "MAE":
-                        lossfunc = nn.L1Loss()
-                        loss = lossfunc(pred, targets)
-                    elif loss_function == "KLDiv":
-                        lossfunc = nn.KLDivLoss(reduction='batchmean')
-                        # pred
-                        pred = pred.view(pred.size(0), -1)
-                        log_pred = F.log_softmax(pred, dim=1)
-                        # targets
-                        targets = targets.view(targets.size(0), -1)
-                        targets_sum = targets.sum(dim=1, keepdim=True)
-                        targets_norm = torch.where(targets_sum > 0, targets / targets_sum, targets)
-                        loss = lossfunc(log_pred, targets_norm)
-                    elif loss_function == "combined_loss":
-                        loss = compute_all_losses(pred, targets)
-                    elif loss_function == "SSIM":
-                        loss = 1 - ssim(pred, targets, data_range=1, size_average=True)
+                    loss = 0
+                    cos_lossm mse_loss, mae_loss, kl_loss, ssim_loss = 0, 0, 0, 0, 0
+                    for loss_function in loss_functions:
+                        if loss_function == "cos_similarity":
+                            pred_flat = pred.view(pred.size(0), -1)
+                            targets_flat = targets.view(targets.size(0), -1)
+                            cos_loss = (1 - F.cosine_similarity(pred_flat, targets_flat)).mean()
+                            loss += cos_loss
+                        elif loss_function == "MSE":
+                            lossfunc = nn.MSELoss()
+                            mse_loss = lossfunc(pred, targets)
+                            loss += mse_loss
+                        elif loss_function == "MAE":
+                            lossfunc = nn.L1Loss()
+                            mae_loss = lossfunc(pred, targets)
+                            loss += mae_loss
+                        elif loss_function == "KLDiv":
+                            lossfunc = nn.KLDivLoss(reduction='batchmean')
+                            # pred
+                            pred_flat = pred.view(pred.size(0), -1)
+                            log_pred = F.log_softmax(pred_flat, dim=1)
+                            # targets
+                            targets_flat = targets.view(targets.size(0), -1)
+                            targets_sum = targets_flat.sum(dim=1, keepdim=True)
+                            targets_norm = torch.where(targets_sum > 0, targets_flat / targets_sum, targets_flat)
+                            kl_loss = lossfunc(log_pred, targets_norm)
+                            loss += kl_loss
+                        elif loss_function == "combined_loss":
+                            loss = compute_all_losses(pred, targets)
+                        elif loss_function == "SSIM":
+                            ssim_loss = 1 - ssim(pred, targets, data_range=1, size_average=True)
+                            loss += ssim_loss
 
                     total_loss += loss.item()
                     pbar.update()
@@ -293,6 +307,7 @@ def main():
 
     img_height = cfg.img_height
     img_width = cfg.img_width
+    in_ch = cfg.ch
 
     '''
     net = PJAE_conv.ModelSpatial(in_ch=5)
@@ -300,7 +315,7 @@ def main():
                                  img_height=img_height, img_width=img_width, in_ch=5, seq_len=seq_len)
     '''
     net = swin_unet.SwinTransformerSys(img_height=img_height, img_width=img_width,
-                                       in_chans=5, num_classes=1, window_size=5,
+                                       in_chans=in_ch, num_classes=1, window_size=5,
                                        lstm_input_dim=768, lstm_hidden_dim=768,
                                        seq_len=seq_len)
 
@@ -312,15 +327,11 @@ def main():
         print("---------- Use CPU ----------")
     net.to(device)
 
-    # loss_function = nn.CrossEntropyLoss()
-    # loss_function = "MSE"
-    # loss_function = "MAE"
-    # loss_function = "cos_similarity"
-    # loss_function = "KLDiv"
-    # loss_function = "combined_loss"
-    loss_function = "SSIM"
-    optimizer = optim.SGD(net.parameters(), lr=lr)
-    scheduler = lr_scheduler.StepLR(optimizer, step_size=20, gamma=1)
+    # loss_functions = ["MSE", "MAE", "cos_similarity", "KLDiv", "combined_loss", "SSIM"]
+    loss_functions = ["cos_similarity", "KLDiv", "SSIM"]
+    # optimizer = optim.SGD(net.parameters(), lr=lr)
+    optimizer = optim.AdamW(net.parameters(), lr=lr, weight_decay=1e-4)
+    scheduler = lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.9)
 
     writer = SummaryWriter(log_dir="logs")
 
@@ -331,13 +342,13 @@ def main():
     train_loss_list = list()
     val_loss_list = list()
 
-    train_data_dir = "data/train"
-    val_data_dir = "data/val"
+    train_data_dir = "data/ue/train"
+    val_data_dir = "data/ue/val"
     train_data = dataset.Dataset(train_data_dir,
-                                 img_height=img_height, img_width=img_width,
+                                 img_height=img_height, img_width=img_width, ch=in_ch,
                                  seq_len=seq_len, transform=None, is_train=True)
     val_data = dataset.Dataset(val_data_dir,
-                               img_height=img_height, img_width=img_width,
+                               img_height=img_height, img_width=img_width, ch=in_ch,
                                seq_len=seq_len, transform=None, is_train=False)
 
     train_dataloader = DataLoader(train_data, batch_size=batch_size,

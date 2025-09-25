@@ -72,6 +72,7 @@ def main():
     cfg = config.Config()
     img_height = cfg.img_height
     img_width = cfg.img_width
+    in_ch = cfg.ch
     seq_len = cfg.seq_len
 
     '''
@@ -80,7 +81,7 @@ def main():
                                    img_height=img_height, img_width=img_width, in_ch=5, seq_len=seq_len)
     '''
     model = swin_unet.SwinTransformerSys(img_height=img_height, img_width=img_width, 
-                                         in_chans=5, num_classes=1, window_size=5,
+                                         in_chans=in_ch, num_classes=1, window_size=5,
                                          lstm_input_dim=768, lstm_hidden_dim=768,
                                          seq_len=seq_len)
 
@@ -107,9 +108,9 @@ def main():
         model.load_state_dict(state_dict)
     model.eval()
 
-    test_data_dir = "data/test"
+    test_data_dir = "data/short_test"
     test_data = dataset.Dataset(test_data_dir,
-                                img_height=img_height, img_width=img_width,
+                                img_height=img_height, img_width=img_width, ch=in_ch,
                                 seq_len=seq_len, transform=None, is_train=False)
     test_dataloader = DataLoader(test_data, batch_size=1,
                                  shuffle=False, num_workers=1)
