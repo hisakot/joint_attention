@@ -415,7 +415,7 @@ def main():
 
             # lr_scheduler
             # scheduler.step()
-            scheduler.step(val_loss)
+            scheduler.step(val_loss[0])
 
             # save model
             if val_loss[0] < early_stopping[0]:
