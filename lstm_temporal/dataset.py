@@ -25,9 +25,6 @@ class Dataset(Dataset):
         self.W = img_width
         self.ch = ch
         self.seq_len = seq_len
-
-        cfg = config.Config()
-        self.in_data = cfg.in_data
         
         mmpose_paths = glob.glob(data_dir + "/mmpose/*.json")
         mmpose_paths.sort()
@@ -206,7 +203,7 @@ class Dataset(Dataset):
                     data = self.transform(data)
                 '''
 
-                one_seq = np.concatenate([img, kptmap, gazecone_map], axis=0) # TODO == self.in_data
+                one_seq = np.concatenate([img, kptmap, gazecone_map], axis=0) # TODO to modify in_ch
                 inputs.append(one_seq)
             except IndexError:
                 one_seq = np.zeros((self.ch, self.H, self.W))
