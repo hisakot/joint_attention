@@ -384,7 +384,9 @@ def main():
         for i, val_loss in enumerate(val_loss_list):
             writer.add_scalar("Valid Loss", val_loss[0], i+1)
         print("Reload midel : ", start_epoch, "and restart training")
-        optimizer = optim.AdamW(net.parameters(), lr=lr, weight_decay=1e-2)
+        optimizer = optim.AdamW(filter(lambda p: p.requires_grad, net.parameters()),
+                                lr=lr, weight_decay=1e-2)
+        scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, mode="min", factor=0.2, patience=3, verbose=True)
     else:
         start_epoch = 0
 
@@ -401,7 +403,7 @@ def main():
                                loss_functions, optimizer, device)
             train_loss_list.append(train_loss)
 
-            # test
+            # validation
             with torch.no_grad():
                 val_loss = evaluate(val_dataloader, net,
                                     loss_functions, device)
@@ -412,7 +414,8 @@ def main():
             print(train_loss, val_loss)
 
             # lr_scheduler
-            scheduler.step()
+            # scheduler.step()
+            scheduler.step(val_loss)
 
             # save model
             if val_loss[0] < early_stopping[0]:
