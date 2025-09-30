@@ -381,9 +381,9 @@ def main():
         for i, train_loss in enumerate(train_loss_list):
             writer.add_scalar("Train Loss", train_loss[0], i+1)
         for i, val_loss in enumerate(val_loss_list):
-            writer.add_scalar("Validation Loss", val_loss[0], i+1)
+            writer.add_scalar("Valid Loss", val_loss[0], i+1)
         print("Reload midel : ", start_epoch, "and restart training")
-        optimizer = optim.AdamW(net.parameters(), lr=lr, weight_decay=1e-5)
+        optimizer = optim.AdamW(net.parameters(), lr=lr, weight_decay=1e-2)
     else:
         start_epoch = 0
 
