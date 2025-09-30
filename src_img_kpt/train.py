@@ -182,6 +182,8 @@ def main():
     lr = cfg.lr
     img_height = cfg.img_height
     img_width = cfg.img_width
+    train_data_dir = cfg.train_data_dir
+    val_data_dir = cfg.val_data_dir
 
     '''
     resnet50 = resnet.ResNet50(pretrained=False, in_ch=4)
@@ -202,10 +204,12 @@ def main():
                                         in_chans=2, num_classes=1)
     '''
     model = PJAE_conv.ModelSpatial(in_ch=5)
+    '''
     model = transGan.TransGAN(patch_size=10, emb_size=512, num_heads=2, forward_expansion=4,
                               img_height=img_height, img_width=img_width, in_ch=5)
     model = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width,
                                         in_chans=5, num_classes=1)
+    '''
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() >= 2:
@@ -221,8 +225,8 @@ def main():
     loss_function = ["cos_similarity"]
     # loss_function = ["cos_MSE", 0.8]
     # loss_function = ["BCE"]
-    optimizer = optim.SGD(model.parameters(), lr=lr, weight_decay=1e-4)
-    # optimizer = optim.Adam(model.parameters(), lr=lr)
+    # optimizer = optim.SGD(model.parameters(), lr=lr, weight_decay=1e-4)
+    optimizer = optim.AdamW(net.parameters(), lr=lr, weight_decay=1e-4)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=1)
 
     writer = SummaryWriter(log_dir="logs")
@@ -234,8 +238,6 @@ def main():
     train_loss_list = list()
     val_loss_list = list()
 
-    train_data_dir = "data/train"
-    val_data_dir = "data/val"
     train_data = dataset.Dataset(train_data_dir, img_height=img_height, img_width=img_width,
                                  transform=None, is_train=True, inf_rotate=None)
     val_data = dataset.Dataset(val_data_dir, img_height=img_height, img_width=img_width,
@@ -292,7 +294,6 @@ def main():
                 torch.save({"epoch" : epoch + 1,
                             "model_state_dict" : model.state_dict(),
                             "optimizer_state_dict" : optimizer.state_dict(),
-                            "train_loss_list" : train_loss_list,
                             "train_loss_list" : train_loss_list,
                             "val_loss_list" : val_loss_list,
                             }, "save_models/newest_model.pth")
