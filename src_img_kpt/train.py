@@ -53,7 +53,8 @@ def train(train_dataloader, model, loss_function, optimizer, device):
 
     with tqdm(total=len(train_dataloader)) as pbar:
         for data in train_dataloader:
-            inp = data[0]
+            inp = data[0].to(device)
+            '''
             for key, val in inp.items():
                 if torch.is_tensor(val):
                     inp[key] = val.to(device)
@@ -61,8 +62,11 @@ def train(train_dataloader, model, loss_function, optimizer, device):
             gazecone = inp["gazecone_map"]
             kptmap = inp["kptmap"]
             inputs = torch.cat([img, gazecone, kptmap], dim=1)
-
+            '''
             targets = data[1].to(device)
+                if inputs is None or targets is None:
+                    continue
+
             pred = model(inputs)
             '''
             np_pred = pred.to("cpu").detach().numpy().copy()

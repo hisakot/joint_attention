@@ -217,7 +217,7 @@ class Dataset(Dataset):
         if self.transform:
             data = self.transform(data)
         '''
-
+        '''
         inputs = {"kptmap" : torch.tensor(kptmap, dtype=torch.float32),
                   # "gaze_vector" : torch.tensor(gaze_vector, dtype=torch.float32),
                   # "gazeline_map" : torch.tensor(gazeline_map, dtype=torch.float32),
@@ -226,6 +226,10 @@ class Dataset(Dataset):
                   # "saliency_map" : torch.tensor(saliency_map, dtype=torch.float32),
                   "img" : torch.tensor(img, dtype=torch.float32),
                   }
+        '''
+        inputs = np.concatenate([img, kptmap, gazecone_map], axis=0)
+        inputs = np.array(inputs)
+        inputs = torch.tensor(inputs, dtype=torch.float32)
 
         return inputs, targets
 
