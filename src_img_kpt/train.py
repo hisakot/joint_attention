@@ -226,7 +226,7 @@ def main():
     # loss_function = ["cos_MSE", 0.8]
     # loss_function = ["BCE"]
     # optimizer = optim.SGD(model.parameters(), lr=lr, weight_decay=1e-4)
-    optimizer = optim.AdamW(net.parameters(), lr=lr, weight_decay=1e-4)
+    optimizer = optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-4)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=1)
 
     writer = SummaryWriter(log_dir="logs")
