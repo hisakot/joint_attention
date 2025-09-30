@@ -4,7 +4,6 @@ class Config:
         self.img_height = 320
         self.img_width = 640
         self.in_ch = 5
-        self.in_data = [img, kptmap, gazecone_map]
 
         self.lr = 1e-5
         self.seq_len = 2

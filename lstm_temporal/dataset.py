@@ -206,8 +206,7 @@ class Dataset(Dataset):
                     data = self.transform(data)
                 '''
 
-                # one_seq = np.concatenate([img, kptmap, gazecone_map], axis=0)
-                one_seq = np.concatenate(self.in_data, axis=0)
+                one_seq = np.concatenate([img, kptmap, gazecone_map], axis=0) # TODO == self.in_data
                 inputs.append(one_seq)
             except IndexError:
                 one_seq = np.zeros((self.ch, self.H, self.W))
