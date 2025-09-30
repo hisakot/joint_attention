@@ -108,7 +108,7 @@ def main():
         model.load_state_dict(state_dict)
     model.eval()
 
-    test_data_dir = "data/short_test"
+    test_data_dir = "data/ue/test"
     test_data = dataset.Dataset(test_data_dir,
                                 img_height=img_height, img_width=img_width, ch=in_ch,
                                 seq_len=seq_len, transform=None, is_train=False)

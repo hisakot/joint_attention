@@ -330,7 +330,7 @@ def main():
                                  img_height=img_height, img_width=img_width, in_ch=5, seq_len=seq_len)
     '''
     net = swin_unet.SwinUnet(img_height=img_height, img_width=img_width,
-                             patch_size=2, in_chans=4, num_classes=1, embed_dim=48,
+                             patch_size=2, in_chans=5, num_classes=1, embed_dim=48,
                              lstm_input_dim=384, lstm_hidden_dim=384, seq_len=seq_len)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -357,13 +357,13 @@ def main():
     train_loss_list = list()
     val_loss_list = list()
 
-    train_data_dir = "data/ue/train"
-    val_data_dir = "data/ue/val"
+    train_data_dir = "data/short_train"
+    val_data_dir = "data/short_val"
     train_data = dataset.Dataset(train_data_dir,
-                                 img_height=img_height, img_width=img_width, ch=4,
+                                 img_height=img_height, img_width=img_width, ch=5,
                                  seq_len=seq_len, transform=None, is_train=True)
     val_data = dataset.Dataset(val_data_dir,
-                               img_height=img_height, img_width=img_width, ch=4,
+                               img_height=img_height, img_width=img_width, ch=5,
                                seq_len=seq_len, transform=None, is_train=False)
 
     train_dataloader = DataLoader(train_data, batch_size=batch_size,
@@ -379,10 +379,11 @@ def main():
         train_loss_list = checkpoint["train_loss_list"]
         val_loss_list = checkpoint["val_loss_list"]
         for i, train_loss in enumerate(train_loss_list):
-            writer.add_scalar("Train Loss", train_loss, i+1)
+            writer.add_scalar("Train Loss", train_loss[0], i+1)
         for i, val_loss in enumerate(val_loss_list):
-            writer.add_scalar("Validation Loss", val_loss, i+1)
+            writer.add_scalar("Validation Loss", val_loss[0], i+1)
         print("Reload midel : ", start_epoch, "and restart training")
+        optimizer = optim.AdamW(net.parameters(), lr=lr, weight_decay=1e-5)
     else:
         start_epoch = 0
 

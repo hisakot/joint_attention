@@ -52,7 +52,7 @@ def train(train_dataloader, net, loss_functions, optimizer, device):
                 pred = net(inputs)
 
                 loss = 0
-                cos_lossm mse_loss, mae_loss, kl_loss, ssim_loss = 0, 0, 0, 0, 0
+                cos_loss, mse_loss, mae_loss, kl_loss, ssim_loss = 0, 0, 0, 0, 0
                 for loss_function in loss_functions:
                     if loss_function == "cos_similarity":
                         pred_flat = pred.view(pred.size(0), -1)
@@ -133,7 +133,7 @@ def evaluate(val_dataloader, net, loss_functions, device):
                     pred = net(inputs)
 
                     loss = 0
-                    cos_lossm mse_loss, mae_loss, kl_loss, ssim_loss = 0, 0, 0, 0, 0
+                    cos_loss, mse_loss, mae_loss, kl_loss, ssim_loss = 0, 0, 0, 0, 0
                     for loss_function in loss_functions:
                         if loss_function == "cos_similarity":
                             pred_flat = pred.view(pred.size(0), -1)
@@ -381,13 +381,13 @@ def main():
         try:
             # train
             train_loss = train(train_dataloader, net,
-                               loss_function, optimizer, device)
+                               loss_functions, optimizer, device)
             train_loss_list.append(train_loss)
 
             # test
             with torch.no_grad():
                 val_loss = evaluate(val_dataloader, net,
-                                    loss_function, device)
+                                    loss_functions, device)
                 val_loss_list.append(val_loss)
 
             print("Epoch %d : train_loss %.3f" % (epoch + 1, train_loss))
