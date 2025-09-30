@@ -27,7 +27,7 @@ def main():
     if not os.path.exists(save_frame_dir):
         os.mkdir(save_frame_dir)
 
-    output_file = os.path.join(args.save_dir, "downsampled_" + os.path.basename(args.video))
+    output_file = os.path.join(args.save_dir, "ds_" + os.path.basename(args.video))
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
     video_writer = cv2.VideoWriter(output_file, fourcc, fps, (frame_width, frame_height), isColor=True)
 
