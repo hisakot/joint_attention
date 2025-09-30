@@ -21,11 +21,13 @@ class Dataset(Dataset):
         self.targets = []
         self.img_paths = []
         self.gt_paths = []
-        cfg = config.Config()
-        self.H = cfg.img_height
-        self.W = cfg.img_width
+        self.H = img_height
+        self.W = img_width
         self.ch = ch
         self.seq_len = seq_len
+
+        cfg = config.Config()
+        self.in_data = cfg.in_data
         
         mmpose_paths = glob.glob(data_dir + "/mmpose/*.json")
         mmpose_paths.sort()
@@ -205,7 +207,7 @@ class Dataset(Dataset):
                 '''
 
                 # one_seq = np.concatenate([img, kptmap, gazecone_map], axis=0)
-                one_seq = np.concatenate([img, kptmap, gazecone_map], axis=0)
+                one_seq = np.concatenate(self.in_data, axis=0)
                 inputs.append(one_seq)
             except IndexError:
                 one_seq = np.zeros((self.ch, self.H, self.W))

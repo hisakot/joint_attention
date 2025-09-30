@@ -74,7 +74,9 @@ def main():
     cfg = config.Config()
     img_height = cfg.img_height
     img_width = cfg.img_width
+    in_ch = cfg.in_ch
     seq_len = cfg.seq_len
+    test_data_dir = cfg.test_data_dir
 
     '''
     model = PJAE_conv.ModelSpatial(in_ch=5)
@@ -82,7 +84,7 @@ def main():
                                    img_height=img_height, img_width=img_width, in_ch=5, seq_len=seq_len)
     '''
     model = swin_unet.SwinUnet(img_height=img_height, img_width=img_width,
-                               patch_size=2, in_chans=5, num_classes=1, embed_dim=48,
+                               patch_size=2, in_chans=in_ch, num_classes=1, embed_dim=48,
                                lstm_input_dim=384, lstm_hidden_dim=384, seq_len=seq_len)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -108,9 +110,8 @@ def main():
         model.load_state_dict(state_dict)
     model.eval()
 
-    test_data_dir = "data/ue/test"
     test_data = dataset.Dataset(test_data_dir,
-                                img_height=img_height, img_width=img_width, ch=5,
+                                img_height=img_height, img_width=img_width, ch=in_ch,
                                 seq_len=seq_len, transform=None, is_train=False)
     test_dataloader = DataLoader(test_data, batch_size=1,
                                  shuffle=False, num_workers=1)

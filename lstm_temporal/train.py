@@ -323,6 +323,9 @@ def main():
 
     img_height = cfg.img_height
     img_width = cfg.img_width
+    in_ch = cfg.in_ch
+    train_data_dir = cfg.train_data_dir
+    val_data_dir = cfg.val_data_dir
 
     '''
     net = PJAE_conv.ModelSpatial(in_ch=5)
@@ -330,7 +333,7 @@ def main():
                                  img_height=img_height, img_width=img_width, in_ch=5, seq_len=seq_len)
     '''
     net = swin_unet.SwinUnet(img_height=img_height, img_width=img_width,
-                             patch_size=2, in_chans=5, num_classes=1, embed_dim=48,
+                             patch_size=2, in_chans=in_ch, num_classes=1, embed_dim=48,
                              lstm_input_dim=384, lstm_hidden_dim=384, seq_len=seq_len)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -357,13 +360,11 @@ def main():
     train_loss_list = list()
     val_loss_list = list()
 
-    train_data_dir = "data/short_train"
-    val_data_dir = "data/short_val"
     train_data = dataset.Dataset(train_data_dir,
-                                 img_height=img_height, img_width=img_width, ch=5,
+                                 img_height=img_height, img_width=img_width, ch=in_ch,
                                  seq_len=seq_len, transform=None, is_train=True)
     val_data = dataset.Dataset(val_data_dir,
-                               img_height=img_height, img_width=img_width, ch=5,
+                               img_height=img_height, img_width=img_width, ch=in_ch,
                                seq_len=seq_len, transform=None, is_train=False)
 
     train_dataloader = DataLoader(train_data, batch_size=batch_size,
@@ -375,7 +376,7 @@ def main():
         checkpoint = torch.load(args.checkpoint)
         start_epoch = checkpoint["epoch"]
         net.load_state_dict(checkpoint["net_state_dict"])
-        optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+        # optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
         train_loss_list = checkpoint["train_loss_list"]
         val_loss_list = checkpoint["val_loss_list"]
         for i, train_loss in enumerate(train_loss_list):
