@@ -8,3 +8,4 @@ class Config:
 
         self.train_data_dir = "data/ue/train"
         self.val_data_dir = "data/ue/val"
+        self.test_data_dir = "data/ue/test"

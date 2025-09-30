@@ -119,6 +119,7 @@ def main():
     cfg = config.Config()
     img_height = cfg.img_height
     img_width = cfg.img_width
+    test_data_dir = cfg.test_data_dir
 
     '''
     model = resnet.ResNet50(pretrained=False, in_ch=4)
@@ -166,7 +167,6 @@ def main():
         model.load_state_dict(state_dict)
     model.eval()
 
-    test_data_dir = "data/test"
     test_data = dataset.Dataset(test_data_dir, img_height=img_height, img_width=img_width,
                                 transform=None, is_train=False, inf_rotate=0)
     test_dataloader = DataLoader(test_data, batch_size=1,
