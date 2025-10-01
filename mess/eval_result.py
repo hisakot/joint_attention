@@ -12,15 +12,14 @@ from tqdm import tqdm
 matplotlib.use('Agg')
 
 # gt_paths = glob.glob("data/test/gt_heatmap_1ch_large/*/*.png")
-gt_paths = glob.glob("data/ue/test/gt_heatmap_1ch_large/*/*.png")
+# gt_paths = glob.glob("data/ue/test/gt_heatmap_1ch_large/*/*.png")
+gt_paths = glob.glob("data/short_test/gt_heatmap_1ch_large/*/*.png")
 gt_paths.sort()
 pred_paths = glob.glob("data/test/pred/result_hm/*.png")
-# pred_paths = glob.glob("data/test/pred/transGANv2_lr1e4_gazearea/*.png")
-# pred_paths = glob.glob("data/test/pred/swinunet_no_skipconnection/*.png")
-# pred_paths = glob.glob("data/test/pred/result1/*.png")
 pred_paths.sort()
 # img_paths = glob.glob("data/test/frames/*/*.png")
-img_paths = glob.glob("data/ue/test/frames/*/*.png")
+# img_paths = glob.glob("data/ue/test/frames/*/*.png")
+img_paths = glob.glob("data/short_test/frames/*/*.png")
 img_paths.sort()
 
 H = 640

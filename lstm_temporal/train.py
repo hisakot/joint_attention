@@ -376,7 +376,7 @@ def main():
         checkpoint = torch.load(args.checkpoint)
         start_epoch = checkpoint["epoch"]
         net.load_state_dict(checkpoint["net_state_dict"])
-        # optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
+        optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
         train_loss_list = checkpoint["train_loss_list"]
         val_loss_list = checkpoint["val_loss_list"]
         for i, train_loss in enumerate(train_loss_list):
@@ -384,9 +384,11 @@ def main():
         for i, val_loss in enumerate(val_loss_list):
             writer.add_scalar("Valid Loss", val_loss[0], i+1)
         print("Reload midel : ", start_epoch, "and restart training")
+        '''
         optimizer = optim.AdamW(filter(lambda p: p.requires_grad, net.parameters()),
                                 lr=lr, weight_decay=1e-2)
         scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, mode="min", factor=0.2, patience=3, verbose=True)
+        '''
     else:
         start_epoch = 0
 

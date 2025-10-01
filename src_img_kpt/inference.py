@@ -50,7 +50,8 @@ def test(test_dataloader, model, loss_function, device):
 
     with torch.no_grad():
         for i, data in enumerate(test_dataloader):
-            inp = data[0]
+            inputs = data[0].to(device)
+            '''
             for key, val in inp.items():
                 if torch.is_tensor(val):
                     inp[key] = val.to(device)
@@ -59,6 +60,7 @@ def test(test_dataloader, model, loss_function, device):
             img = inp["img"]
             inputs = torch.cat([img, gazecone, kptmap], dim=1)
             # inputs = torch.cat([gazecone, kptmap], dim=1)
+            '''
 
             targets = data[1].to(device)
             pred = model(inputs)
@@ -101,6 +103,7 @@ def test(test_dataloader, model, loss_function, device):
             np_pred = np_pred[:, :, np.newaxis] # (960, 480, 1)
             cv2.imwrite("data/test/pred/result_hm/" + str(i).zfill(6) + ".png", np_pred)
 
+            '''
             np_img = tensor_to_numpy(img)
             np_target = tensor_to_numpy(targets)
             np_target = np_target[:, :, np.newaxis]
@@ -108,6 +111,7 @@ def test(test_dataloader, model, loss_function, device):
             result = np.concatenate([np_pred, zero, np_target], axis=2)
             result_img = cv2.addWeighted(np_img, 0.7, result, 1, 0)
             cv2.imwrite("data/test/pred/result_color/" + str(i).zfill(6) + ".png", result_img)
+            '''
             print("------------")
 
 def main():
