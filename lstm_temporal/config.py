@@ -5,10 +5,10 @@ class Config:
         self.img_width = 640
         self.in_ch = 5
 
-        self.lr = 1e-4
-        self.seq_len = 5
+        self.lr = 5e-5
+        self.seq_len = 2
 
-        self.train_data_dir = "data/ue/train"
-        self.val_data_dir = "data/ue/val"
-        self.test_data_dir = "data/ue/test"
+        self.train_data_dir = "data/short_train"
+        self.val_data_dir = "data/short_val"
+        self.test_data_dir = "data/short_test"
 

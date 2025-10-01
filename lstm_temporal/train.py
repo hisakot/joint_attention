@@ -350,7 +350,7 @@ def main():
     # optimizer = optim.SGD(net.parameters(), lr=lr)
     optimizer = optim.AdamW(net.parameters(), lr=lr, weight_decay=1e-4)
     # scheduler = lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.9)
-    scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, mode="min", factor=0.9, patience=10, verbose=True)
+    scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, mode="min", factor=0.9, patience=5, verbose=True)
 
     writer = SummaryWriter(log_dir="logs")
 
@@ -385,11 +385,9 @@ def main():
         for i, val_loss in enumerate(val_loss_list):
             writer.add_scalar("Valid Loss", val_loss[0], i+1)
         print("Reload midel : ", start_epoch, "and restart training")
-        '''
         optimizer = optim.AdamW(filter(lambda p: p.requires_grad, net.parameters()),
-                                lr=lr, weight_decay=1e-2)
-        scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, mode="min", factor=0.2, patience=3, verbose=True)
-        '''
+                                lr=lr, weight_decay=1e-4)
+        scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, mode="min", factor=0.9, patience=5, verbose=True)
     else:
         start_epoch = 0
 
