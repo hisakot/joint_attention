@@ -86,17 +86,14 @@ def train(train_dataloader, model, loss_functions, optimizer, device):
                     targets_flat = targets.view(targets.size(0), -1)
                     cos_loss = (1 - F.cosine_similarity(pred_flat, targets_flat)).mean()
                     loss += cos_loss
-                    cos_total += cos_loss
                 elif loss_function == "MSE":
                     lossfunc = nn.MSELoss()
                     mse_loss = lossfunc(pred, targets)
                     loss += mse_loss
-                    mse_total += mse_loss
                 elif loss_function == "MAE":
                     lossfunc = nn.L1Loss()
                     mae_loss = lossfunc(pred, targets)
                     loss += mae_loss
-                    mze_total += mae_loss
                 elif loss_function == "KLDiv":
                     lossfunc = nn.KLDivLoss(reduction='batchmean')
                     # pred
@@ -108,13 +105,11 @@ def train(train_dataloader, model, loss_functions, optimizer, device):
                     targets_norm = torch.where(targets_sum > 0, targets_flat / targets_sum, targets_flat)
                     kl_loss = lossfunc(log_pred, targets_norm)
                     loss += kl_loss
-                    kl_total += kl_loss
                 elif loss_function == "combined_loss":
                     loss += compute_all_losses(pred, targets)
                 elif loss_function == "SSIM":
                     ssim_loss = 1 - ssim(pred, targets, data_range=1, size_average=True)
                     loss += ssim_loss
-                    ssim_total += ssim_loss
 
             optimizer.zero_grad()
             loss.backward()
@@ -155,17 +150,14 @@ def evaluate(val_dataloader, model, loss_functions, device):
                         targets_flat = targets.view(targets.size(0), -1)
                         cos_loss = (1 - F.cosine_similarity(pred_flat, targets_flat)).mean()
                         loss += cos_loss
-                        cos_total += cos_loss
                     elif loss_function == "MSE":
                         lossfunc = nn.MSELoss()
                         mse_loss = lossfunc(pred, targets)
                         loss += mse_loss
-                        mse_total += mse_loss
                     elif loss_function == "MAE":
                         lossfunc = nn.L1Loss()
                         mae_loss = lossfunc(pred, targets)
                         loss += mae_loss
-                        mze_total += mae_loss
                     elif loss_function == "KLDiv":
                         lossfunc = nn.KLDivLoss(reduction='batchmean')
                         # pred
@@ -177,13 +169,11 @@ def evaluate(val_dataloader, model, loss_functions, device):
                         targets_norm = torch.where(targets_sum > 0, targets_flat / targets_sum, targets_flat)
                         kl_loss = lossfunc(log_pred, targets_norm)
                         loss += kl_loss
-                        kl_total += kl_loss
                     elif loss_function == "combined_loss":
                         loss += compute_all_losses(pred, targets)
                     elif loss_function == "SSIM":
                         ssim_loss = 1 - ssim(pred, targets, data_range=1, size_average=True)
                         loss += ssim_loss
-                        ssim_total += ssim_loss
 
                 total_loss += loss.item()
                 pbar.update()
