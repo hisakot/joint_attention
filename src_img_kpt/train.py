@@ -302,12 +302,12 @@ def main():
         print(f"lr: {scheduler.get_last_lr()[0]}")
         try:
             # train
-            train_loss = train(train_dataloader, model, loss_function, optimizer, device)
+            train_loss = train(train_dataloader, model, loss_functions, optimizer, device)
             train_loss_list.append(train_loss)
 
             # test
             with torch.no_grad():
-                val_loss = evaluate(val_dataloader, model, loss_function, device)
+                val_loss = evaluate(val_dataloader, model, loss_functions, device)
                 val_loss_list.append(val_loss)
 
             print("Epoch %d : train_loss %.3f" % (epoch + 1, train_loss))
