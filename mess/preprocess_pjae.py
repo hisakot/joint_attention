@@ -298,8 +298,8 @@ if __name__ == '__main__':
     parser.add_argument("--save_gt", required=False, action="store_true", help="save file name")
     args = parser.parse_args()
 
-    # json_paths = glob.glob(os.path.join(args.root, "mmpose/*"))
-    json_paths = glob.glob(os.path.join(args.root, "roll_ann/*"))
+    json_paths = glob.glob(os.path.join(args.root, "mmpose/*"))
+    # json_paths = glob.glob(os.path.join(args.root, "roll_ann/*"))
     for json_path in tqdm(json_paths):
         if os.path.isfile(json_path):
             video_name = os.path.splitext(os.path.basename(json_path))[0] # ex.) ds_014
@@ -351,11 +351,20 @@ if __name__ == '__main__':
                         x1, y1, x2, y2 = 0, 0, 1, 1
                     else:
                         ann = annotations[0] # TODO even if there are some GTs in a frame, using the first GT
+                        point = ann["points"]
+                        cx = int(round(point[0]))
+                        cy = int(round(point[1]))
+                        x1 = cx - 1
+                        x2 = cx + 1
+                        y1 = cy - 1
+                        y2 = cy + 1
+                        '''
                         bbox = ann["bbox"]
                         x1 = int(bbox[0])
                         y1 = int(bbox[1])
                         x2 = int(x1 + bbox[2])
                         y2 = int(y1 + bbox[3])
+                        '''
                     if count % 20 == 0:
                         csv_num += 20
                         count = 0
@@ -381,7 +390,8 @@ if __name__ == '__main__':
             for instance in instances:
                 keypoints = instance["keypoints"]
                 scores = instance["keypoint_scores"]
-                roll = instance["roll"]
+                # roll = instance["roll"] # TODO
+                roll = "Visitor"
                 if sum(score >= 0.5 for score in scores) > 133 / 5:
                     hs_kpts.append(keypoints)
                     hs_roll.append(roll)
@@ -421,6 +431,7 @@ if __name__ == '__main__':
 
     # human bbox 2
     frames_dir = glob.glob(os.path.join(args.root, "tracking_annotation", video_name, "*"))
+    frames_dir.sort()
     first_txt = 1
     for frame_dir in frames_dir:
         data = list()
@@ -454,5 +465,3 @@ if __name__ == '__main__':
             file_name = os.path.basename(each_txt)
             if len(file_name) < 10:
                 os.remove(each_txt)
-
-
