@@ -10,8 +10,9 @@ if __name__ == '__main__':
     parser.add_argument("--real_model", required=False)
     args = parser.parse_args()
 
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if args.ue_model:
-        checkpoint = torch.load(args.checkpoint)
+        checkpoint = torch.load(args.ue_model)
         '''
         start_epoch = checkpoint["epoch"]
         net.load_state_dict(checkpoint["net_state_dict"])
@@ -20,9 +21,10 @@ if __name__ == '__main__':
         # total loss
         ue_train_loss_list = checkpoint["train_loss_list"][0]
         ue_val_loss_list = checkpoint["val_loss_list"][0]
+        print(ue_train_loss_list)
 
     if args.real_model:
-        checkpoint = torch.load(args.checkpoint)
+        checkpoint = torch.load(args.real_model)
         '''
         start_epoch = checkpoint["epoch"]
         net.load_state_dict(checkpoint["net_state_dict"])
