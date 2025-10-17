@@ -52,6 +52,8 @@ if __name__ == '__main__':
 
     if args.ue_model:
         x = list(range(1, len(ue_train)+1, 1))
+        print(x)
+        print(ue_train)
         ax.plot(x, ue_train, label="ue_train")
     elif args.real_model:
         x = list(range(1, len(real_train)+1, 1))
