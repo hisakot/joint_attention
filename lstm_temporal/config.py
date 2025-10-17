@@ -8,7 +8,12 @@ class Config:
         self.lr = 1e-5
         self.seq_len = 2
 
-        self.train_data_dir = "data/short_train"
-        self.val_data_dir = "data/short_val"
-        self.test_data_dir = "data/short_test"
+        # self.train_data_dir = "data/short_train"
+        # self.val_data_dir = "data/short_val"
+
+        self.train_data_dir = "data/ue/train"
+        self.val_data_dir = "data/ue/val"
+
+        self.test_data_dir = "data/ue/test"
+        # self.test_data_dir = "data/short_test"
 
