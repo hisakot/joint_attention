@@ -50,14 +50,7 @@ if __name__ == '__main__':
     fig = plt.figure(figsize=(12, 8))
     ax = fig.add_subplot(111)
 
-    if args.ue_model and args.real_model:
-        if len(ue_train) > len(real_train):
-            x = list(range(1, len(ue_train)+1, 1))
-        else: # ue < real
-            x = list(range(1, len(real_train)+1, 1))
-        ax.plot(x, ue_train, label="ue_train")
-        ax.plot(x, real_train, label="real_train")
-    elif args.ue_model:
+    if args.ue_model:
         x = list(range(1, len(ue_train)+1, 1))
         ax.plot(x, ue_train, label="ue_train")
     elif args.real_model:
