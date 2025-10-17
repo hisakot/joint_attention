@@ -22,11 +22,11 @@ if __name__ == '__main__':
         ue_train_loss_list = checkpoint["train_loss_list"]
         ue_train = list()
         for loss in ue_train_loss_list:
-            ue_train.append(loss)
+            ue_train.append(loss[0])
         ue_val_loss_list = checkpoint["val_loss_list"]
         ue_val = list()
         for loss in ue_val_loss_list:
-            ue_val.append(loss)
+            ue_val.append(loss[0])
 
     if args.real_model:
         checkpoint = torch.load(args.real_model)
@@ -39,11 +39,11 @@ if __name__ == '__main__':
         real_train_loss_list = checkpoint["train_loss_list"]
         real_train = list()
         for loss in real_train_loss_list:
-            real_train.append(loss)
+            real_train.append(loss[0])
         real_val_loss_list = checkpoint["val_loss_list"]
         real_val = list()
         for loss in real_val_loss_list:
-            real_val.append(loss)
+            real_val.append(loss[0])
 
 
     # plt
@@ -55,7 +55,7 @@ if __name__ == '__main__':
         print(x)
         print(ue_train)
         ax.plot(x, ue_train, label="ue_train")
-    elif args.real_model:
+    if args.real_model:
         x = list(range(1, len(real_train)+1, 1))
         ax.plot(x, real_train, label="real_train")
 
