@@ -101,7 +101,7 @@ def test(test_dataloader, model, loss_function, device):
 
             np_pred = tensor_to_numpy(pred)
             np_pred = np_pred[:, :, np.newaxis] # (960, 480, 1)
-            cv2.imwrite("data/test/pred/result_hm/" + str(i).zfill(6) + ".png", np_pred)
+            cv2.imwrite("data/pred/result_hm/" + str(i).zfill(6) + ".png", np_pred)
 
             '''
             np_img = tensor_to_numpy(img)
@@ -140,10 +140,10 @@ def main():
                                                    output_size=(img_height, img_width))
     model = transGan.TransGAN(patch_size=10, emb_size=512, num_heads=2, forward_expansion=4,
                               img_height=img_height, img_width=img_width, in_ch=5)
+    model = PJAE_conv.ModelSpatial(in_ch=5)
     '''
     model = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width,
                                         in_chans=5, num_classes=1)
-    model = PJAE_conv.ModelSpatial(in_ch=5)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() > 2:

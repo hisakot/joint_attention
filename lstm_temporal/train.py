@@ -348,9 +348,9 @@ def main():
     # loss_functions = ["MSE", "MAE", "cos_similarity", "KLDiv", "combined_loss", "SSIM"]
     loss_functions = ["cos_similarity", "KLDiv", "SSIM"]
     # optimizer = optim.SGD(net.parameters(), lr=lr)
-    optimizer = optim.AdamW(net.parameters(), lr=lr, weight_decay=1e-4)
-    # scheduler = lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.9)
-    scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, mode="min", factor=0.9, patience=5, verbose=True)
+    optimizer = optim.AdamW(net.parameters(), lr=lr, weight_decay=1e-2)
+    scheduler = lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.9)
+    # scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, mode="min", factor=0.9, patience=5, verbose=True)
 
     writer = SummaryWriter(log_dir="logs")
 
@@ -386,7 +386,7 @@ def main():
             writer.add_scalar("Valid Loss", val_loss[0], i+1)
         print("Reload midel : ", start_epoch, "and restart training")
         optimizer = optim.AdamW(filter(lambda p: p.requires_grad, net.parameters()),
-                                lr=lr, weight_decay=1e-4)
+                                lr=lr, weight_decay=1e-2)
         scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, mode="min", factor=0.9, patience=5, verbose=True)
     else:
         start_epoch = 0
@@ -415,8 +415,8 @@ def main():
             print(train_loss, val_loss)
 
             # lr_scheduler
-            # scheduler.step()
-            scheduler.step(val_loss[0])
+            scheduler.step()
+            # scheduler.step(val_loss[0])
 
             # save model
             if val_loss[0] < early_stopping[0]:
