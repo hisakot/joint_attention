@@ -14,12 +14,15 @@ matplotlib.use('Agg')
 # gt_paths = glob.glob("data/test/gt_heatmap_1ch_large/*/*.png")
 # gt_paths = glob.glob("data/ue/test/gt_heatmap_1ch_large/*/*.png")
 gt_paths = glob.glob("data/short_test/gt_heatmap_1ch_large/*/*.png")
+# gt_paths = glob.glob("data/short_or/gt_heatmap_1ch/014_5min_10/*.png")
 gt_paths.sort()
-pred_paths = glob.glob("data/test/pred/result_hm/*.png")
+pred_paths = glob.glob("data/pred/result_hm/*.png")
+# pred_paths = glob.glob("../PJAE-ICCV2023-UE/results/real_test/volleyball-dual-mid_p_p_field_middle_p_s_davt_bbox_GT_gaze_GT_act_GT_weight_fusion_fine_token_only/final_jo_att/*.png")
 pred_paths.sort()
 # img_paths = glob.glob("data/test/frames/*/*.png")
 # img_paths = glob.glob("data/ue/test/frames/*/*.png")
 img_paths = glob.glob("data/short_test/frames/*/*.png")
+# img_paths = glob.glob("data/short_or/frames/014_5min_10/*.png")
 img_paths.sort()
 
 H = 640
@@ -139,18 +142,18 @@ for i, pred_path in tqdm(enumerate(pred_paths), total=len(pred_paths)):
             cv2.drawMarker(result, (gt_x, gt_y), color=(0, 0, 255), 
                            markerType=cv2.MARKER_CROSS, markerSize=20, thickness=3)
 
-        x += dist_min[0]
-        y += dist_min[1]
-        xy += dist_min[2]
-        list_x.append(dist_min[0])
-        list_y.append(dist_min[1])
-        list_xy.append(dist_min[2])
-        if dist_min[2] <= 30:
-            thr30 += 1
-        if dist_min[2] <= 60:
-            thr60 += 1
-        if dist_min[2] <= 90:
-            thr90 += 1
+            x += dist_min[0]
+            y += dist_min[1]
+            xy += dist_min[2]
+            list_x.append(dist_min[0])
+            list_y.append(dist_min[1])
+            list_xy.append(dist_min[2])
+            if dist_min[2] <= 30:
+                thr30 += 1
+            if dist_min[2] <= 60:
+                thr60 += 1
+            if dist_min[2] <= 90:
+                thr90 += 1
 
     # if using pred argmax
     '''
@@ -192,9 +195,9 @@ for i, pred_path in tqdm(enumerate(pred_paths), total=len(pred_paths)):
     plt.ylabel('True Positive Rate')
     plt.title('ROC Curve')
     plt.legend(loc="lower right")
-    plt.savefig('data/test/pred/roc/' + str(i).zfill(6) + '.png')
+    plt.savefig('data/pred/roc/' + str(i).zfill(6) + '.png')
 
-    cv2.imwrite('data/test/pred/result_color/' + str(i).zfill(6) + '.png', result)
+    cv2.imwrite('data/pred/result_color/' + str(i).zfill(6) + '.png', result)
    
 print("size: ", size)
 x /= size
