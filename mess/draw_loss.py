@@ -81,7 +81,7 @@ if __name__ == '__main__':
         cx.plot(x, ue_train_ssim, label="ue_train_ssim")
     if args.real_model:
         x = list(range(1, len(real_train_ssim)+1, 1))
-        cx.plot(x, ue_train_ssim, label="real_train_ssim")
+        cx.plot(x, real_train_ssim, label="real_train_ssim")
     plt.legend()
 
     dx = fig.add_subplot(224)
@@ -90,7 +90,7 @@ if __name__ == '__main__':
         dx.plot(x, ue_val_ssim, label="ue_val_ssim")
     if args.real_model:
         x = list(range(1, len(real_val_ssim)+1, 1))
-        dx.plot(x, ue_val_ssim, label="real_val_ssim")
+        dx.plot(x, real_val_ssim, label="real_val_ssim")
     plt.legend()
 
     plt.show()
