@@ -24,13 +24,13 @@ if __name__ == '__main__':
         ue_train_ssim = list()
         for loss in ue_train_loss_list:
             ue_train.append(loss[0])
-            ue_train_ssim.append(loss[3])
+            ue_train_ssim.append(1 - loss[3])
         ue_val_loss_list = checkpoint["val_loss_list"]
         ue_val = list()
         ue_val_ssim = list()
         for loss in ue_val_loss_list:
             ue_val.append(loss[0])
-            ue_val_ssim.append(loss[3])
+            ue_val_ssim.append(1 - loss[3])
 
     if args.real_model:
         checkpoint = torch.load(args.real_model)
@@ -45,13 +45,13 @@ if __name__ == '__main__':
         real_train_ssim = list()
         for loss in real_train_loss_list:
             real_train.append(loss[0])
-            real_train_ssim.append(loss[3])
+            real_train_ssim.append(1 - loss[3])
         real_val_loss_list = checkpoint["val_loss_list"]
         real_val = list()
         real_val_ssim = list()
         for loss in real_val_loss_list:
             real_val.append(loss[0])
-            real_val_ssim.append(loss[3])
+            real_val_ssim.append(1 - loss[3])
 
 
     # plt
@@ -90,6 +90,7 @@ if __name__ == '__main__':
         dx.plot(x, ue_val_ssim, label="ue_val_ssim")
     if args.real_model:
         x = list(range(1, len(real_val_ssim)+1, 1))
+        print(real_val_ssim)
         dx.plot(x, real_val_ssim, label="real_val_ssim")
     plt.legend()
 
