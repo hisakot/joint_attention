@@ -77,19 +77,19 @@ if __name__ == '__main__':
 
     cx = fig.add_subplot(223)
     if args.ue_model:
-        x = list(range(1,len(ue_train)+1, 1))
+        x = list(range(1,len(ue_train_ssim)+1, 1))
         cx.plot(x, ue_train_ssim, label="ue_train_ssim")
     if args.real_model:
-        x = list(range(1, len(real_train)+1, 1))
+        x = list(range(1, len(real_train_ssim)+1, 1))
         cx.plot(x, ue_train_ssim, label="real_train_ssim")
     plt.legend()
 
     dx = fig.add_subplot(224)
     if args.ue_model:
-        x = list(range(1,len(ue_val)+1, 1))
+        x = list(range(1,len(ue_val_ssim)+1, 1))
         dx.plot(x, ue_val_ssim, label="ue_val_ssim")
     if args.real_model:
-        x = list(range(1, len(real_val)+1, 1))
+        x = list(range(1, len(real_val_ssim)+1, 1))
         dx.plot(x, ue_val_ssim, label="real_val_ssim")
     plt.legend()
 
