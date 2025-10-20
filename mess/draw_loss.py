@@ -52,12 +52,20 @@ if __name__ == '__main__':
 
     if args.ue_model:
         x = list(range(1, len(ue_train)+1, 1))
-        print(x)
-        print(ue_train)
         ax.plot(x, ue_train, label="ue_train")
     if args.real_model:
         x = list(range(1, len(real_train)+1, 1))
         ax.plot(x, real_train, label="real_train")
+
+    bx = fig.add_subplot(121)
+    if args.ue_model:
+        x = list(range(1, len(ue_val)+1, 1))
+        print(x)
+        print(ue_train)
+        ax.plot(x, ue_val, label="ue_val")
+    if args.real_model:
+        x = list(range(1, len(real_val)+1, 1))
+        ax.plot(x, real_val, label="real_val")
 
     plt.legend()
     plt.show()
