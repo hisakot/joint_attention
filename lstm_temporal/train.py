@@ -110,7 +110,10 @@ def train(train_dataloader, net, loss_functions, optimizer, device):
             pass
 
 # return total_loss / len(train_dataloader)
-    return [total_loss / len(train_dataloader), cos_total.item(), kl_total, ssim_total.item()]
+    return [total_loss / len(train_dataloader),
+            cos_total.item() / len(train_dataloader),
+            kl_total / len(train_dataloader),
+            ssim_total.item() / len(train_dataloader)]
 
 def evaluate(val_dataloader, net, loss_functions, device):
     '''
@@ -187,7 +190,10 @@ def evaluate(val_dataloader, net, loss_functions, device):
                 pass
 
 # return total_loss / len(val_dataloader)
-    return [total_loss / len(val_dataloader), cos_total.item(), kl_total, ssim_total.item()]
+    return [total_loss / len(val_dataloader),
+            cos_total.item() / len(val_dataloader),
+            kl_total / len(val_dataloader),
+            ssim_total.item() / len(val_dataloader)]
 
 def collate_fn(batch):
     inputs, labels = zip(*batch)
