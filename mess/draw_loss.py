@@ -86,10 +86,10 @@ if __name__ == '__main__':
 
     dx = fig.add_subplot(224)
     if args.ue_model:
-        x = list(range(1,len(ue_train)+1, 1))
+        x = list(range(1,len(ue_val)+1, 1))
         dx.plot(x, ue_val_ssim, label="ue_val_ssim")
     if args.real_model:
-        x = list(range(1, len(real_train)+1, 1))
+        x = list(range(1, len(real_val)+1, 1))
         dx.plot(x, ue_val_ssim, label="real_val_ssim")
     plt.legend()
 
