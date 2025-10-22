@@ -58,40 +58,61 @@ if __name__ == '__main__':
     fig = plt.figure(figsize=(16, 8))
     ax = fig.add_subplot(221)
 
+    ue_color = "#e5801a" # orange
+    real_color = "#1a80e5" # blue
+    # ue_color = "#e61919" # red
+
     if args.ue_model:
         x = list(range(1, len(ue_train)+1, 1))
-        ax.plot(x, ue_train, label="ue_train")
+        ax.plot(x, ue_train, label="Simulated Dataset", color=ue_color)
     if args.real_model:
         x = list(range(1, len(real_train)+1, 1))
-        ax.plot(x, real_train, label="real_train")
+        ax.plot(x, real_train, label="Real-world Dataset", color=real_color)
     plt.legend()
+    plt.xlim(0, 120)
+    plt.ylim(2.0, 5.0)
+    plt.xlabel("epochs")
+    plt.ylabel("Train Loss")
 
     bx = fig.add_subplot(222)
     if args.ue_model:
         x = list(range(1, len(ue_val)+1, 1))
-        bx.plot(x, ue_val, label="ue_val")
+        bx.plot(x, ue_val, label="Simulated Dataset", color=ue_color)
     if args.real_model:
         x = list(range(1, len(real_val)+1, 1))
-        bx.plot(x, real_val, label="real_val")
+        bx.plot(x, real_val, label="Real-world Dataset", color=real_color)
     plt.legend()
+    plt.xlim(0, 120)
+    plt.ylim(2.0, 5.0)
+    plt.xlabel("epochs")
+    plt.ylabel("Validation Loss")
 
     cx = fig.add_subplot(223)
     if args.ue_model:
         x = list(range(1,len(ue_train_ssim)+1, 1))
-        cx.plot(x, ue_train_ssim, label="ue_train_ssim")
+        cx.plot(x, ue_train_ssim, label="Simulated Dataset", color=ue_color)
     if args.real_model:
         x = list(range(1, len(real_train_ssim)+1, 1))
-        cx.plot(x, real_train_ssim, label="real_train_ssim")
+        cx.plot(x, real_train_ssim, label="Real-world Dataset", color=real_color)
     plt.legend()
+    plt.xlim(0, 120)
+    plt.ylim(0, 1.0)
+    plt.xlabel("epochs")
+    plt.ylabel("Train SSIM")
 
     dx = fig.add_subplot(224)
     if args.ue_model:
         x = list(range(1,len(ue_val_ssim)+1, 1))
-        dx.plot(x, ue_val_ssim, label="ue_val_ssim")
+        dx.plot(x, ue_val_ssim, label="Simulated Dataset", color=ue_color)
     if args.real_model:
         x = list(range(1, len(real_val_ssim)+1, 1))
-        print(real_val_ssim)
-        dx.plot(x, real_val_ssim, label="real_val_ssim")
+        dx.plot(x, real_val_ssim, label="Real-world Dataset", color=real_color)
     plt.legend()
+    plt.xlim(0, 120)
+    plt.ylim(0, 1.0)
+    plt.xlabel("epochs")
+    plt.ylabel("Validation SSIM")
 
     plt.show()
+    fig.savefig("./data/loss_graph.png")
+    plt.close(fig)
