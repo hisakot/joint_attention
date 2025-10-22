@@ -12,16 +12,16 @@ from tqdm import tqdm
 matplotlib.use('Agg')
 
 # gt_paths = glob.glob("data/test/gt_heatmap_1ch_large/*/*.png")
-# gt_paths = glob.glob("data/ue/test/gt_heatmap_1ch_large/*/*.png")
-gt_paths = glob.glob("data/short_test/gt_heatmap_1ch_large/*/*.png")
+gt_paths = glob.glob("data/ue/test/gt_heatmap_1ch_large/*/*.png")
+# gt_paths = glob.glob("data/short_test/gt_heatmap_1ch_large/*/*.png")
 # gt_paths = glob.glob("data/short_or/gt_heatmap_1ch/014_5min_10/*.png")
 gt_paths.sort()
 pred_paths = glob.glob("data/pred/result_hm/*.png")
 # pred_paths = glob.glob("../PJAE-ICCV2023-UE/results/real_test/volleyball-dual-mid_p_p_field_middle_p_s_davt_bbox_GT_gaze_GT_act_GT_weight_fusion_fine_token_only/final_jo_att/*.png")
 pred_paths.sort()
 # img_paths = glob.glob("data/test/frames/*/*.png")
-# img_paths = glob.glob("data/ue/test/frames/*/*.png")
-img_paths = glob.glob("data/short_test/frames/*/*.png")
+img_paths = glob.glob("data/ue/test/frames/*/*.png")
+# img_paths = glob.glob("data/short_test/frames/*/*.png")
 # img_paths = glob.glob("data/short_or/frames/014_5min_10/*.png")
 img_paths.sort()
 
@@ -35,6 +35,7 @@ list_xy = []
 thr30 = 0
 thr60 = 0
 thr90 = 0
+iou = 0
 size = 0
 for i, pred_path in tqdm(enumerate(pred_paths), total=len(pred_paths)):
     # GT
@@ -73,7 +74,7 @@ for i, pred_path in tqdm(enumerate(pred_paths), total=len(pred_paths)):
             pred_pix += 1
         if gt_iou_flat[j] != 0 and pred_iou_flat[j] != 0:
             both_pix += 1
-    iou = both_pix / (gt_pix + pred_pix - both_pix)
+    iou += both_pix / (gt_pix + pred_pix - both_pix)
 
 
     # concat image
@@ -206,6 +207,7 @@ xy /= size
 thr30 /= size
 thr60 /= size
 thr90 /= size
+iou /= size
 auc_sum /= len(pred_paths)
 max_x = max(list_x)
 min_x = min(list_x)
