@@ -195,7 +195,7 @@ def test(test_dataloader, net, loss_functions, device):
     with torch.no_grad():
         with tqdm(total=len(test_dataloader)) as pbar:
             try:
-                for data in val_dataloader:
+                for data in test_dataloader:
                     inputs = data[0].to(device)
                     '''
                     for key, val in inp.items():
