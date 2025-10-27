@@ -254,10 +254,10 @@ def test(test_dataloader, net, loss_functions, device):
                 pass
 
     # return total_loss / len(val_dataloader)
-    return [total_loss / len(val_dataloader),
-            cos_total.item() / len(val_dataloader),
-            kl_total.item() / len(val_dataloader),
-            ssim_total.item() / len(val_dataloader)]
+    return [total_loss / len(test_dataloader),
+            cos_total.item() / len(test_dataloader),
+            kl_total.item() / len(test_dataloader),
+            ssim_total.item() / len(test_dataloader)]
 
 def collate_fn(batch):
     inputs, labels = zip(*batch)
@@ -534,7 +534,7 @@ def main():
             writer.add_scalar("Test Loss", test_loss[0], epoch + 1)
             # writer.add_scalar("Test cosLoss", test_loss[1], epoch + 1)
             # writer.add_scalar("Test klLoss", test_loss[2], epoch + 1)
-            writer.add_scalar("Test ssimLoss", terst_loss[3], epoch + 1)
+            writer.add_scalar("Test ssimLoss", test_loss[3], epoch + 1)
             print("log updated")
 
         except ValueError:
