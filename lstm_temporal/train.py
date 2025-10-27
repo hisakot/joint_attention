@@ -109,21 +109,13 @@ def train(train_dataloader, net, loss_functions, optimizer, device):
             print("Error: TypeError")
             pass
 
-# return total_loss / len(train_dataloader)
+    # return total_loss / len(train_dataloader)
     return [total_loss / len(train_dataloader),
             cos_total.item() / len(train_dataloader),
             kl_total.item() / len(train_dataloader),
             ssim_total.item() / len(train_dataloader)]
 
 def evaluate(val_dataloader, net, loss_functions, device):
-    '''
-    resnet50.eval()
-    unet.eval()
-    fuse.eval()
-    swin_t.eval()
-    swin_unet.eval()
-    spatiotemporal.eval()
-    '''
     net.eval()
     total_loss = 0
     cos_total, mse_total, mae_total, kl_total, ssim_total = 0, 0, 0, 0, 0
@@ -189,7 +181,79 @@ def evaluate(val_dataloader, net, loss_functions, device):
                 print("Error: TypeError")
                 pass
 
-# return total_loss / len(val_dataloader)
+    # return total_loss / len(val_dataloader)
+    return [total_loss / len(val_dataloader),
+            cos_total.item() / len(val_dataloader),
+            kl_total.item() / len(val_dataloader),
+            ssim_total.item() / len(val_dataloader)]
+
+def test(test_dataloader, net, loss_functions, device):
+    net.eval()
+    total_loss = 0
+    cos_total, mse_total, mae_total, kl_total, ssim_total = 0, 0, 0, 0, 0
+
+    with torch.no_grad():
+        with tqdm(total=len(test_dataloader)) as pbar:
+            try:
+                for data in val_dataloader:
+                    inputs = data[0].to(device)
+                    '''
+                    for key, val in inp.items():
+                        if torch.is_tensor(val):
+                            inp[key] = val.to(device)
+                    '''
+
+                    targets = data[1].to(device)
+                    if inputs is None or targets is None:
+                        continue
+
+                    pred = net(inputs)
+
+                    loss = 0
+                    cos_loss, mse_loss, mae_loss, kl_loss, ssim_loss = 0, 0, 0, 0, 0
+                    for loss_function in loss_functions:
+                        if loss_function == "cos_similarity":
+                            pred_flat = pred.view(pred.size(0), -1)
+                            targets_flat = targets.view(targets.size(0), -1)
+                            cos_loss = (1 - F.cosine_similarity(pred_flat, targets_flat)).mean()
+                            loss += cos_loss
+                            cos_total += cos_loss
+                        elif loss_function == "MSE":
+                            lossfunc = nn.MSELoss()
+                            mse_loss = lossfunc(pred, targets)
+                            loss += mse_loss
+                            mse_total += mse_loss
+                        elif loss_function == "MAE":
+                            lossfunc = nn.L1Loss()
+                            mae_loss = lossfunc(pred, targets)
+                            loss += mae_loss
+                            mae_total += mae_loss
+                        elif loss_function == "KLDiv":
+                            lossfunc = nn.KLDivLoss(reduction='batchmean')
+                            # pred
+                            pred_flat = pred.view(pred.size(0), -1)
+                            log_pred = F.log_softmax(pred_flat, dim=1)
+                            # targets
+                            targets_flat = targets.view(targets.size(0), -1)
+                            targets_sum = targets_flat.sum(dim=1, keepdim=True)
+                            targets_norm = torch.where(targets_sum > 0, targets_flat / targets_sum, targets_flat)
+                            kl_loss = lossfunc(log_pred, targets_norm)
+                            loss += kl_loss
+                            kl_total += kl_loss
+                        elif loss_function == "combined_loss":
+                            loss = compute_all_losses(pred, targets)
+                        elif loss_function == "SSIM":
+                            ssim_loss = 1 - ssim(pred, targets, data_range=1, size_average=True)
+                            loss += ssim_loss
+                            ssim_total += ssim_loss
+
+                    total_loss += loss.item()
+                    pbar.update()
+            except TypeError:
+                print("Error: TypeError")
+                pass
+
+    # return total_loss / len(val_dataloader)
     return [total_loss / len(val_dataloader),
             cos_total.item() / len(val_dataloader),
             kl_total.item() / len(val_dataloader),
@@ -332,6 +396,7 @@ def main():
     in_ch = cfg.in_ch
     train_data_dir = cfg.train_data_dir
     val_data_dir = cfg.val_data_dir
+    test_data_dir = cfg.test_data_dir
 
     '''
     net = PJAE_conv.ModelSpatial(in_ch=5)
@@ -366,6 +431,7 @@ def main():
 
     train_loss_list = list()
     val_loss_list = list()
+    test_loss_list = list()
 
     train_data = dataset.Dataset(train_data_dir,
                                  img_height=img_height, img_width=img_width, ch=in_ch,
@@ -373,11 +439,16 @@ def main():
     val_data = dataset.Dataset(val_data_dir,
                                img_height=img_height, img_width=img_width, ch=in_ch,
                                seq_len=seq_len, transform=None, is_train=False)
+    test_data = dataset.Dataset(test_data_dir,
+                                img_height=img_height, img_width=img_width, ch=in_ch,
+                                seq_len=seq_len, transform=None, is_train=False)
 
     train_dataloader = DataLoader(train_data, batch_size=batch_size,
                                   shuffle=False, num_workers=num_cpu) # FIXME shuffle
     val_dataloader = DataLoader(val_data, batch_size=batch_size,
                                 shuffle=False, num_workers=num_cpu)
+    test_dataloader = DataLoader(test_data, batch_size=batch_size,
+                                 shuffle=False, num_workers=num_cpu)
 
     if args.checkpoint:
         checkpoint = torch.load(args.checkpoint)
@@ -386,10 +457,13 @@ def main():
         optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
         train_loss_list = checkpoint["train_loss_list"]
         val_loss_list = checkpoint["val_loss_list"]
+        test_loss_list = checkpoint["test_loss_list"]
         for i, train_loss in enumerate(train_loss_list):
             writer.add_scalar("Train Loss", train_loss[0], i+1)
         for i, val_loss in enumerate(val_loss_list):
             writer.add_scalar("Valid Loss", val_loss[0], i+1)
+        for i, test_loss in enumerate(test_loss_list):
+            writer.add_scalar("Test Loss", test_loss[0], i+1)
         print("Reload midel : ", start_epoch, "and restart training")
         optimizer = optim.AdamW(filter(lambda p: p.requires_grad, net.parameters()),
                                 lr=lr, weight_decay=1e-2)
@@ -417,8 +491,15 @@ def main():
                                     loss_functions, device)
                 val_loss_list.append(val_loss)
 
+            # test
+            with torch.no_grad():
+                test_loss = test(test_dataloader, net,
+                                 loss_functions, device)
+                test_loss_list.append(test_loss)
+
             print("Epoch %d : train_loss %.3f" % (epoch + 1, train_loss[0]))
             print("Epoch %d : val_loss %.3f" % (epoch + 1, val_loss[0]))
+            print("Epoch %d : test_loss %.3f" % (epoch + 1, test_loss[0]))
             print(train_loss, val_loss)
 
             # lr_scheduler
@@ -434,6 +515,7 @@ def main():
                             "optimizer_state_dict" : optimizer.state_dict(),
                             "train_loss_list" : train_loss_list,
                             "val_loss_list" : val_loss_list,
+                            "test_loss_list" : test_loss_list,
                             }, "save_models/lstm_trial.pth")
             else:
                 early_stopping[2] += 1
@@ -442,13 +524,17 @@ def main():
 
             # tensorboard
             writer.add_scalar("Train Loss", train_loss[0], epoch + 1)
-            writer.add_scalar("Train cosLoss", train_loss[1], epoch + 1)
-            writer.add_scalar("Train klLoss", train_loss[2], epoch + 1)
+            # writer.add_scalar("Train cosLoss", train_loss[1], epoch + 1)
+            # writer.add_scalar("Train klLoss", train_loss[2], epoch + 1)
             writer.add_scalar("Train ssimLoss", train_loss[3], epoch + 1)
             writer.add_scalar("Valid Loss", val_loss[0], epoch + 1)
-            writer.add_scalar("Valid cosLoss", val_loss[1], epoch + 1)
-            writer.add_scalar("Valid klLoss", val_loss[2], epoch + 1)
+            # writer.add_scalar("Valid cosLoss", val_loss[1], epoch + 1)
+            # writer.add_scalar("Valid klLoss", val_loss[2], epoch + 1)
             writer.add_scalar("Valid ssimLoss", val_loss[3], epoch + 1)
+            writer.add_scalar("Test Loss", test_loss[0], epoch + 1)
+            # writer.add_scalar("Test cosLoss", test_loss[1], epoch + 1)
+            # writer.add_scalar("Test klLoss", test_loss[2], epoch + 1)
+            writer.add_scalar("Test ssimLoss", terst_loss[3], epoch + 1)
             print("log updated")
 
         except ValueError:
