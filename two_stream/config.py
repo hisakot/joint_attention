@@ -5,6 +5,6 @@ class Config:
         self.img_width = 640
         self.ch = 5
 
-        self.lr = 5e-5
+        self.lr = 1e-4
         self.seq_len = 2
 
