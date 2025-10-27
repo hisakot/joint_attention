@@ -68,6 +68,7 @@ if __name__ == '__main__':
     if args.real_model:
         x = list(range(1, len(real_train)+1, 1))
         ax.plot(x, real_train, label="Real-world Dataset", color=real_color)
+    ax.set_title("Train Loss")
     plt.legend()
     plt.xlim(0, 120)
     plt.ylim(2.0, 5.0)
@@ -81,6 +82,7 @@ if __name__ == '__main__':
     if args.real_model:
         x = list(range(1, len(real_val)+1, 1))
         bx.plot(x, real_val, label="Real-world Dataset", color=real_color)
+    bx.set_title("Validation Loss")
     plt.legend()
     plt.xlim(0, 120)
     plt.ylim(2.0, 5.0)
@@ -94,6 +96,7 @@ if __name__ == '__main__':
     if args.real_model:
         x = list(range(1, len(real_train_ssim)+1, 1))
         cx.plot(x, real_train_ssim, label="Real-world Dataset", color=real_color)
+    cx.set_title("Train SSIM")
     plt.legend()
     plt.xlim(0, 120)
     plt.ylim(0, 1.0)
@@ -107,11 +110,14 @@ if __name__ == '__main__':
     if args.real_model:
         x = list(range(1, len(real_val_ssim)+1, 1))
         dx.plot(x, real_val_ssim, label="Real-world Dataset", color=real_color)
+    dx.set_title("Validation SSIM")
     plt.legend()
     plt.xlim(0, 120)
     plt.ylim(0, 1.0)
     plt.xlabel("epochs")
     plt.ylabel("Validation SSIM")
+
+    plt.subplots_adjust(hspace=0.3)
 
     plt.show()
     fig.savefig("./data/loss_graph.png")
