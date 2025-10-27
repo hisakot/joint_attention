@@ -2,6 +2,7 @@ import argparse
 import glob
 import math
 import os
+import random
 import time
 from tqdm import tqdm
 
@@ -302,6 +303,10 @@ def main():
     batch_size = args.batch_size
 
     cfg = config.Config()
+    random.seed(cfg.seed)
+    torch.manual_seed(cfg.seed)
+    np.random.seed(cfg.seed)
+
     lr = cfg.lr
     seq_len = cfg.seq_len
 

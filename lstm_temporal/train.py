@@ -2,6 +2,7 @@ import argparse
 import glob
 import math
 import os
+import random
 import time
 from tqdm import tqdm
 
@@ -378,8 +379,6 @@ def compute_all_losses(pred_logits, gt_heatmap, tau=1.0, lambda_kl=1.0,
     return loss
 
 def main():
-    torch.manual_seed(0)
-
     parser = argparse.ArgumentParser(description="Process some integers")
     parser.add_argument("--batch_size", required=False, default=1, type=int)
     parser.add_argument("--checkpoint", required=False,
@@ -388,6 +387,10 @@ def main():
     batch_size = args.batch_size
 
     cfg = config.Config()
+    random.seed(cfg.seed)
+    torch.manual_seed(cfg.seed)
+    np.random.seed(cfg.seed)
+
     lr = cfg.lr
     seq_len = cfg.seq_len
 
