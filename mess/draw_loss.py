@@ -31,6 +31,12 @@ if __name__ == '__main__':
         for loss in ue_val_loss_list:
             ue_val.append(loss[0])
             ue_val_ssim.append(1 - loss[3])
+        ue_test_loss_list = checkpoint["test_loss_list"]
+        ue_test = list()
+        ue_test_ssim = list()
+        for loss in ue_test_loss_list:
+            ue_test.append(loss[0])
+            ue_test_ssim.append(1 - loss[3])
 
     if args.real_model:
         checkpoint = torch.load(args.real_model)
@@ -52,11 +58,17 @@ if __name__ == '__main__':
         for loss in real_val_loss_list:
             real_val.append(loss[0])
             real_val_ssim.append(1 - loss[3])
+        real_test_loss_list = checkpoint["test_loss_list"]
+        real_test = list()
+        real_test_ssim = list()
+        for loss in real_test_loss_list:
+            real_test.append(loss[0])
+            real_test_ssim.append(1 - loss[3])
 
 
     # plt
     fig = plt.figure(figsize=(16, 8))
-    ax = fig.add_subplot(221)
+    ax = fig.add_subplot(231)
 
     ue_color = "#e5801a" # orange
     real_color = "#1a80e5" # blue
@@ -75,7 +87,7 @@ if __name__ == '__main__':
     plt.xlabel("epochs")
     plt.ylabel("Train Loss")
 
-    bx = fig.add_subplot(222)
+    bx = fig.add_subplot(232)
     if args.ue_model:
         x = list(range(1, len(ue_val)+1, 1))
         bx.plot(x, ue_val, label="Simulated Dataset", color=ue_color)
@@ -89,7 +101,7 @@ if __name__ == '__main__':
     plt.xlabel("epochs")
     plt.ylabel("Validation Loss")
 
-    cx = fig.add_subplot(223)
+    cx = fig.add_subplot(233)
     if args.ue_model:
         x = list(range(1,len(ue_train_ssim)+1, 1))
         cx.plot(x, ue_train_ssim, label="Simulated Dataset", color=ue_color)
@@ -103,7 +115,7 @@ if __name__ == '__main__':
     plt.xlabel("epochs")
     plt.ylabel("Train SSIM")
 
-    dx = fig.add_subplot(224)
+    dx = fig.add_subplot(234)
     if args.ue_model:
         x = list(range(1,len(ue_val_ssim)+1, 1))
         dx.plot(x, ue_val_ssim, label="Simulated Dataset", color=ue_color)
@@ -116,6 +128,35 @@ if __name__ == '__main__':
     plt.ylim(0, 1.0)
     plt.xlabel("epochs")
     plt.ylabel("Validation SSIM")
+
+    ex = fig.add_subplot(235)
+    if args.ue_model:
+        x = list(range(1, len(ue_test)+1, 1))
+        ex.plot(x, ue_test, label="Simulated Dataset", color=ue_color)
+    if args.real_model:
+        x = list(range(1, len(real_test)+1, 1))
+        ex.plot(x, real_test, label="Real-world Dataset", color=real_color)
+    ex.set_title("Test Loss")
+    plt.legend()
+    plt.xlim(0, 120)
+    plt.ylim(0, 1.0)
+    plt.xlabel("epochs")
+    plt.ylabel("Loss")
+
+    ex = fig.add_subplot(236)
+    if args.ue_model:
+        x = list(range(1, len(ue_test_ssim)+1, 1))
+        ex.plot(x, ue_test_ssim, label="Simulated Dataset", color=ue_color)
+    if args.real_model:
+        x = list(range(1, len(real_test_ssim)+1, 1))
+        ex.plot(x, real_test_ssim, label="Real-world Dataset", color=real_color)
+    ex.set_title("Test SSIM")
+    plt.legend()
+    plt.xlim(0, 120)
+    plt.ylim(0, 1.0)
+    plt.xlabel("epochs")
+    plt.ylabel("SSIM")
+
 
     plt.subplots_adjust(hspace=0.3)
 
