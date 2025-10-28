@@ -423,7 +423,7 @@ def main():
     # loss_functions = ["MSE", "MAE", "cos_similarity", "KLDiv", "combined_loss", "SSIM"]
     loss_functions = ["cos_similarity", "KLDiv", "SSIM"]
     # optimizer = optim.SGD(net.parameters(), lr=lr)
-    optimizer = optim.AdamW(net.parameters(), lr=lr, weight_decay=1e-2)
+    optimizer = optim.AdamW(net.parameters(), lr=lr, weight_decay=1e-3)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=20, gamma=1)
     # scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, mode="min", factor=0.9, patience=5, verbose=True)
 

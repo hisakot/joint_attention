@@ -28,42 +28,42 @@ def test(test_dataloader, model, loss_function, device):
     total_loss = 0
 
     with torch.no_grad():
-        for i, data in enumerate(test_dataloader):
-            inputs = data[0].to(device)
-            '''
-            for key, val in inp.items():
-                if torch.is_tensor(val):
-                    inp[key] = val.to(device)
-            '''
+        with tqdm(total=len(test_dataloader)) as pbar:
+            for i, data in enumerate(test_dataloader):
+                inputs = data[0].to(device)
+                '''
+                for key, val in inp.items():
+                    if torch.is_tensor(val):
+                        inp[key] = val.to(device)
+                '''
 
-            targets = data[1].to(device)
+                targets = data[1].to(device)
 
-            if inputs is None or targets is None:
-                continue
+                if inputs is None or targets is None:
+                    continue
 
-            pred = model(inputs)
+                pred = model(inputs)
 
-            if loss_function == "cos_similarity":
-                pred_1vec = pred.view(pred.size(0), -1)
-                targets_1vec = targets.view(targets.size(0), -1)
-                cos_loss = F.cosine_similarity(pred_1vec, targets_1vec)
-                loss = (1 - cos_loss).mean()
-            elif loss_function == "MSE":
-                loss = nn.MSELoss(pred, targets)
-            elif loss_function == "MAE":
-                lossfunc = nn.L1Loss()
-                loss = lossfunc(pred, targets)
-            print(loss)
+                if loss_function == "cos_similarity":
+                    pred_1vec = pred.view(pred.size(0), -1)
+                    targets_1vec = targets.view(targets.size(0), -1)
+                    cos_loss = F.cosine_similarity(pred_1vec, targets_1vec)
+                    loss = (1 - cos_loss).mean()
+                elif loss_function == "MSE":
+                    loss = nn.MSELoss(pred, targets)
+                elif loss_function == "MAE":
+                    lossfunc = nn.L1Loss()
+                    loss = lossfunc(pred, targets)
 
-            pred = pred.to("cpu").detach().numpy().copy()
-            pred = np.squeeze(pred, 0)
-            pred = np.transpose(pred, (1, 2, 0))
-            pred *= 255.
-            pred = pred.astype(np.uint8)
-            # pred = cv2.applyColorMap(pred, cv2.COLORMAP_JET)
-            pred = cv2.resize(pred, (960, 480))
-            cv2.imwrite("data/pred/result_hm/" + str(i).zfill(6) + ".png", pred)
-            print("------------")
+                pred = pred.to("cpu").detach().numpy().copy()
+                pred = np.squeeze(pred, 0)
+                pred = np.transpose(pred, (1, 2, 0))
+                pred *= 255.
+                pred = pred.astype(np.uint8)
+                # pred = cv2.applyColorMap(pred, cv2.COLORMAP_JET)
+                pred = cv2.resize(pred, (960, 480))
+                cv2.imwrite("data/pred/result_hm/" + str(i).zfill(6) + ".png", pred)
+                pbar.update()
 
 def main():
 
