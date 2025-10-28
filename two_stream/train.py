@@ -305,6 +305,7 @@ def main():
     cfg = config.Config()
     random.seed(cfg.seed)
     torch.manual_seed(cfg.seed)
+    torch.cuda.manual_seed_all(cfg.seed)
     np.random.seed(cfg.seed)
 
     lr = cfg.lr
