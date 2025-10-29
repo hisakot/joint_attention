@@ -125,7 +125,7 @@ if __name__ == '__main__':
     dx.set_title("Validation SSIM")
     plt.legend()
     plt.xlim(0, 60)
-    plt.ylim(0, 1.0)
+    plt.ylim(2.0, 5.0)
     plt.xlabel("epochs")
     plt.ylabel("Validation SSIM")
 
@@ -135,8 +135,6 @@ if __name__ == '__main__':
         ex.plot(x, ue_test, label="Simulated Dataset", color=ue_color)
     if args.real_model:
         x = list(range(1, len(real_test)+1, 1))
-        print(x)
-        print(real_test)
         ex.plot(x, real_test, label="Real-world Dataset", color=real_color)
     ex.set_title("Test Loss")
     plt.legend()
