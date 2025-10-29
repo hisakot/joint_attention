@@ -8,6 +8,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Process some integers")
     parser.add_argument("--ue_model", required=False)
     parser.add_argument("--real_model", required=False)
+    parser.add_argument("--mix_model", required=False)
     args = parser.parse_args()
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
