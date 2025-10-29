@@ -103,103 +103,103 @@ if __name__ == '__main__':
     # ue_color = "#e61919" # red
     mix_color = "#2de52d" # red
 
-    if args.ue_model:
-        x = list(range(1, len(ue_train)+1, 1))
-        ax.plot(x, ue_train, label="Simulated Dataset", color=ue_color)
     if args.real_model:
         x = list(range(1, len(real_train)+1, 1))
         ax.plot(x, real_train, label="Real-world Dataset", color=real_color)
+    if args.ue_model:
+        x = list(range(1, len(ue_train)+1, 1))
+        ax.plot(x, ue_train, label="Simulated Dataset", color=ue_color)
     if args.mix_model:
         x = list(range(1, len(mix_train)+1, 1))
         ax.plot(x, mix_train, label="Sim-real Dataset", color=mix_color)
     ax.set_title("Train Loss")
     plt.legend()
-    plt.xlim(0, 60)
+    plt.xlim(0, 70)
     plt.ylim(2.0, 5.0)
     plt.xlabel("epochs")
     plt.ylabel("Train Loss")
 
     bx = fig.add_subplot(232)
-    if args.ue_model:
-        x = list(range(1, len(ue_val)+1, 1))
-        bx.plot(x, ue_val, label="Simulated Dataset", color=ue_color)
     if args.real_model:
         x = list(range(1, len(real_val)+1, 1))
         bx.plot(x, real_val, label="Real-world Dataset", color=real_color)
+    if args.ue_model:
+        x = list(range(1, len(ue_val)+1, 1))
+        bx.plot(x, ue_val, label="Simulated Dataset", color=ue_color)
     if args.mix_model:
         x = list(range(1, len(mix_train)+1, 1))
         bx.plot(x, mix_val, label="Sim-real Dataset", color=mix_color)
     bx.set_title("Validation Loss")
     plt.legend()
-    plt.xlim(0, 60)
+    plt.xlim(0, 70)
     plt.ylim(2.0, 5.0)
     plt.xlabel("epochs")
     plt.ylabel("Validation Loss")
 
     cx = fig.add_subplot(234)
-    if args.ue_model:
-        x = list(range(1,len(ue_train_ssim)+1, 1))
-        cx.plot(x, ue_train_ssim, label="Simulated Dataset", color=ue_color)
     if args.real_model:
         x = list(range(1, len(real_train_ssim)+1, 1))
         cx.plot(x, real_train_ssim, label="Real-world Dataset", color=real_color)
+    if args.ue_model:
+        x = list(range(1,len(ue_train_ssim)+1, 1))
+        cx.plot(x, ue_train_ssim, label="Simulated Dataset", color=ue_color)
     if args.mix_model:
         x = list(range(1, len(mix_train)+1, 1))
         cx.plot(x, mix_train_ssim, label="Sim-real Dataset", color=mix_color)
     cx.set_title("Train SSIM")
     plt.legend()
-    plt.xlim(0, 60)
+    plt.xlim(0, 70)
     plt.ylim(0, 1.0)
     plt.xlabel("epochs")
     plt.ylabel("Train SSIM")
 
     dx = fig.add_subplot(235)
-    if args.ue_model:
-        x = list(range(1,len(ue_val_ssim)+1, 1))
-        dx.plot(x, ue_val_ssim, label="Simulated Dataset", color=ue_color)
     if args.real_model:
         x = list(range(1, len(real_val_ssim)+1, 1))
         dx.plot(x, real_val_ssim, label="Real-world Dataset", color=real_color)
+    if args.ue_model:
+        x = list(range(1,len(ue_val_ssim)+1, 1))
+        dx.plot(x, ue_val_ssim, label="Simulated Dataset", color=ue_color)
     if args.mix_model:
         x = list(range(1, len(mix_train)+1, 1))
         dx.plot(x, mix_val_ssim, label="Sim-real Dataset", color=mix_color)
     dx.set_title("Validation SSIM")
     plt.legend()
-    plt.xlim(0, 60)
+    plt.xlim(0, 70)
     plt.ylim(0, 1.0)
     plt.xlabel("epochs")
     plt.ylabel("Validation SSIM")
 
     ex = fig.add_subplot(233)
-    if args.ue_model:
-        x = list(range(1, len(ue_test)+1, 1))
-        ex.plot(x, ue_test, label="Simulated Dataset", color=ue_color)
     if args.real_model:
         x = list(range(1, len(real_test)+1, 1))
         ex.plot(x, real_test, label="Real-world Dataset", color=real_color)
+    if args.ue_model:
+        x = list(range(1, len(ue_test)+1, 1))
+        ex.plot(x, ue_test, label="Simulated Dataset", color=ue_color)
     if args.mix_model:
         x = list(range(1, len(mix_train)+1, 1))
         ex.plot(x, mix_test, label="Sim-real Dataset", color=mix_color)
     ex.set_title("Test Loss")
     plt.legend()
-    plt.xlim(0, 60)
+    plt.xlim(0, 70)
     plt.ylim(2.0, 5.0)
     plt.xlabel("epochs")
     plt.ylabel("Loss")
 
     fx = fig.add_subplot(236)
-    if args.ue_model:
-        x = list(range(1, len(ue_test_ssim)+1, 1))
-        fx.plot(x, ue_test_ssim, label="Simulated Dataset", color=ue_color)
     if args.real_model:
         x = list(range(1, len(real_test_ssim)+1, 1))
         fx.plot(x, real_test_ssim, label="Real-world Dataset", color=real_color)
+    if args.ue_model:
+        x = list(range(1, len(ue_test_ssim)+1, 1))
+        fx.plot(x, ue_test_ssim, label="Simulated Dataset", color=ue_color)
     if args.mix_model:
         x = list(range(1, len(mix_train)+1, 1))
         fx.plot(x, mix_test_ssim, label="Sim-real Dataset", color=mix_color)
     fx.set_title("Test SSIM")
     plt.legend()
-    plt.xlim(0, 60)
+    plt.xlim(0, 70)
     plt.ylim(0, 1.0)
     plt.xlabel("epochs")
     plt.ylabel("SSIM")
