@@ -101,7 +101,7 @@ if __name__ == '__main__':
     ue_color = "#e5801a" # orange
     real_color = "#1a80e5" # blue
     # ue_color = "#e61919" # red
-    mix_color = "#2de52d" # red
+    mix_color = "#198019" # red
 
     if args.real_model:
         x = list(range(1, len(real_train)+1, 1))
