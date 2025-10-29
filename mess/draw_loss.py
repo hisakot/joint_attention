@@ -125,7 +125,7 @@ if __name__ == '__main__':
     dx.set_title("Validation SSIM")
     plt.legend()
     plt.xlim(0, 60)
-    plt.ylim(2.0, 5.0)
+    plt.ylim(0, 1.0)
     plt.xlabel("epochs")
     plt.ylabel("Validation SSIM")
 
@@ -139,7 +139,7 @@ if __name__ == '__main__':
     ex.set_title("Test Loss")
     plt.legend()
     plt.xlim(0, 60)
-    plt.ylim(0, 1.0)
+    plt.ylim(2.0, 5.0)
     plt.xlabel("epochs")
     plt.ylabel("Loss")
 
