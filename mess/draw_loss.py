@@ -211,7 +211,8 @@ if __name__ == '__main__':
     plt.close(fig)
 
     # plt
-    fig = plt.figure(figsize=(16, 8))
+    fig = plt.figure(figsize=(16, 6))
+    plt.rcParams["font.size"] = 16
     ue_color = "#e5801a" # orange
     real_color = "#1a80e5" # blue
     # ue_color = "#e61919" # red
@@ -230,7 +231,7 @@ if __name__ == '__main__':
     bx.set_title("Validation Loss")
     plt.legend()
     plt.xlim(0, 70)
-    plt.ylim(2.0, 5.0)
+    plt.ylim(2.5, 4.5)
     plt.xlabel("epochs")
     plt.ylabel("Validation Loss")
 
@@ -254,5 +255,5 @@ if __name__ == '__main__':
     plt.subplots_adjust(hspace=0.3)
 
     plt.show()
-    fig.savefig("./data/loss_graph.png")
+    fig.savefig("./data/loss_graph.pdf")
     plt.close(fig)
