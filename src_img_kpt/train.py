@@ -228,9 +228,9 @@ def main():
     '''
     model = transGan.TransGAN(patch_size=10, emb_size=512, num_heads=2, forward_expansion=4,
                               img_height=img_height, img_width=img_width, in_ch=5)
-    model = PJAE_conv.ModelSpatial(in_ch=5)
     model = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width,
                                         in_chans=5, num_classes=1)
+    model = PJAE_conv.ModelSpatial(in_ch=5)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if torch.cuda.device_count() >= 2:
@@ -246,7 +246,7 @@ def main():
     # loss_function = ["cos_similarity"]
     loss_functions = ["cos_similarity", "KLDiv", "SSIM"]
     # optimizer = optim.SGD(model.parameters(), lr=lr, weight_decay=1e-4)
-    optimizer = optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-4)
+    optimizer = optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-3)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=20, gamma=1)
 
     writer = SummaryWriter(log_dir="logs")
@@ -326,11 +326,13 @@ def main():
             # tensorboard
             writer.add_scalar("Train Loss", train_loss, epoch + 1)
             writer.add_scalar("Valid Loss", val_loss, epoch + 1)
+            '''
             for name, param in model.named_parameters():
                 if param.grad is not None:
                     writer.add_histogram(f"{name}.grad", param.grad, epoch)
                     writer.add_scalar(f"{name}.grad_norm", param.grad.norm(), epoch)
                     writer.add_histogram(f"{name}.weight", param.data, epoch)
+            '''
             print("log updated")
 
         except ValueError:
