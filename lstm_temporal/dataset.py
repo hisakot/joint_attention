@@ -203,7 +203,8 @@ class Dataset(Dataset):
                     data = self.transform(data)
                 '''
 
-                one_seq = np.concatenate([img, kptmap, gazecone_map], axis=0) # TODO to modify in_ch
+                one_seq = np.concatenate([img], axis=0) # TODO to modify in_ch
+                # one_seq = np.concatenate([img, kptmap, gazecone_map], axis=0) # TODO to modify in_ch
                 inputs.append(one_seq)
             except IndexError:
                 one_seq = np.zeros((self.ch, self.H, self.W))
