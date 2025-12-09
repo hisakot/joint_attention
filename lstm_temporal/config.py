@@ -3,7 +3,7 @@ class Config:
     def __init__(self):
         self.img_height = 320
         self.img_width = 640
-        self.in_ch = 3
+        self.in_ch = 5
 
         self.seed = 750
         self.lr = 1e-5
