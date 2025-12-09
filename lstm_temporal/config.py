@@ -5,8 +5,8 @@ class Config:
         self.img_width = 640
         self.in_ch = 5
 
-        self.seed = 417
-        self.lr = 5e-5
+        self.seed = 750
+        self.lr = 1e-5
         self.seq_len = 2
 
         self.train_data_dir = "data/short_train"

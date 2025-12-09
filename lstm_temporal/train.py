@@ -387,10 +387,13 @@ def main():
     batch_size = args.batch_size
 
     cfg = config.Config()
+
     random.seed(cfg.seed)
     torch.manual_seed(cfg.seed)
     torch.cuda.manual_seed_all(cfg.seed)
     np.random.seed(cfg.seed)
+    torch.backends.cudnn.deterministick = True
+    torch.backends.cudnn.benchmark = False
 
     lr = cfg.lr
     seq_len = cfg.seq_len
@@ -423,7 +426,7 @@ def main():
     # loss_functions = ["MSE", "MAE", "cos_similarity", "KLDiv", "combined_loss", "SSIM"]
     loss_functions = ["cos_similarity", "KLDiv", "SSIM"]
     # optimizer = optim.SGD(net.parameters(), lr=lr)
-    optimizer = optim.AdamW(net.parameters(), lr=lr, weight_decay=1e-3)
+    optimizer = optim.AdamW(net.parameters(), lr=lr, weight_decay=1e-2)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=20, gamma=1)
     # scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, mode="min", factor=0.9, patience=5, verbose=True)
 
@@ -461,13 +464,15 @@ def main():
         optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
         train_loss_list = checkpoint["train_loss_list"]
         val_loss_list = checkpoint["val_loss_list"]
-        test_loss_list = checkpoint["test_loss_list"]
+        # test_loss_list = checkpoint["test_loss_list"]
         for i, train_loss in enumerate(train_loss_list):
             writer.add_scalar("Train Loss", train_loss[0], i+1)
         for i, val_loss in enumerate(val_loss_list):
             writer.add_scalar("Valid Loss", val_loss[0], i+1)
+        '''
         for i, test_loss in enumerate(test_loss_list):
             writer.add_scalar("Test Loss", test_loss[0], i+1)
+        '''
         print("Reload midel : ", start_epoch, "and restart training")
         optimizer = optim.AdamW(filter(lambda p: p.requires_grad, net.parameters()),
                                 lr=lr, weight_decay=1e-2)
@@ -496,14 +501,16 @@ def main():
                 val_loss_list.append(val_loss)
 
             # test
+            '''
             with torch.no_grad():
                 test_loss = test(test_dataloader, net,
                                  loss_functions, device)
                 test_loss_list.append(test_loss)
+            '''
 
             print("Epoch %d : train_loss %.3f" % (epoch + 1, train_loss[0]))
             print("Epoch %d : val_loss %.3f" % (epoch + 1, val_loss[0]))
-            print("Epoch %d : test_loss %.3f" % (epoch + 1, test_loss[0]))
+            # print("Epoch %d : test_loss %.3f" % (epoch + 1, test_loss[0]))
             print(train_loss, val_loss)
 
             # lr_scheduler
@@ -519,7 +526,7 @@ def main():
                             "optimizer_state_dict" : optimizer.state_dict(),
                             "train_loss_list" : train_loss_list,
                             "val_loss_list" : val_loss_list,
-                            "test_loss_list" : test_loss_list,
+                            # "test_loss_list" : test_loss_list,
                             }, "save_models/lstm_trial.pth")
             else:
                 early_stopping[2] += 1
@@ -535,10 +542,10 @@ def main():
             # writer.add_scalar("Valid cosLoss", val_loss[1], epoch + 1)
             # writer.add_scalar("Valid klLoss", val_loss[2], epoch + 1)
             writer.add_scalar("Valid ssimLoss", val_loss[3], epoch + 1)
-            writer.add_scalar("Test Loss", test_loss[0], epoch + 1)
+            # writer.add_scalar("Test Loss", test_loss[0], epoch + 1)
             # writer.add_scalar("Test cosLoss", test_loss[1], epoch + 1)
             # writer.add_scalar("Test klLoss", test_loss[2], epoch + 1)
-            writer.add_scalar("Test ssimLoss", test_loss[3], epoch + 1)
+            # writer.add_scalar("Test ssimLoss", test_loss[3], epoch + 1)
             print("log updated")
 
         except ValueError:
