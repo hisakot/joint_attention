@@ -7,16 +7,23 @@ import numpy as np
 import torch
 from tqdm import tqdm
 
-def generate_pose_heatmap(img_height, img_width, keypoints, links, sigma=3):
+def generate_pose_heatmap(img_height, img_width, keypoints, confs, links, sigma=3):
     heatmap = np.zeros((img_height, img_width, 1), dtype=np.float32)
 
     for i, kpts in enumerate(keypoints):
-        for kpt in kpts:
+        conf = confs[i]
+        for j, kpt in enumerate(kpts):
             x = int(kpt[0])
             y = int(kpt[1])
+            c = conf[j]
+            if c < 0.6:
+                continue
             if x >= 0 and x < img_width and y >= 0 and y < img_height:
                 cv2.circle(heatmap, (x, y), radius=6, color=255, thickness=-1)
         for link in links:
+            c = conf[link[0]] + conf[link[1]]
+            if c < 1.2:
+                continue
             pt1 = kpts[link[0]]
             pt2 = kpts[link[1]]
             cv2.line(heatmap, (int(pt1[0]), int(pt1[1])), (int(pt2[0]), int(pt2[1])), 255, thickness=3)
@@ -39,9 +46,9 @@ def load_mmpose_links(mmpose_path):
         links = meta_info["skeleton_links"]
         return links
 
-H = 1920
-W = 3840
-data_dir = "data/test"
+H = 960
+W = 1920
+data_dir = "data/Fig"
 mmpose_paths = glob.glob(data_dir + "/mmpose/*.json")
 mmpose_paths.sort()
 mmposes = []
@@ -55,15 +62,17 @@ for mmpose in tqdm(mmposes):
     instances = mmpose["instances"]
     links = load_mmpose_links(mmpose_paths[0]) # list of skelton links
     kpts = [] # (human_num * keypoints)
+    confs = []
 
     for instance in instances:
         keypoints = instance["keypoints"] # 133 human points
         scores = instance["keypoint_scores"]
         if sum(score >= 0.5 for score in scores) > 133 / 5:
             kpts.append(keypoints)
+            confs.append(scores)
 
     # whole body keypoints
-    kptmap = generate_pose_heatmap(H, W, kpts, links, sigma=3) # H, W, 1
+    kptmap = generate_pose_heatmap(H, W, kpts, confs, links, sigma=3) # H, W, 1
     if frame_id == 1:
         i += 1
     video_dir = os.path.splitext(os.path.basename(mmpose_paths[i]))[0]

@@ -342,40 +342,76 @@ if __name__ == '__main__':
             save_dir = os.path.join(args.root, "annotation_data")
             if not os.path.exists(save_dir):
                 os.mkdir(save_dir)
-            with open(gt_json_path) as f:
-                data = json.load(f)
-                items = data["items"]
-                for i, one_frame_ann in enumerate(items):
-                    annotations = one_frame_ann["annotations"]
-                    if len(annotations) == 0:
-                        x1, y1, x2, y2 = 0, 0, 1, 1
-                    else:
-                        ann = annotations[0] # TODO even if there are some GTs in a frame, using the first GT
-                        point = ann["points"]
-                        cx = int(round(point[0]))
-                        cy = int(round(point[1]))
-                        x1 = cx - 1
-                        x2 = cx + 1
-                        y1 = cy - 1
-                        y2 = cy + 1
-                        '''
-                        bbox = ann["bbox"]
-                        x1 = int(bbox[0])
-                        y1 = int(bbox[1])
-                        x2 = int(x1 + bbox[2])
-                        y2 = int(y1 + bbox[3])
-                        '''
-                    if count % 20 == 0:
-                        csv_num += 20
-                        count = 0
-                    else:
-                        frame_num += 1
-                    gt_data = [0, x1, y1, x2, y2, count, 0, 0, 0, "Center"]
-                    save_path = os.path.join(save_dir, video_name + "_" + str(csv_num-19).zfill(6) + ".csv")
-                    with open(save_path, 'a', newline="") as s:
-                        writer = csv.writer(s, delimiter=' ')
-                        writer.writerow(gt_data)
-                    count += 1
+            try:
+                with open(gt_json_path) as f:
+                    data = json.load(f)
+                    items = data["items"]
+                    for i, one_frame_ann in enumerate(items):
+                        annotations = one_frame_ann["annotations"]
+                        if len(annotations) == 0:
+                            x1, y1, x2, y2 = 0, 0, 1, 1
+                        else:
+                            ann = annotations[0] # TODO even if there are some GTs in a frame, using the first GT
+                            point = ann["points"]
+                            cx = int(round(point[0]))
+                            cy = int(round(point[1]))
+                            x1 = cx - 1
+                            x2 = cx + 1
+                            y1 = cy - 1
+                            y2 = cy + 1
+                            '''
+                            bbox = ann["bbox"]
+                            x1 = int(bbox[0])
+                            y1 = int(bbox[1])
+                            x2 = int(x1 + bbox[2])
+                            y2 = int(y1 + bbox[3])
+                            '''
+                        if count % 20 == 0:
+                            csv_num += 20
+                            count = 0
+                        else:
+                            frame_num += 1
+                        gt_data = [0, x1, y1, x2, y2, count, 0, 0, 0, "Center"]
+                        save_path = os.path.join(save_dir, video_name + "_" + str(csv_num-19).zfill(6) + ".csv")
+                        with open(save_path, 'a', newline="") as s:
+                            writer = csv.writer(s, delimiter=' ')
+                            writer.writerow(gt_data)
+                        count += 1
+            except:
+                gt_map_paths = glob.glob(os.path.join(args.root, "gt_heatmap_1ch", video_name, "*.png"))
+                gt_map_paths.sort()
+                for gt_map_path in gt_map_paths:
+                    print(gt_map_path)
+                    gt = cv2.imread(gt_map_path, 0)
+                    _, gt_binary = cv2.threshold(gt, 127, 255, cv2.THRESH_BINARY)
+                    gt_contours, _ = cv2.findContours(gt_binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                    for gt_cnt in gt_contours:
+                        gt_M = cv2.moments(gt_cnt)
+                        if gt_M['m00'] != 0:
+                            cx = int(gt_M['m10'] / gt_M['m00'])
+                            cy = int(gt_M['m01'] / gt_M['m00'])
+                            x1 = cx - 1
+                            x2 = cx + 1
+                            y1 = cy - 1
+                            y2 = cy + 1
+                        else:
+                            x1, y1, x2, y2 = 0, 0, 1, 1
+
+                        if count % 20 == 0:
+                            csv_num += 20
+                            count = 0
+                        else:
+                            frame_num += 1
+                        gt_data = [0, x1, y1, x2, y2, count, 0, 0, 0, "Center"]
+                        save_path = os.path.join(save_dir, video_name + "_" + str(csv_num-19).zfill(6) + ".csv")
+                        with open(save_path, 'a', newline="") as s:
+                            writer = csv.writer(s, delimiter=' ')
+                            writer.writerow(gt_data)
+                        count += 1
+            '''
+            except FileNotFoundError:
+                print("annotation_data/XXX.csv was not generated!!!!!!!!")
+            '''
 
 
         H, W, C = 1920, 3840, 3
@@ -430,10 +466,10 @@ if __name__ == '__main__':
                 f.writelines(frame_data)
 
     # human bbox 2
-    frames_dir = glob.glob(os.path.join(args.root, "tracking_annotation", video_name, "*"))
+    frames_dir = glob.glob(os.path.join(args.root, "tracking_annotation", "*", "*"))
     frames_dir.sort()
-    first_txt = 1
     for frame_dir in frames_dir:
+        gathered_num = os.path.basename(frame_dir)
         data = list()
         human_num = 0
         max_num = 0
@@ -455,10 +491,9 @@ if __name__ == '__main__':
                     except IndexError:
                         continue
             human_num += 1
-        save_path = os.path.join(frame_dir, str(first_txt).zfill(6) + ".txt")
+        save_path = os.path.join(frame_dir, str(gathered_num).zfill(6) + ".txt")
         with open(save_path, 'w') as f:
             f.writelines(data)
-        first_txt += 20
 
         each_txts = glob.glob(os.path.join(frame_dir, "*.txt"))
         for each_txt in each_txts:

@@ -98,9 +98,10 @@ def head_direction(face_kpt, org_img):
 
     return p1, p2, yaw, pitch, roll
 
-with open("data/train/mmpose/results_ds_014.json") as f:
+with open("data/short_or/mmpose/ds_009_27min-29min.json") as f:
     data = json.load(f)
-    img_paths = glob.glob("data/train/frames/ds014/*.png")
+    img_paths = glob.glob("data/short_or/frames/ds_009_27min-29min/*.png")
+    img_paths.sort()
     
     for i, instance_info in enumerate(data["instance_info"]):
         instances = instance_info["instances"]
@@ -116,17 +117,18 @@ with open("data/train/mmpose/results_ds_014.json") as f:
             if sum(score >= 0.5 for score in face_scores) > 68 / 5:
                 for face in face_kpt:
                     tpl = tuple([int(xy) for xy in face])
-                    cv2.circle(org_img, tpl, 2, (0, 255, 0), thickness=-1)
+                    cv2.circle(org_img, tpl, 2, (255, 255, 255), thickness=-1)
 
                 p1, p2, yaw, pitch, roll = head_direction(face_kpt, org_img)
 
-                cv2.arrowedLine(org_img, p1, p2, (0, 0, 255), 5)
+                # cv2.arrowedLine(org_img, p1, p2, (0, 0, 255), 5)
                 # cv2.putText(org_img, "pitch:" + str(int(pitch)), p1, cv2.FONT_HERSHEY_PLAIN, 2, (255, 0, 0), 2)
 
                 pt1_x, pt1_y, pt2_x, pt2_y = face_rectangle(face_kpt, yaw, pitch)
-                cv2.rectangle(org_img, (pt1_x, pt1_y), (pt2_x, pt2_y), (0, 255, 255), thickness=2)
+                # cv2.rectangle(org_img, (pt1_x, pt1_y), (pt2_x, pt2_y), (0, 255, 255), thickness=2)
 
-        # shole body keypoints
+        # whole body keypoints
+        '''
         H = 1920
         W = 3840
         kptmap = np.zeros((H, W))
@@ -149,10 +151,11 @@ with open("data/train/mmpose/results_ds_014.json") as f:
         blend_img = cv2.resize(blend_img, (int(W/4), int(H/4)))
         cv2.imwrite("./kpt_blend.png", blend_img)
         cv2.imwrite("./kpt.png", kptmap)
-        exit()
+        '''
 
         img = cv2.resize(org_img, None, fx=0.5, fy=0.5)
-        cv2.imwrite("data/face_landmarks/" + str(44980 - 25 * 19 + i).zfill(6) + ".png", img)
+        cv2.imwrite("data/face_landmarks/" + str(i).zfill(6) + ".png", img)
+        # cv2.imwrite("data/face_landmarks/" + str(44980 - 25 * 19 + i).zfill(6) + ".png", img)
         """
         cv2.imshow("draw", org_img)
         cv2.waitKey(0)
