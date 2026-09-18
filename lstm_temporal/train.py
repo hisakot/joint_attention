@@ -383,6 +383,7 @@ def main():
     parser.add_argument("--batch_size", required=False, default=1, type=int)
     parser.add_argument("--checkpoint", required=False,
                         help="if you want to retry training, write model path")
+    parser.add_argument("--save_model_name", required=True, help="except '.pth'")
     args = parser.parse_args()
     batch_size = args.batch_size
 
@@ -427,7 +428,7 @@ def main():
     loss_functions = ["cos_similarity", "KLDiv", "SSIM"]
     # optimizer = optim.SGD(net.parameters(), lr=lr)
     optimizer = optim.AdamW(net.parameters(), lr=lr, weight_decay=1e-2)
-    scheduler = lr_scheduler.StepLR(optimizer, step_size=20, gamma=1)
+    scheduler = lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.9)
     # scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, mode="min", factor=0.9, patience=5, verbose=True)
 
     writer = SummaryWriter(log_dir="logs")
@@ -473,10 +474,10 @@ def main():
         for i, test_loss in enumerate(test_loss_list):
             writer.add_scalar("Test Loss", test_loss[0], i+1)
         '''
-        print("Reload midel : ", start_epoch, "and restart training")
+        print("Reload model : ", start_epoch, "and restart training")
         optimizer = optim.AdamW(filter(lambda p: p.requires_grad, net.parameters()),
                                 lr=lr, weight_decay=1e-2)
-        scheduler = lr_scheduler.StepLR(optimizer, step_size=20, gamma=1)
+        scheduler = lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.9)
         # scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, mode="min", factor=0.9, patience=5, verbose=True)
     else:
         start_epoch = 0
@@ -527,7 +528,7 @@ def main():
                             "train_loss_list" : train_loss_list,
                             "val_loss_list" : val_loss_list,
                             # "test_loss_list" : test_loss_list,
-                            }, "save_models/lstm_trial.pth")
+                            }, "save_models/"+args.save_model_name+".pth")
             else:
                 early_stopping[2] += 1
                 if early_stopping[2] == early_stopping[1]:

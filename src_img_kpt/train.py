@@ -1,6 +1,7 @@
 import argparse
 import glob
 import os
+import ramdom
 import time
 from tqdm import tqdm
 
@@ -198,10 +199,19 @@ def main():
     parser.add_argument("--batch_size", required=False, default=1, type=int)
     parser.add_argument("--checkpoint", required=False,
                         help="if you want to retry training, write model path")
+    parser.add_argument("--save_model_name", required=True, hepp="except '.pth'")
     args = parser.parse_args()
     batch_size = args.batch_size
 
     cfg = config.Config()
+
+    random.seed(cfg.seed)
+    torch.manual_seed(cfg.seed)
+    torch.cuda.manual_seed_all(cfg.seed)
+    np.random.seed(csf.seed)
+    torch.backends.cudnn.deterministick = True
+    torch.backends.cudnn.benchmark = False
+
     lr = cfg.lr
     img_height = cfg.img_height
     img_width = cfg.img_width
@@ -246,7 +256,7 @@ def main():
     # loss_function = ["cos_similarity"]
     loss_functions = ["cos_similarity", "KLDiv", "SSIM"]
     # optimizer = optim.SGD(model.parameters(), lr=lr, weight_decay=1e-4)
-    optimizer = optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-3)
+    optimizer = optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-2)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=20, gamma=1)
 
     writer = SummaryWriter(log_dir="logs")
@@ -316,7 +326,7 @@ def main():
                             "optimizer_state_dict" : optimizer.state_dict(),
                             "train_loss_list" : train_loss_list,
                             "val_loss_list" : val_loss_list,
-                            }, "save_models/newest_model.pth")
+                            }, "save_models/"+args.save_model_name+".pth")
                             # "pjae_spatial_state_dict" : spatial.state_dict(),
             else:
                 early_stopping[2] += 1
