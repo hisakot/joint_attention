@@ -11,14 +11,36 @@ from tqdm import tqdm
 
 matplotlib.use('Agg')
 
+def equi2latlon(x, y, W, H):
+    lon = (x / W) * 2 * np.pi - np.pi
+    lat = np.pi / 2 - (y / H) * np.pi
+
+    return lat, lon
+
+def spherical_dist(x1, y1, x2, y2, W, H):
+    lat1, lon1 = equi2latlon(x1, y1, W, H)
+    lat2, lon2 = equi2latlon(x2, y2, W, H)
+
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+
+    a = np.sin(dtal / 2)**2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon / 2)**2
+    a = np.clip(a, 0.0, 1.0)
+
+    angular_distance = 2 * np.arcsin(np.sqrt(a))
+    angular_distance_deg = np.degrees(angular_distance)
+
+    return angular_distance_deg
+
 # gt_paths = glob.glob("data/test/gt_heatmap_1ch_large/*/*.png")
 # gt_paths = glob.glob("data/ue/test/gt_heatmap_1ch_large/*/*.png")
 gt_paths = glob.glob("data/short_test/gt_heatmap_1ch_large/*/*.png")
 # gt_paths = glob.glob("data/mixed/test/gt_heatmap_1ch_large/*/*.png")
 # gt_paths = glob.glob("data/short_or/gt_heatmap_1ch/014_5min_10/*.png")
 gt_paths.sort()
-# pred_paths = glob.glob("data/pred/result_hm/*.png")
-pred_paths = glob.glob("../PJAE-ICCV2023-UE/results/real_test/retrain_ue_noaction/final_jo_att/*.png")
+pred_paths = glob.glob("data/pred/result_hm/*.png")
+# pred_paths = glob.glob("../PJAE-ICCV2023-UE/results/real_test/retrain_ue_noaction/final_jo_att/*.png")
+# pred_paths = glob.glob("data/pred/geometric_from_cone/*.png")
 pred_paths.sort()
 # img_paths = glob.glob("data/test/frames/*/*.png")
 # img_paths = glob.glob("data/ue/test/frames/*/*.png")
@@ -30,13 +52,17 @@ img_paths.sort()
 H = 640
 W = 1280
 
-x, y, xy, auc_sum = 0, 0, 0, 0
+x, y, xy, auc_sum, spherical_sum = 0, 0, 0, 0, 0
 list_x = []
 list_y = []
 list_xy = []
+list_spherical = []
 thr30 = 0
 thr60 = 0
 thr90 = 0
+thr5_degree = 0
+thr10_degree = 0
+thr15_degree = 0
 iou = 0
 size = 0
 for i, pred_path in tqdm(enumerate(pred_paths), total=len(pred_paths)):
@@ -129,15 +155,21 @@ for i, pred_path in tqdm(enumerate(pred_paths), total=len(pred_paths)):
             size += 1
             cx = int(M['m10'] / M['m00'])
             cy = int(M['m01'] / M['m00'])
+            # pixel distance
             dist_x = abs(cx - gt_x)
             if dist_x > W / 2:
                 dist_x = W - dist_x
             dist_y = abs(cy - gt_y)
             dist_xy = math.sqrt(dist_x**2 + dist_y**2)
+            # spherical angular distance
+            dist_spherical = spherical_dist(cx, cy, gt_x, gt_y, W, H)
+            # select closedt prediction contour based on pixel distance
             if dist_min[2] > dist_xy:
                 dist_min[0] = dist_x
                 dist_min[1] = dist_y
                 dist_min[2] = dist_xy
+                dist_min[3] = dist_spherical
+            # visualization
             cv2.line(result, (cx, cy), (gt_x, gt_y), color=(255, 255, 255),
                      thickness=2, lineType=cv2.LINE_AA)
             cv2.drawMarker(result, (cx, cy), color=(255, 0, 0), 
@@ -145,18 +177,29 @@ for i, pred_path in tqdm(enumerate(pred_paths), total=len(pred_paths)):
             cv2.drawMarker(result, (gt_x, gt_y), color=(0, 0, 255), 
                            markerType=cv2.MARKER_CROSS, markerSize=20, thickness=3)
 
+            # statistics
             x += dist_min[0]
             y += dist_min[1]
             xy += dist_min[2]
+            spherical_sum += dist_min[3]
             list_x.append(dist_min[0])
             list_y.append(dist_min[1])
             list_xy.append(dist_min[2])
+            list_spherical.append(dist_min[3])
+            # pixel thresholds
             if dist_min[2] <= 30:
                 thr30 += 1
             if dist_min[2] <= 60:
                 thr60 += 1
             if dist_min[2] <= 90:
                 thr90 += 1
+            # spherical angular threshold
+            if dist_min[3] <- 5:
+                thr5_degree += 1
+            if dist_min[3] <= 10:
+                thr10_degree += 1
+            if dist_min[3] <= 15:
+                thr15_degree += 1
 
     # if using pred argmax
     '''
@@ -206,9 +249,13 @@ print("size: ", size)
 x /= size
 y /= size
 xy /= size
+spherical_sum /= size
 thr30 /= size
 thr60 /= size
 thr90 /= size
+thr5_degree /= size
+thr10_degree /= size
+thr15_degree /= size
 iou /= size
 auc_sum /= len(pred_paths)
 max_x = max(list_x)
@@ -220,11 +267,18 @@ std_y = np.std(list_y)
 max_xy = max(list_xy)
 min_xy = min(list_xy)
 std_xy = np.std(list_xy)
+max_spherical = max(list_spherical)
+min_spherical = min(list_spherical)
+std_spherical = np.std(list_spherical)
 print(f"x: max {max_x}, min {min_x}, ave {x}, std {std_x}")
 print(f"y: max {max_y}, min {min_y}, ave {y}, std {std_y}")
 print(f"xy: max {max_xy}, min {min_xy}, ave {xy}, std {std_xy}")
+print(f"spherical distance: max {max_spherical}, min: {min_spherical}, std: {std_spherical}")
 print("auc: ", auc_sum)
 print("Thr=30: ", thr30)
 print("Thr=60: ", thr60)
 print("Thr=90: ", thr90)
+print("Thr=5[deg]: ", thr5_degree)
+print("Thr=10[deg]: ", thr10_degree)
+print("Thr=15[deg]: ", thr15_degree)
 print("IoU: ", iou)
