@@ -24,7 +24,7 @@ def spherical_dist(x1, y1, x2, y2, W, H):
     dlat = lat2 - lat1
     dlon = lon2 - lon1
 
-    a = np.sin(dtal / 2)**2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon / 2)**2
+    a = np.sin(dlat / 2)**2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon / 2)**2
     a = np.clip(a, 0.0, 1.0)
 
     angular_distance = 2 * np.arcsin(np.sqrt(a))
@@ -136,7 +136,7 @@ for i, pred_path in tqdm(enumerate(pred_paths), total=len(pred_paths)):
         max_brightness = -1
         best_contour = None
 
-        dist_min = [0, 0, math.sqrt(W**2 + H**2)]
+        dist_min = [0, 0, math.sqrt(W**2 + H**2), 0]
         for cnt in pred_contours:
             area = cv2.contourArea(cnt)
             if area < 100:
@@ -273,7 +273,7 @@ std_spherical = np.std(list_spherical)
 print(f"x: max {max_x}, min {min_x}, ave {x}, std {std_x}")
 print(f"y: max {max_y}, min {min_y}, ave {y}, std {std_y}")
 print(f"xy: max {max_xy}, min {min_xy}, ave {xy}, std {std_xy}")
-print(f"spherical distance: max {max_spherical}, min: {min_spherical}, std: {std_spherical}")
+print(f"spherical distance: max {max_spherical}, min: {min_spherical}, ave: {spherical_sum}, std: {std_spherical}")
 print("auc: ", auc_sum)
 print("Thr=30: ", thr30)
 print("Thr=60: ", thr60)

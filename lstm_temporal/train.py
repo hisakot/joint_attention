@@ -84,8 +84,8 @@ def train(train_dataloader, net, loss_functions, optimizer, device):
                         targets_sum = targets_flat.sum(dim=1, keepdim=True)
                         targets_norm = torch.where(targets_sum > 0, targets_flat / targets_sum, targets_flat)
                         kl_loss = lossfunc(log_pred, targets_norm)
-                        loss += kl_loss
-                        kl_total += kl_loss
+                        loss += kl_loss * 0.1
+                        kl_total += kl_loss * 0.1
                     elif loss_function == "combined_loss":
                         loss += compute_all_losses(pred, targets)
                     elif loss_function == "SSIM":
@@ -167,8 +167,8 @@ def evaluate(val_dataloader, net, loss_functions, device):
                             targets_sum = targets_flat.sum(dim=1, keepdim=True)
                             targets_norm = torch.where(targets_sum > 0, targets_flat / targets_sum, targets_flat)
                             kl_loss = lossfunc(log_pred, targets_norm)
-                            loss += kl_loss
-                            kl_total += kl_loss
+                            loss += kl_loss * 0.1
+                            kl_total += kl_loss * 0.1
                         elif loss_function == "combined_loss":
                             loss = compute_all_losses(pred, targets)
                         elif loss_function == "SSIM":
@@ -423,11 +423,18 @@ def main():
         print("---------- Use CPU ----------")
     net.to(device)
 
+    # parameters
+    total_params = sum(p.numel() for p in net.parameters())
+    trainable_params = sum(p.numel() for p in net.parameters() if p.requires_grad)
+    print(f"Total parameters: {total_params}")
+    print(f"Trainable parameters: {trainable_params}")
+    print(f"Trainable paremeters: {trainable_params / 1e6:.2f} M")
+
     # loss_function = nn.CrossEntropyLoss()
     # loss_functions = ["MSE", "MAE", "cos_similarity", "KLDiv", "combined_loss", "SSIM"]
     loss_functions = ["cos_similarity", "KLDiv", "SSIM"]
     # optimizer = optim.SGD(net.parameters(), lr=lr)
-    optimizer = optim.AdamW(net.parameters(), lr=lr, weight_decay=1e-2)
+    optimizer = optim.AdamW(net.parameters(), lr=lr, weight_decay=1e-3)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.9)
     # scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, mode="min", factor=0.9, patience=5, verbose=True)
 
@@ -476,7 +483,7 @@ def main():
         '''
         print("Reload model : ", start_epoch, "and restart training")
         optimizer = optim.AdamW(filter(lambda p: p.requires_grad, net.parameters()),
-                                lr=lr, weight_decay=1e-2)
+                                lr=lr, weight_decay=1e-3)
         scheduler = lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.9)
         # scheduler = lr_scheduler.ReduceLROnPlateau(optimizer, mode="min", factor=0.9, patience=5, verbose=True)
     else:
@@ -538,11 +545,11 @@ def main():
             writer.add_scalar("Train Loss", train_loss[0], epoch + 1)
             # writer.add_scalar("Train cosLoss", train_loss[1], epoch + 1)
             # writer.add_scalar("Train klLoss", train_loss[2], epoch + 1)
-            writer.add_scalar("Train ssimLoss", train_loss[3], epoch + 1)
+            # writer.add_scalar("Train ssimLoss", train_loss[3], epoch + 1)
             writer.add_scalar("Valid Loss", val_loss[0], epoch + 1)
             # writer.add_scalar("Valid cosLoss", val_loss[1], epoch + 1)
             # writer.add_scalar("Valid klLoss", val_loss[2], epoch + 1)
-            writer.add_scalar("Valid ssimLoss", val_loss[3], epoch + 1)
+            # writer.add_scalar("Valid ssimLoss", val_loss[3], epoch + 1)
             # writer.add_scalar("Test Loss", test_loss[0], epoch + 1)
             # writer.add_scalar("Test cosLoss", test_loss[1], epoch + 1)
             # writer.add_scalar("Test klLoss", test_loss[2], epoch + 1)

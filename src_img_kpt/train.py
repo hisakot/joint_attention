@@ -1,7 +1,7 @@
 import argparse
 import glob
 import os
-import ramdom
+import random
 import time
 from tqdm import tqdm
 
@@ -106,7 +106,7 @@ def train(train_dataloader, model, loss_functions, optimizer, device):
                     targets_sum = targets_flat.sum(dim=1, keepdim=True)
                     targets_norm = torch.where(targets_sum > 0, targets_flat / targets_sum, targets_flat)
                     kl_loss = lossfunc(log_pred, targets_norm)
-                    loss += kl_loss
+                    loss += kl_loss * 0.1
                 elif loss_function == "combined_loss":
                     loss += compute_all_losses(pred, targets)
                 elif loss_function == "SSIM":
@@ -170,7 +170,7 @@ def evaluate(val_dataloader, model, loss_functions, device):
                         targets_sum = targets_flat.sum(dim=1, keepdim=True)
                         targets_norm = torch.where(targets_sum > 0, targets_flat / targets_sum, targets_flat)
                         kl_loss = lossfunc(log_pred, targets_norm)
-                        loss += kl_loss
+                        loss += kl_loss * 0.1
                     elif loss_function == "combined_loss":
                         loss += compute_all_losses(pred, targets)
                     elif loss_function == "SSIM":
@@ -199,7 +199,7 @@ def main():
     parser.add_argument("--batch_size", required=False, default=1, type=int)
     parser.add_argument("--checkpoint", required=False,
                         help="if you want to retry training, write model path")
-    parser.add_argument("--save_model_name", required=True, hepp="except '.pth'")
+    parser.add_argument("--save_model_name", required=True, help="except '.pth'")
     args = parser.parse_args()
     batch_size = args.batch_size
 
@@ -208,7 +208,7 @@ def main():
     random.seed(cfg.seed)
     torch.manual_seed(cfg.seed)
     torch.cuda.manual_seed_all(cfg.seed)
-    np.random.seed(csf.seed)
+    np.random.seed(cfg.seed)
     torch.backends.cudnn.deterministick = True
     torch.backends.cudnn.benchmark = False
 
@@ -236,10 +236,13 @@ def main():
     model = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width,
                                         in_chans=2, num_classes=1)
     '''
+
+    '''
     model = transGan.TransGAN(patch_size=10, emb_size=512, num_heads=2, forward_expansion=4,
                               img_height=img_height, img_width=img_width, in_ch=5)
     model = vision_transformer.SwinUnet(img_height=img_height, img_width=img_width,
                                         in_chans=5, num_classes=1)
+    '''
     model = PJAE_conv.ModelSpatial(in_ch=5)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -257,7 +260,7 @@ def main():
     loss_functions = ["cos_similarity", "KLDiv", "SSIM"]
     # optimizer = optim.SGD(model.parameters(), lr=lr, weight_decay=1e-4)
     optimizer = optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-2)
-    scheduler = lr_scheduler.StepLR(optimizer, step_size=20, gamma=1)
+    scheduler = lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.9)
 
     writer = SummaryWriter(log_dir="logs")
 
