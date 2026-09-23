@@ -128,14 +128,14 @@ def main():
                 save_path = os.path.join(save_dir, str(i).zfill(6) + ".png")
                 cv2.imwrite(save_path, gazemap)
     elif args.data_type == "real_point":
-        W = 1920
-        H = 960
-        gaze_ann_paths = glob.glob("data/short_or/annotations/*.json")
+        W = 3840 # TODO fit the image size
+        H = 1920 # TODO fit the image size
+        gaze_ann_paths = glob.glob("data/revisedR2/annotations/*.json")
         for gaze_ann_path in gaze_ann_paths:
             data = load_json(gaze_ann_path)
 
             video_name = os.path.splitext(os.path.basename(gaze_ann_path))[0]
-            save_dir = "data/short_or/gt_heatmap_1ch/" + video_name
+            save_dir = "data/revisedR2/gt_heatmap_1ch_large/" + video_name
             if os.path.exists(save_dir):
                 print(save_dir + " is exits")
                 continue
@@ -148,6 +148,7 @@ def main():
                 for ann in ann_in_img:
                     point = ann["points"] # (f.f, f.f)
                     gazemap[int(round(point[1]))][int(round(point[0]))] = 1
+                gazemap = cv2.resize(gazemap, (1920, 960))
                 gazemap = gaussian_blur(gazemap, ksize=499)
                 save_path = os.path.join(save_dir, str(i).zfill(6) + ".png")
                 cv2.imwrite(save_path, gazemap)

@@ -46,9 +46,9 @@ def load_mmpose_links(mmpose_path):
         links = meta_info["skeleton_links"]
         return links
 
-H = 960
-W = 1920
-data_dir = "data/Fig"
+H =1920
+W = 3840
+data_dir = "data/revisedR2"
 mmpose_paths = glob.glob(data_dir + "/mmpose/*.json")
 mmpose_paths.sort()
 mmposes = []
